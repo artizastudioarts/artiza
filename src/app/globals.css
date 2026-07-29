@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  /* Gallery-wall palette — cool concrete white, not warm cream */
+  --paper: #eeeeea;
+  --paper-dim: #e3e2dc;
+  --ink: #161412;
+  --ink-soft: #55524c;
+  --oxblood: #6b2737;
+  --brass: #a8823c;
+  --line: #d8d6cf;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-dim: var(--paper-dim);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-oxblood: var(--oxblood);
+  --color-brass: var(--brass);
+  --color-line: var(--line);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* museum-placard style label */
+.placard-label {
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
