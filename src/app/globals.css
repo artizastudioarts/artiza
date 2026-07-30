@@ -21,6 +21,7 @@
   --color-line: var(--line);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
+  --font-script: var(--font-script);
 }
 
 body {
@@ -29,6 +30,10 @@ body {
 
 .font-display {
   font-family: var(--font-display), Georgia, serif;
+}
+
+.font-script {
+  font-family: var(--font-script), cursive;
 }
 
 /* museum-placard style label */
