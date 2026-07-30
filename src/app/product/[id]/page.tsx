@@ -5,7 +5,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 
-export const revalidate = 60;
+export const revalidate = 0; // always fetch fresh, no stale "sold" status
 
 export default async function ProductPage({
   params,

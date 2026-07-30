@@ -3,7 +3,7 @@ import { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import Header from "@/components/Header";
 
-export const revalidate = 60; // refresh product list every minute
+export const revalidate = 0; // always fetch fresh, no stale "sold" status
 
 export default async function Home() {
   const { data: products } = await supabasePublic
