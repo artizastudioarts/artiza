@@ -18,6 +18,7 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[];
+  loaded: boolean;
   addItem: (item: CartItem) => void;
   removeItem: (id: string) => void;
   clear: () => void;
@@ -63,7 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, clear }}>
+    <CartContext.Provider value={{ items, loaded, addItem, removeItem, clear }}>
       {children}
     </CartContext.Provider>
   );
