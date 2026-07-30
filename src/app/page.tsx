@@ -20,7 +20,7 @@ export default async function Home() {
       <Header />
       <main className="flex-1 w-full">
         <section className="max-w-6xl mx-auto px-6 pt-16 pb-10 text-center">
-          <p className="placard-label mb-4">
+          <p className="placard-label text-ink-soft mb-4">
             {content?.subheadline ?? "PAINT-YOUR-OWN FIGURE KITS FOR KIDS"}
           </p>
           <h1 className="font-display text-4xl md:text-6xl italic leading-tight max-w-3xl mx-auto">
@@ -51,12 +51,12 @@ export default async function Home() {
                 controls
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center placard-label text-center px-6">
+              <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft text-center px-6">
                 Add a video in the admin dashboard to show it here
               </div>
             )}
           </div>
-          <p className="placard-label text-center mt-4">
+          <p className="placard-label text-ink-soft text-center mt-4">
             Every model, hand-finished before it ships
           </p>
         </section>

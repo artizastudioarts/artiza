@@ -68,7 +68,7 @@ export default function CartPage() {
                       onChange={(e) =>
                         setQuantity(item.id, Number(e.target.value))
                       }
-                      className="border border-line px-2 py-2 bg-paper placard-label"
+                      className="border border-line px-2 py-2 bg-paper placard-label text-ink-soft"
                     >
                       {Array.from(
                         { length: Math.min(item.stock_quantity, 20) },
@@ -91,7 +91,7 @@ export default function CartPage() {
             </ul>
 
             <div className="flex items-center justify-between mb-8">
-              <span className="placard-label">Total</span>
+              <span className="placard-label text-ink-soft">Total</span>
               <span className="font-display text-xl">
                 {formatPrice(total, currency)}
               </span>
@@ -106,7 +106,7 @@ export default function CartPage() {
             >
               {loading ? "Redirecting to checkout…" : "Checkout"}
             </button>
-            <p className="placard-label mt-3 text-center">
+            <p className="placard-label text-ink-soft mt-3 text-center">
               Card &amp; PayPal accepted via Stripe
             </p>
           </>

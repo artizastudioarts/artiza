@@ -45,7 +45,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
       <select
         value={qty}
         onChange={(e) => setQty(Number(e.target.value))}
-        className="border border-line px-3 py-3 bg-paper placard-label"
+        className="border border-line px-3 py-3 bg-paper placard-label text-ink-soft"
       >
         {Array.from({ length: Math.min(remaining, 20) }, (_, i) => i + 1).map(
           (n) => (

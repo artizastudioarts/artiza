@@ -101,7 +101,7 @@ function OrdersTab() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-left border-b border-line placard-label">
+          <tr className="text-left border-b border-line placard-label text-ink-soft">
             <th className="py-2 pr-4">Date</th>
             <th className="py-2 pr-4">Piece</th>
             <th className="py-2 pr-4">Customer</th>
@@ -227,7 +227,7 @@ function ProductsTab() {
               )}
               <div className="p-3">
                 <p className="font-display">{p.title}</p>
-                <p className="placard-label">
+                <p className="placard-label text-ink-soft">
                   {formatPrice(p.price_cents, p.currency)}
                 </p>
                 <div className="flex items-center justify-between mt-3 gap-3">
@@ -454,7 +454,7 @@ function HomeTab() {
       </p>
 
       <div>
-        <label className="placard-label block mb-1">Small label above headline</label>
+        <label className="placard-label text-ink-soft block mb-1">Small label above headline</label>
         <input
           value={form.subheadline}
           onChange={(e) => setForm({ ...form, subheadline: e.target.value })}
@@ -463,7 +463,7 @@ function HomeTab() {
       </div>
 
       <div>
-        <label className="placard-label block mb-1">Headline</label>
+        <label className="placard-label text-ink-soft block mb-1">Headline</label>
         <input
           value={form.headline}
           onChange={(e) => setForm({ ...form, headline: e.target.value })}
@@ -472,7 +472,7 @@ function HomeTab() {
       </div>
 
       <div>
-        <label className="placard-label block mb-1">Body text</label>
+        <label className="placard-label text-ink-soft block mb-1">Body text</label>
         <textarea
           value={form.body}
           onChange={(e) => setForm({ ...form, body: e.target.value })}
@@ -482,7 +482,7 @@ function HomeTab() {
       </div>
 
       <div>
-        <label className="placard-label block mb-1">
+        <label className="placard-label text-ink-soft block mb-1">
           Video (slow-mo of the making process, mp4 works best)
         </label>
         {form.video_url && !videoFile && (
@@ -499,7 +499,7 @@ function HomeTab() {
           onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
         />
         {uploading && (
-          <p className="placard-label mt-1">Uploading video, this can take a moment…</p>
+          <p className="placard-label text-ink-soft mt-1">Uploading video, this can take a moment…</p>
         )}
       </div>
 

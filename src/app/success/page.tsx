@@ -17,7 +17,7 @@ export default function SuccessPage() {
     <>
       <Header />
       <main className="max-w-xl mx-auto px-6 py-24 flex-1 w-full text-center">
-        <p className="placard-label mb-3">Order confirmed</p>
+        <p className="placard-label text-ink-soft mb-3">Order confirmed</p>
         <h1 className="font-display text-3xl italic mb-4">
           Thank you for your order
         </h1>

@@ -19,7 +19,7 @@ export default async function ShopPage() {
       <Header />
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full">
         <div className="mb-12 max-w-xl">
-          <p className="placard-label mb-3">Paintable figures for kids</p>
+          <p className="placard-label text-ink-soft mb-3">Paintable figures for kids</p>
           <h1 className="font-display text-4xl md:text-5xl italic leading-tight">
             Pick a model, get painting.
           </h1>

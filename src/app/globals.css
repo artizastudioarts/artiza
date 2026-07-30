@@ -36,11 +36,10 @@ body {
   font-family: var(--font-script), cursive;
 }
 
-/* museum-placard style label */
+/* museum-placard style label — typography only, color set per-usage */
 .placard-label {
   font-family: var(--font-body), Arial, sans-serif;
   font-size: 0.6875rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-soft);
 }

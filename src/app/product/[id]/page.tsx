@@ -36,14 +36,14 @@ export default async function ProductPage({
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center placard-label">
+            <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft">
               No image
             </div>
           )}
         </div>
 
         <div className="max-w-md">
-          <p className="placard-label mb-3">
+          <p className="placard-label text-ink-soft mb-3">
             {product.medium ?? "Original artwork"}
           </p>
           <h1 className="font-display text-4xl italic leading-tight mb-4">
@@ -62,12 +62,12 @@ export default async function ProductPage({
           )}
 
           {product.stock_quantity <= 0 ? (
-            <div className="placard-label border border-line px-4 py-3 inline-block">
+            <div className="placard-label text-ink-soft border border-line px-4 py-3 inline-block">
               Currently sold out
             </div>
           ) : (
             <>
-              <p className="placard-label mb-4">
+              <p className="placard-label text-ink-soft mb-4">
                 {product.stock_quantity <= 5
                   ? `Only ${product.stock_quantity} left`
                   : `${product.stock_quantity} in stock`}

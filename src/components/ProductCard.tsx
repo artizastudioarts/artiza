@@ -17,7 +17,7 @@ export default function ProductCard({ product }: { product: Product }) {
             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center placard-label">
+          <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft">
             No image
           </div>
         )}
@@ -34,7 +34,7 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
       <div className="mt-3 space-y-0.5">
         <h3 className="font-display text-lg leading-snug">{product.title}</h3>
-        <p className="placard-label">{product.medium}</p>
+        <p className="placard-label text-ink-soft">{product.medium}</p>
         <p className="text-sm text-ink-soft">
           {formatPrice(product.price_cents, product.currency)}
         </p>
