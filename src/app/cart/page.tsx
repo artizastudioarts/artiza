@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { formatPrice } from "@/lib/types";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCart();
+  const { user, session } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +25,9 @@ export default function CartPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+          // Only sent when logged in — lets the order be linked to the
+          // account so it shows up under "Your orders".
+          accessToken: session?.access_token ?? null,
         }),
       });
       const data = await res.json();
@@ -99,13 +104,31 @@ export default function CartPage() {
 
             {error && <p className="text-oxblood text-sm mb-4">{error}</p>}
 
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
-            >
-              {loading ? "Redirecting to checkout…" : "Checkout"}
-            </button>
+            {user ? (
+              <button
+                onClick={handleCheckout}
+                disabled={loading}
+                className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+              >
+                {loading ? "Redirecting to checkout…" : "Checkout"}
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <button
+                  onClick={handleCheckout}
+                  disabled={loading}
+                  className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+                >
+                  {loading ? "Redirecting to checkout…" : "Continue as guest"}
+                </button>
+                <Link
+                  href="/account/login?redirect=/cart"
+                  className="block w-full text-center border border-line px-6 py-4 placard-label hover:bg-paper-dim transition-colors"
+                >
+                  Log in / Sign up to track this order
+                </Link>
+              </div>
+            )}
             <p className="placard-label text-ink-soft mt-3 text-center">
               Card &amp; PayPal accepted via Stripe
             </p>

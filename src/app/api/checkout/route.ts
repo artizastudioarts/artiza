@@ -4,8 +4,9 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const { items } = (await req.json()) as {
+    const { items, accessToken } = (await req.json()) as {
       items: { id: string; quantity: number }[];
+      accessToken?: string | null;
     };
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -13,6 +14,19 @@ export async function POST(req: NextRequest) {
     }
 
     const db = supabaseAdmin();
+
+    // If the shopper is logged in, verify their token server-side (never
+    // trust a user id sent directly from the browser) so the order can be
+    // linked to their account and show up under "Your orders".
+    let userId: string | null = null;
+    let userEmail: string | undefined;
+    if (accessToken) {
+      const { data: userData } = await db.auth.getUser(accessToken);
+      if (userData.user) {
+        userId = userData.user.id;
+        userEmail = userData.user.email;
+      }
+    }
     const { data: products, error } = await db
       .from("products")
       .select("*")
@@ -47,6 +61,7 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card", "paypal"],
+      customer_email: userEmail,
       line_items: items.map((item) => {
         const product = products.find((p) => p.id === item.id)!;
         return {
@@ -78,6 +93,8 @@ export async function POST(req: NextRequest) {
       metadata: {
         // productId:quantity pairs, e.g. "abc123:2,def456:1"
         cart: items.map((i) => `${i.id}:${i.quantity}`).join(","),
+        // Empty string for guest checkouts — Stripe metadata values can't be null
+        user_id: userId ?? "",
       },
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart`,

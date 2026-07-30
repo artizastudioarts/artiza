@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const { items } = useCart();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = (
@@ -30,6 +32,13 @@ export default function Header() {
         className="placard-label text-ink-soft hover:text-ink"
       >
         Cart{items.length > 0 ? ` (${items.length})` : ""}
+      </Link>
+      <Link
+        href="/account"
+        onClick={() => setMenuOpen(false)}
+        className="placard-label text-ink-soft hover:text-ink"
+      >
+        {user ? "Account" : "Log in"}
       </Link>
     </>
   );

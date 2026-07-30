@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
         amount_total_cents: product.price_cents * quantity,
         currency: session.currency,
         status: "paid",
+        // Empty string means guest checkout — store as null, not "".
+        user_id: session.metadata?.user_id || null,
       });
 
       // Automatically deduct stock — no manual step, never goes negative

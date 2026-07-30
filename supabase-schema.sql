@@ -25,7 +25,8 @@ create table orders (
   amount_total_cents integer,
   currency text,
   status text not null default 'paid', -- paid, shipped, cancelled
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  user_id uuid references auth.users(id) -- null for guest checkouts
 );
 
 -- Allow the public (anon key) to READ products only. Everything else stays
@@ -35,8 +36,11 @@ create policy "Public can view products" on products
   for select using (true);
 
 alter table orders enable row level security;
--- no public policies on orders: only accessible via the service role key
--- (used server-side in the webhook and admin dashboard)
+-- Guest orders (user_id is null) stay accessible only via the service role
+-- key (used server-side in the webhook and admin dashboard). Logged-in
+-- customers can additionally read their own orders:
+create policy "Customers can view their own orders" on orders
+  for select using (auth.uid() = user_id);
 
 -- Single-row table holding the marketing homepage's editable content
 create table home_content (

@@ -11,6 +11,16 @@ export type Product = {
   created_at: string;
 };
 
+export type Order = {
+  id: string;
+  product_title: string;
+  quantity: number;
+  amount_total_cents: number;
+  currency: string;
+  status: string;
+  created_at: string;
+};
+
 export type HomeContent = {
   id: number;
   headline: string;
