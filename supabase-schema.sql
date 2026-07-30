@@ -9,7 +9,7 @@ create table products (
   price_cents integer not null,
   currency text not null default 'eur',
   image_url text,
-  is_sold boolean not null default false,
+  stock_quantity integer not null default 0,
   created_at timestamptz not null default now()
 );
 
@@ -21,6 +21,7 @@ create table orders (
   shipping_address jsonb,
   product_id uuid references products(id),
   product_title text,
+  quantity integer not null default 1,
   amount_total_cents integer,
   currency text,
   status text not null default 'paid', -- paid, shipped, cancelled

@@ -4,9 +4,11 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const { productIds } = (await req.json()) as { productIds: string[] };
+    const { items } = (await req.json()) as {
+      items: { id: string; quantity: number }[];
+    };
 
-    if (!Array.isArray(productIds) || productIds.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
@@ -14,7 +16,10 @@ export async function POST(req: NextRequest) {
     const { data: products, error } = await db
       .from("products")
       .select("*")
-      .in("id", productIds);
+      .in(
+        "id",
+        items.map((i) => i.id)
+      );
 
     if (error || !products || products.length === 0) {
       return NextResponse.json(
@@ -23,14 +28,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const soldOut = products.filter((p) => p.is_sold);
-    if (soldOut.length > 0) {
-      return NextResponse.json(
-        {
-          error: `Sorry, "${soldOut[0].title}" just sold. Remove it and try again.`,
-        },
-        { status: 409 }
-      );
+    // Re-check stock server-side — never trust the client's cart quantities
+    for (const item of items) {
+      const product = products.find((p) => p.id === item.id);
+      if (!product) continue;
+      if (item.quantity > product.stock_quantity) {
+        return NextResponse.json(
+          {
+            error: `Sorry, only ${product.stock_quantity} of "${product.title}" left. Update your cart and try again.`,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     const origin = req.headers.get("origin") ?? process.env.SITE_URL!;
@@ -38,20 +47,37 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card", "paypal"],
-      line_items: products.map((p) => ({
-        quantity: 1,
-        price_data: {
-          currency: p.currency,
-          unit_amount: p.price_cents,
-          product_data: {
-            name: p.title,
-            images: p.image_url ? [p.image_url] : undefined,
+      line_items: items.map((item) => {
+        const product = products.find((p) => p.id === item.id)!;
+        return {
+          quantity: item.quantity,
+          price_data: {
+            currency: product.currency,
+            unit_amount: product.price_cents,
+            product_data: {
+              name: product.title,
+              images: product.image_url ? [product.image_url] : undefined,
+            },
           },
-        },
-      })),
-      shipping_address_collection: { allowed_countries: ["DE", "AT", "CH", "US", "GB", "FR", "NL", "BE", "IT", "ES"] },
+        };
+      }),
+      shipping_address_collection: {
+        allowed_countries: [
+          "DE",
+          "AT",
+          "CH",
+          "US",
+          "GB",
+          "FR",
+          "NL",
+          "BE",
+          "IT",
+          "ES",
+        ],
+      },
       metadata: {
-        product_ids: products.map((p) => p.id).join(","),
+        // productId:quantity pairs, e.g. "abc123:2,def456:1"
+        cart: items.map((i) => `${i.id}:${i.quantity}`).join(","),
       },
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart`,

@@ -14,19 +14,22 @@ export type CartItem = {
   price_cents: number;
   currency: string;
   image_url: string | null;
+  quantity: number;
+  stock_quantity: number; // available stock, used to cap quantity client-side
 };
 
 type CartContextType = {
   items: CartItem[];
   loaded: boolean;
-  addItem: (item: CartItem) => void;
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
+  setQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
   clear: () => void;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
 
-const STORAGE_KEY = "artshop_cart_v1";
+const STORAGE_KEY = "artshop_cart_v2";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -47,12 +50,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, loaded]);
 
-  function addItem(item: CartItem) {
+  function addItem(item: Omit<CartItem, "quantity">, quantity = 1) {
     setItems((prev) => {
-      // originals are one-of-a-kind: no duplicate quantities
-      if (prev.some((i) => i.id === item.id)) return prev;
-      return [...prev, item];
+      const existing = prev.find((i) => i.id === item.id);
+      if (existing) {
+        const next = Math.min(
+          existing.quantity + quantity,
+          item.stock_quantity
+        );
+        return prev.map((i) =>
+          i.id === item.id ? { ...i, quantity: next } : i
+        );
+      }
+      const capped = Math.max(1, Math.min(quantity, item.stock_quantity));
+      return [...prev, { ...item, quantity: capped }];
     });
+  }
+
+  function setQuantity(id: string, quantity: number) {
+    setItems((prev) =>
+      prev
+        .map((i) =>
+          i.id === id
+            ? { ...i, quantity: Math.max(1, Math.min(quantity, i.stock_quantity)) }
+            : i
+        )
+        .filter((i) => i.quantity > 0)
+    );
   }
 
   function removeItem(id: string) {
@@ -64,7 +88,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <CartContext.Provider value={{ items, loaded, addItem, removeItem, clear }}>
+    <CartContext.Provider
+      value={{ items, loaded, addItem, setQuantity, removeItem, clear }}
+    >
       {children}
     </CartContext.Provider>
   );

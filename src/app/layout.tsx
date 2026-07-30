@@ -17,9 +17,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Studio — Original Artwork",
+  title: "Studio — Paint-Your-Own Figures",
   description:
-    "Original, one-of-a-kind artwork, hand-picked and shipped with care.",
+    "Paintable figure kits for kids, shipped with care.",
 };
 
 export default function RootLayout({

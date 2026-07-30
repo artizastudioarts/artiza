@@ -7,11 +7,11 @@ import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/types";
 
 export default function CartPage() {
-  const { items, removeItem } = useCart();
+  const { items, removeItem, setQuantity } = useCart();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const total = items.reduce((sum, i) => sum + i.price_cents, 0);
+  const total = items.reduce((sum, i) => sum + i.price_cents * i.quantity, 0);
   const currency = items[0]?.currency ?? "eur";
 
   async function handleCheckout() {
@@ -22,7 +22,7 @@ export default function CartPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productIds: items.map((i) => i.id),
+          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
         }),
       });
       const data = await res.json();
@@ -44,7 +44,7 @@ export default function CartPage() {
           <p className="text-ink-soft">
             Your cart is empty.{" "}
             <Link href="/" className="underline">
-              Browse the gallery
+              Browse the shop
             </Link>
             .
           </p>
@@ -59,15 +59,33 @@ export default function CartPage() {
                   <div>
                     <p className="font-display text-lg">{item.title}</p>
                     <p className="text-sm text-ink-soft">
-                      {formatPrice(item.price_cents, item.currency)}
+                      {formatPrice(item.price_cents, item.currency)} each
                     </p>
                   </div>
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="placard-label text-ink-soft hover:text-oxblood"
-                  >
-                    Remove
-                  </button>
+                  <div className="flex items-center gap-4">
+                    <select
+                      value={item.quantity}
+                      onChange={(e) =>
+                        setQuantity(item.id, Number(e.target.value))
+                      }
+                      className="border border-line px-2 py-2 bg-paper placard-label"
+                    >
+                      {Array.from(
+                        { length: Math.min(item.stock_quantity, 20) },
+                        (_, i) => i + 1
+                      ).map((n) => (
+                        <option key={n} value={n}>
+                          Qty {n}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => removeItem(item.id)}
+                      className="placard-label text-ink-soft hover:text-oxblood"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -79,9 +97,7 @@ export default function CartPage() {
               </span>
             </div>
 
-            {error && (
-              <p className="text-oxblood text-sm mb-4">{error}</p>
-            )}
+            {error && <p className="text-oxblood text-sm mb-4">{error}</p>}
 
             <button
               onClick={handleCheckout}

@@ -26,17 +26,23 @@ export async function POST(req: NextRequest) {
     const session = event.data.object as Stripe.Checkout.Session;
     const db = supabaseAdmin();
 
-    const productIds = (session.metadata?.product_ids ?? "")
+    // metadata.cart looks like "productId:qty,productId:qty"
+    const cartEntries = (session.metadata?.cart ?? "")
       .split(",")
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((entry) => {
+        const [productId, qty] = entry.split(":");
+        return { productId, quantity: Number(qty) || 1 };
+      });
 
-    // Record one order row per product (keeps order history simple to browse)
-    for (const productId of productIds) {
+    for (const { productId, quantity } of cartEntries) {
       const { data: product } = await db
         .from("products")
         .select("*")
         .eq("id", productId)
         .single();
+
+      if (!product) continue;
 
       await db.from("orders").insert({
         stripe_session_id: `${session.id}:${productId}`,
@@ -44,14 +50,19 @@ export async function POST(req: NextRequest) {
         customer_name: session.customer_details?.name,
         shipping_address: session.customer_details?.address ?? null,
         product_id: productId,
-        product_title: product?.title ?? "Unknown item",
-        amount_total_cents: product?.price_cents ?? null,
+        product_title: product.title,
+        quantity,
+        amount_total_cents: product.price_cents * quantity,
         currency: session.currency,
         status: "paid",
       });
 
-      // Automatically take the sold piece off the shelf — no manual step
-      await db.from("products").update({ is_sold: true }).eq("id", productId);
+      // Automatically deduct stock — no manual step, never goes negative
+      const newStock = Math.max(0, product.stock_quantity - quantity);
+      await db
+        .from("products")
+        .update({ stock_quantity: newStock })
+        .eq("id", productId);
     }
   }
 

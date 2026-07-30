@@ -3,6 +3,9 @@ import Image from "next/image";
 import { Product, formatPrice } from "@/lib/types";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const soldOut = product.stock_quantity <= 0;
+  const lowStock = !soldOut && product.stock_quantity <= 5;
+
   return (
     <Link href={`/product/${product.id}`} className="group block">
       <div className="relative aspect-[4/5] bg-paper-dim overflow-hidden">
@@ -18,9 +21,14 @@ export default function ProductCard({ product }: { product: Product }) {
             No image
           </div>
         )}
-        {product.is_sold && (
+        {soldOut && (
           <div className="absolute top-3 left-3 bg-ink text-paper px-2 py-1 placard-label">
-            Sold
+            Sold out
+          </div>
+        )}
+        {lowStock && (
+          <div className="absolute top-3 left-3 bg-oxblood text-paper px-2 py-1 placard-label">
+            Only {product.stock_quantity} left
           </div>
         )}
       </div>

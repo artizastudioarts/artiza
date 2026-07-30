@@ -23,7 +23,7 @@ type Product = {
   price_cents: number;
   currency: string;
   image_url: string | null;
-  is_sold: boolean;
+  stock_quantity: number;
 };
 
 export default function AdminDashboard() {
@@ -157,14 +157,14 @@ function ProductsTab() {
 
   useEffect(loadProducts, []);
 
-  async function toggleSold(id: string, is_sold: boolean) {
+  async function updateStock(id: string, stock_quantity: number) {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, is_sold } : p))
+      prev.map((p) => (p.id === id ? { ...p, stock_quantity } : p))
     );
     await fetch("/api/admin/products", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, is_sold }),
+      body: JSON.stringify({ id, stock_quantity }),
     });
   }
 
@@ -215,14 +215,18 @@ function ProductsTab() {
                 <p className="placard-label">
                   {formatPrice(p.price_cents, p.currency)}
                 </p>
-                <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center justify-between mt-3 gap-3">
                   <label className="flex items-center gap-2 text-sm">
+                    In stock:
                     <input
-                      type="checkbox"
-                      checked={p.is_sold}
-                      onChange={(e) => toggleSold(p.id, e.target.checked)}
+                      type="number"
+                      min={0}
+                      value={p.stock_quantity}
+                      onChange={(e) =>
+                        updateStock(p.id, Math.max(0, Number(e.target.value)))
+                      }
+                      className="w-16 border border-line px-2 py-1 bg-paper"
                     />
-                    Sold
                   </label>
                   <button
                     onClick={() => deleteProduct(p.id)}
@@ -247,6 +251,7 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
     dimensions: "",
     price: "",
     artist_note: "",
+    stock_quantity: "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -298,13 +303,13 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
         className="w-full border border-line px-3 py-2 bg-paper"
       />
       <input
-        placeholder="Medium (e.g. Oil on canvas)"
+        placeholder="Model / category (e.g. Paint-your-own dinosaur)"
         value={form.medium}
         onChange={(e) => setForm({ ...form, medium: e.target.value })}
         className="w-full border border-line px-3 py-2 bg-paper"
       />
       <input
-        placeholder="Dimensions (e.g. 60 x 80 cm)"
+        placeholder="Size / kit contents (e.g. 12cm figure + 6 paints)"
         value={form.dimensions}
         onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
         className="w-full border border-line px-3 py-2 bg-paper"
@@ -318,8 +323,17 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
         onChange={(e) => setForm({ ...form, price: e.target.value })}
         className="w-full border border-line px-3 py-2 bg-paper"
       />
+      <input
+        required
+        type="number"
+        min={0}
+        placeholder="Stock quantity"
+        value={form.stock_quantity}
+        onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })}
+        className="w-full border border-line px-3 py-2 bg-paper"
+      />
       <textarea
-        placeholder="Artist note / description"
+        placeholder="Description (what's included, age range, etc.)"
         value={form.artist_note}
         onChange={(e) => setForm({ ...form, artist_note: e.target.value })}
         className="w-full border border-line px-3 py-2 bg-paper"

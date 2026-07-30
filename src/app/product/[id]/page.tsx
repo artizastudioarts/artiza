@@ -5,7 +5,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 
-export const revalidate = 0; // always fetch fresh, no stale "sold" status
+export const revalidate = 0; // always fetch fresh — no stale "sold" status
 
 export default async function ProductPage({
   params,
@@ -61,12 +61,19 @@ export default async function ProductPage({
             </p>
           )}
 
-          {product.is_sold ? (
+          {product.stock_quantity <= 0 ? (
             <div className="placard-label border border-line px-4 py-3 inline-block">
-              This piece has sold
+              Currently sold out
             </div>
           ) : (
-            <AddToCartButton product={product} />
+            <>
+              <p className="placard-label mb-4">
+                {product.stock_quantity <= 5
+                  ? `Only ${product.stock_quantity} left`
+                  : `${product.stock_quantity} in stock`}
+              </p>
+              <AddToCartButton product={product} />
+            </>
           )}
         </div>
       </main>

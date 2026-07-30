@@ -3,7 +3,7 @@ import { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import Header from "@/components/Header";
 
-export const revalidate = 0; // always fetch fresh, no stale "sold" status
+export const revalidate = 0; // always fetch fresh — no stale "sold" status
 
 export default async function Home() {
   const { data: products } = await supabasePublic
@@ -18,13 +18,13 @@ export default async function Home() {
       <Header />
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full">
         <div className="mb-12 max-w-xl">
-          <p className="placard-label mb-3">Original works, one at a time</p>
+          <p className="placard-label mb-3">Paintable figures for kids</p>
           <h1 className="font-display text-4xl md:text-5xl italic leading-tight">
-            Each piece is one of one.
+            Pick a model, get painting.
           </h1>
           <p className="mt-4 text-ink-soft">
-            Browse the current collection below. Once a piece sells, it&apos;s
-            gone for good — no reprints, no editions.
+            Browse the current collection below. Each model ships as a paint
+            kit — while stock lasts.
           </p>
         </div>
 
