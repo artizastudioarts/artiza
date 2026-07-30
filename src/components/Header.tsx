@@ -13,17 +13,20 @@ export default function Header() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="Artiza Studio" className="h-10 w-auto" />
           <span className="flex items-baseline gap-1.5">
-  <span className="font-body font-extrabold text-2xl tracking-tight uppercase">
-    Artiza
-  </span>
-  <span className="font-script text-3xl text-oxblood leading-none">
-    studio
-  </span>
-</span>
+            <span className="font-body font-extrabold text-2xl tracking-tight uppercase">
+              Artiza
+            </span>
+            <span className="font-script text-3xl text-oxblood leading-none">
+              studio
+            </span>
+          </span>
         </Link>
         <nav className="flex items-center gap-6">
           <Link href="/" className="placard-label hover:text-ink">
-            Gallery
+            Home
+          </Link>
+          <Link href="/shop" className="placard-label hover:text-ink">
+            Shop
           </Link>
           <Link href="/cart" className="placard-label hover:text-ink">
             Cart{items.length > 0 ? ` (${items.length})` : ""}

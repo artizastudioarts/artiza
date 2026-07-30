@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatPrice } from "@/lib/types";
+import { supabasePublic } from "@/lib/supabase";
 
 type Order = {
   id: string;
@@ -27,7 +28,7 @@ type Product = {
 };
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState<"orders" | "products">("orders");
+  const [tab, setTab] = useState<"orders" | "products" | "home">("orders");
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12">
@@ -50,10 +51,24 @@ export default function AdminDashboard() {
           >
             Artwork
           </button>
+          <button
+            onClick={() => setTab("home")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "home" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Home Page
+          </button>
         </div>
       </div>
 
-      {tab === "orders" ? <OrdersTab /> : <ProductsTab />}
+      {tab === "orders" ? (
+        <OrdersTab />
+      ) : tab === "products" ? (
+        <ProductsTab />
+      ) : (
+        <HomeTab />
+      )}
     </main>
   );
 }
@@ -351,6 +366,152 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
         className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
       >
         {submitting ? "Saving…" : "Save piece"}
+      </button>
+    </form>
+  );
+}
+
+type HomeContentForm = {
+  headline: string;
+  subheadline: string;
+  body: string;
+  video_url: string;
+};
+
+function HomeTab() {
+  const [form, setForm] = useState<HomeContentForm | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/home")
+      .then((r) => r.json())
+      .then((d) =>
+        setForm({
+          headline: d.content?.headline ?? "",
+          subheadline: d.content?.subheadline ?? "",
+          body: d.content?.body ?? "",
+          video_url: d.content?.video_url ?? "",
+        })
+      );
+  }, []);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form) return;
+    setSaving(true);
+    setSaved(false);
+    setError("");
+    try {
+      let video_url = form.video_url;
+      if (videoFile) {
+        setUploading(true);
+        const urlRes = await fetch("/api/admin/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: videoFile.name }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlRes.ok) throw new Error(urlData.error);
+
+        const { error: uploadError } = await supabasePublic.storage
+          .from("artwork")
+          .uploadToSignedUrl(urlData.path, urlData.token, videoFile);
+        if (uploadError) throw uploadError;
+
+        video_url = urlData.publicUrl;
+        setUploading(false);
+      }
+
+      const res = await fetch("/api/admin/home", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...form, video_url }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      setForm({ ...form, video_url });
+      setVideoFile(null);
+      setSaved(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!form) return <p className="text-ink-soft">Loading…</p>;
+
+  return (
+    <form onSubmit={handleSave} className="max-w-xl space-y-5">
+      <p className="text-ink-soft text-sm">
+        This is the content shown on your homepage — the brand story people
+        see before they ever reach the shop.
+      </p>
+
+      <div>
+        <label className="placard-label block mb-1">Small label above headline</label>
+        <input
+          value={form.subheadline}
+          onChange={(e) => setForm({ ...form, subheadline: e.target.value })}
+          className="w-full border border-line px-3 py-2 bg-paper"
+        />
+      </div>
+
+      <div>
+        <label className="placard-label block mb-1">Headline</label>
+        <input
+          value={form.headline}
+          onChange={(e) => setForm({ ...form, headline: e.target.value })}
+          className="w-full border border-line px-3 py-2 bg-paper"
+        />
+      </div>
+
+      <div>
+        <label className="placard-label block mb-1">Body text</label>
+        <textarea
+          value={form.body}
+          onChange={(e) => setForm({ ...form, body: e.target.value })}
+          rows={4}
+          className="w-full border border-line px-3 py-2 bg-paper"
+        />
+      </div>
+
+      <div>
+        <label className="placard-label block mb-1">
+          Video (slow-mo of the making process, mp4 works best)
+        </label>
+        {form.video_url && !videoFile && (
+          <video
+            src={form.video_url}
+            className="w-full max-w-sm mb-2 border border-line"
+            controls
+            muted
+          />
+        )}
+        <input
+          type="file"
+          accept="video/*"
+          onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
+        />
+        {uploading && (
+          <p className="placard-label mt-1">Uploading video, this can take a moment…</p>
+        )}
+      </div>
+
+      {error && <p className="text-oxblood text-sm">{error}</p>}
+      {saved && <p className="text-sm text-ink-soft">Saved — check the homepage.</p>}
+
+      <button
+        type="submit"
+        disabled={saving}
+        className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+      >
+        {saving ? "Saving…" : "Save homepage content"}
       </button>
     </form>
   );

@@ -26,10 +26,10 @@ export default function SuccessPage() {
           carefully packed and shipped soon.
         </p>
         <Link
-          href="/"
+          href="/shop"
           className="inline-block bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
         >
-          Back to gallery
+          Back to shop
         </Link>
       </main>
     </>

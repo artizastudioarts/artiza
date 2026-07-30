@@ -24,9 +24,10 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: "Artiza Studio — Paint-Your-Own Figures",
-  description: "Paintable figure kits for kids, shipped with care.",
+  description:
+    "Paintable figure kits for kids, shipped with care.",
   icons: {
-    icon: "/logo.png",
+    icon: "/logo.svg",
   },
 };
 

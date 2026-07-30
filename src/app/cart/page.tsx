@@ -43,7 +43,7 @@ export default function CartPage() {
         {items.length === 0 ? (
           <p className="text-ink-soft">
             Your cart is empty.{" "}
-            <Link href="/" className="underline">
+            <Link href="/shop" className="underline">
               Browse the shop
             </Link>
             .

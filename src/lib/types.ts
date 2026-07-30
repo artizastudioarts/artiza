@@ -11,6 +11,14 @@ export type Product = {
   created_at: string;
 };
 
+export type HomeContent = {
+  id: number;
+  headline: string;
+  subheadline: string;
+  body: string;
+  video_url: string | null;
+};
+
 export function formatPrice(cents: number, currency: string) {
   return new Intl.NumberFormat("de-DE", {
     style: "currency",
