@@ -6,12 +6,12 @@ import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
 
 export default function SuccessPage() {
-  const { clear } = useCart();
+  const { clear, loaded } = useCart();
 
   useEffect(() => {
-    clear();
+    if (loaded) clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loaded]);
 
   return (
     <>
