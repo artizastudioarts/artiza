@@ -42,7 +42,7 @@ export default async function Home() {
       </main>
       <footer className="border-t border-line py-8 mt-10">
         <div className="max-w-6xl mx-auto px-6 placard-label">
-          © {new Date().getFullYear()} Studio. All artwork shipped with care.
+          © © {new Date().getFullYear()} Artiza Studio. All items shipped with care.
         </div>
       </footer>
     </>

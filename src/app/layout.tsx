@@ -17,9 +17,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Studio — Paint-Your-Own Figures",
-  description:
-    "Paintable figure kits for kids, shipped with care.",
+  title: "Artiza Studio — Paint-Your-Own Figures",
+  description: "Paintable figure kits for kids, shipped with care.",
+  icons: {
+    icon: "/logo.png",
+  },
 };
 
 export default function RootLayout({
