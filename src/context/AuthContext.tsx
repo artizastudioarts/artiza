@@ -41,7 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   async function signUp(email: string, password: string) {
-    const { error } = await supabasePublic.auth.signUp({ email, password });
+    const { error } = await supabasePublic.auth.signUp({
+      email,
+      password,
+      options: {
+        // Send the confirmation link back to whatever site the person is
+        // actually signing up on (localhost while testing, your real
+        // domain in production) instead of relying only on Supabase's
+        // "Site URL" setting.
+        emailRedirectTo: `${window.location.origin}/account`,
+      },
+    });
     return { error: error?.message ?? null };
   }
 

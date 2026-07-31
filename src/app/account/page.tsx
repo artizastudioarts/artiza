@@ -89,6 +89,9 @@ export default function AccountPage() {
                 className="py-4 flex items-center justify-between gap-4"
               >
                 <div>
+                  <p className="placard-label text-ink-soft mb-0.5">
+                    {order.order_number}
+                  </p>
                   <p className="font-display text-lg">
                     {order.product_title}
                     {order.quantity > 1 ? ` × ${order.quantity}` : ""}

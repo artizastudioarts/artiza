@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   const { data: orders, error } = await db
     .from("orders")
     .select(
-      "id, product_title, quantity, amount_total_cents, currency, status, created_at"
+      "id, order_number, product_title, quantity, amount_total_cents, currency, status, created_at"
     )
     .eq("user_id", userData.user.id)
     .order("created_at", { ascending: false });

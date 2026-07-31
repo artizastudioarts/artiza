@@ -6,10 +6,12 @@ import { supabasePublic } from "@/lib/supabase";
 
 type Order = {
   id: string;
+  order_number: string;
   customer_email: string | null;
   customer_name: string | null;
   shipping_address: Record<string, string> | null;
   product_title: string | null;
+  quantity: number;
   amount_total_cents: number | null;
   currency: string | null;
   status: string;
@@ -102,8 +104,10 @@ function OrdersTab() {
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="text-left border-b border-line placard-label text-ink-soft">
+            <th className="py-2 pr-4">Order #</th>
             <th className="py-2 pr-4">Date</th>
             <th className="py-2 pr-4">Piece</th>
+            <th className="py-2 pr-4">Qty</th>
             <th className="py-2 pr-4">Customer</th>
             <th className="py-2 pr-4">Shipping</th>
             <th className="py-2 pr-4">Amount</th>
@@ -113,10 +117,14 @@ function OrdersTab() {
         <tbody>
           {orders.map((o) => (
             <tr key={o.id} className="border-b border-line align-top">
+              <td className="py-3 pr-4 whitespace-nowrap font-mono text-xs">
+                {o.order_number}
+              </td>
               <td className="py-3 pr-4 whitespace-nowrap">
                 {new Date(o.created_at).toLocaleDateString("de-DE")}
               </td>
               <td className="py-3 pr-4">{o.product_title}</td>
+              <td className="py-3 pr-4">{o.quantity}</td>
               <td className="py-3 pr-4">
                 {o.customer_name}
                 <br />

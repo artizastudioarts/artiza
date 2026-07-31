@@ -13,8 +13,12 @@ create table products (
   created_at timestamptz not null default now()
 );
 
+create sequence order_number_seq;
+
 create table orders (
   id uuid primary key default gen_random_uuid(),
+  order_number text not null unique default
+    ('AS-' || to_char(now(), 'YYMM') || '-' || lpad(nextval('order_number_seq')::text, 6, '0')),
   stripe_session_id text unique not null,
   customer_email text,
   customer_name text,
