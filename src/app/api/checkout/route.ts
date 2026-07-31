@@ -63,13 +63,6 @@ export async function POST(req: NextRequest) {
       payment_method_types: ["card", "paypal"],
       customer_email: userEmail,
       phone_number_collection: { enabled: true },
-      consent_collection: {
-        // Shows an unchecked "I want to receive news and offers" checkbox.
-        promotions: "auto",
-        // Shows a required "I agree to the Terms of Service" checkbox,
-        // linking to the Terms of Service URL set in the Stripe Dashboard.
-        terms_of_service: "required",
-      },
       line_items: items.map((item) => {
         const product = products.find((p) => p.id === item.id)!;
         return {

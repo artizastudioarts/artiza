@@ -10,7 +10,6 @@ type Order = {
   customer_email: string | null;
   customer_name: string | null;
   phone: string | null;
-  marketing_opt_in: boolean;
   shipping_address: Record<string, string> | null;
   product_title: string | null;
   quantity: number;
@@ -115,7 +114,6 @@ function OrdersTab() {
             <th className="py-2 pr-4">Shipping</th>
             <th className="py-2 pr-4">Amount</th>
             <th className="py-2 pr-4">Status</th>
-            <th className="py-2 pr-4">Newsletter</th>
           </tr>
         </thead>
         <tbody>
@@ -167,9 +165,6 @@ function OrdersTab() {
                   <option value="shipped">Shipped</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-              </td>
-              <td className="py-3 pr-4 text-ink-soft">
-                {o.marketing_opt_in ? "Yes" : "No"}
               </td>
             </tr>
           ))}

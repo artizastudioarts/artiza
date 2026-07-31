@@ -23,8 +23,6 @@ create table orders (
   customer_email text,
   customer_name text,
   phone text,
-  marketing_opt_in boolean not null default false,
-  terms_accepted boolean not null default false,
   shipping_address jsonb,
   product_id uuid references products(id),
   product_title text,
