@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
     price_cents: Math.round(Number(body.price) * 100),
     currency: body.currency || "eur",
     image_url: body.image_url || null,
+    image_urls: Array.isArray(body.image_urls) ? body.image_urls : [],
     stock_quantity: Math.max(0, Math.round(Number(body.stock_quantity) || 0)),
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

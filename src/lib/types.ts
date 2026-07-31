@@ -7,6 +7,7 @@ export type Product = {
   price_cents: number;
   currency: string;
   image_url: string | null;
+  image_urls: string[];
   stock_quantity: number;
   created_at: string;
 };

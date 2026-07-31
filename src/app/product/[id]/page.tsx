@@ -1,9 +1,9 @@
 import { supabasePublic } from "@/lib/supabase";
 import { Product, formatPrice } from "@/lib/types";
 import Header from "@/components/Header";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
+import ProductGallery from "@/components/ProductGallery";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
 
@@ -22,25 +22,18 @@ export default async function ProductPage({
   const product = data as Product | null;
   if (!product) notFound();
 
+  const images =
+    product.image_urls?.length
+      ? product.image_urls
+      : product.image_url
+        ? [product.image_url]
+        : [];
+
   return (
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
-        <div className="relative aspect-[4/5] bg-paper-dim">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft">
-              No image
-            </div>
-          )}
-        </div>
+        <ProductGallery images={images} title={product.title} />
 
         <div className="max-w-md">
           <p className="placard-label text-ink-soft mb-3">

@@ -9,6 +9,7 @@ create table products (
   price_cents integer not null,
   currency text not null default 'eur',
   image_url text,
+  image_urls text[] not null default '{}',
   stock_quantity integer not null default 0,
   created_at timestamptz not null default now()
 );

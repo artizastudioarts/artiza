@@ -28,6 +28,7 @@ type Product = {
   price_cents: number;
   currency: string;
   image_url: string | null;
+  image_urls: string[];
   stock_quantity: number;
 };
 
@@ -319,7 +320,7 @@ function ProductForm({
     artist_note: product?.artist_note ?? "",
     stock_quantity: product ? product.stock_quantity.toString() : "",
   });
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -328,25 +329,37 @@ function ProductForm({
     setSubmitting(true);
     setError("");
     try {
-      // Keep the existing picture unless the admin chose a new one.
-      let image_url = product?.image_url ?? "";
-      if (file) {
-        const fd = new FormData();
-        fd.append("file", file);
-        const uploadRes = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: fd,
-        });
-        const uploadData = await uploadRes.json();
-        if (!uploadRes.ok) throw new Error(uploadData.error);
-        image_url = uploadData.url;
+      // Keep the existing photos unless the admin chose new ones.
+      let image_urls = product?.image_urls?.length
+        ? product.image_urls
+        : product?.image_url
+          ? [product.image_url]
+          : [];
+
+      if (files.length > 0) {
+        image_urls = [];
+        for (const f of files) {
+          const fd = new FormData();
+          fd.append("file", f);
+          const uploadRes = await fetch("/api/admin/upload", {
+            method: "POST",
+            body: fd,
+          });
+          const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) throw new Error(uploadData.error);
+          image_urls.push(uploadData.url);
+        }
       }
+
+      const image_url = image_urls[0] ?? "";
 
       const res = await fetch("/api/admin/products", {
         method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          product ? { id: product.id, ...form, image_url } : { ...form, image_url }
+          product
+            ? { id: product.id, ...form, image_url, image_urls }
+            : { ...form, image_url, image_urls }
         ),
       });
       const data = await res.json();
@@ -409,24 +422,30 @@ function ProductForm({
         rows={3}
       />
       <div>
-        {product?.image_url && !file && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.image_url}
-            alt={product.title}
-            className="w-24 h-24 object-cover border border-line mb-2"
-          />
-        )}
+        {product?.image_urls?.length && files.length === 0 ? (
+          <div className="flex gap-2 mb-2 flex-wrap">
+            {product.image_urls.map((url) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={url}
+                src={url}
+                alt={product.title}
+                className="w-16 h-16 object-cover border border-line"
+              />
+            ))}
+          </div>
+        ) : null}
         <input
           type="file"
           accept="image/*"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          multiple
+          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
         />
-        {product && (
-          <p className="text-ink-soft text-sm mt-1">
-            Leave empty to keep the current picture.
-          </p>
-        )}
+        <p className="text-ink-soft text-sm mt-1">
+          {product
+            ? "Select one or more photos to replace the current gallery, or leave empty to keep it. The first photo becomes the cover photo."
+            : "You can select more than one photo. The first one becomes the cover photo shown on the shop page."}
+        </p>
       </div>
       {error && <p className="text-oxblood text-sm">{error}</p>}
       <div className="flex gap-3">
