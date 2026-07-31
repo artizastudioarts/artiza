@@ -22,6 +22,7 @@ create table orders (
   stripe_session_id text unique not null,
   customer_email text,
   customer_name text,
+  phone text,
   shipping_address jsonb,
   product_id uuid references products(id),
   product_title text,

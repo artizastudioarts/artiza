@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
       mode: "payment",
       payment_method_types: ["card", "paypal"],
       customer_email: userEmail,
+      phone_number_collection: { enabled: true },
       line_items: items.map((item) => {
         const product = products.find((p) => p.id === item.id)!;
         return {

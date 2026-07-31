@@ -9,6 +9,7 @@ type Order = {
   order_number: string;
   customer_email: string | null;
   customer_name: string | null;
+  phone: string | null;
   shipping_address: Record<string, string> | null;
   product_title: string | null;
   quantity: number;
@@ -129,6 +130,12 @@ function OrdersTab() {
                 {o.customer_name}
                 <br />
                 <span className="text-ink-soft">{o.customer_email}</span>
+                {o.phone && (
+                  <>
+                    <br />
+                    <span className="text-ink-soft">{o.phone}</span>
+                  </>
+                )}
               </td>
               <td className="py-3 pr-4 text-ink-soft">
                 {o.shipping_address

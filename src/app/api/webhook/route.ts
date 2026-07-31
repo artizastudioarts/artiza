@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
         stripe_session_id: `${session.id}:${productId}`,
         customer_email: session.customer_details?.email,
         customer_name: session.customer_details?.name,
+        phone: session.customer_details?.phone,
         shipping_address: session.customer_details?.address ?? null,
         product_id: productId,
         product_title: product.title,
