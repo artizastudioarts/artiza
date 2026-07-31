@@ -49,6 +49,8 @@ export async function POST(req: NextRequest) {
         customer_email: session.customer_details?.email,
         customer_name: session.customer_details?.name,
         phone: session.customer_details?.phone,
+        marketing_opt_in: session.consent?.promotions === "opt_in",
+        terms_accepted: session.consent?.terms_of_service === "accepted",
         shipping_address: session.customer_details?.address ?? null,
         product_id: productId,
         product_title: product.title,

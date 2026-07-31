@@ -10,6 +10,7 @@ type Order = {
   customer_email: string | null;
   customer_name: string | null;
   phone: string | null;
+  marketing_opt_in: boolean;
   shipping_address: Record<string, string> | null;
   product_title: string | null;
   quantity: number;
@@ -24,6 +25,7 @@ type Product = {
   title: string;
   medium: string | null;
   dimensions: string | null;
+  artist_note: string | null;
   price_cents: number;
   currency: string;
   image_url: string | null;
@@ -113,6 +115,7 @@ function OrdersTab() {
             <th className="py-2 pr-4">Shipping</th>
             <th className="py-2 pr-4">Amount</th>
             <th className="py-2 pr-4">Status</th>
+            <th className="py-2 pr-4">Newsletter</th>
           </tr>
         </thead>
         <tbody>
@@ -165,6 +168,9 @@ function OrdersTab() {
                   <option value="cancelled">Cancelled</option>
                 </select>
               </td>
+              <td className="py-3 pr-4 text-ink-soft">
+                {o.marketing_opt_in ? "Yes" : "No"}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -177,6 +183,7 @@ function ProductsTab() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   function loadProducts() {
     fetch("/api/admin/products")
@@ -211,18 +218,33 @@ function ProductsTab() {
   return (
     <div>
       <button
-        onClick={() => setShowForm((s) => !s)}
+        onClick={() => {
+          setEditingProduct(null);
+          setShowForm((s) => !s);
+        }}
         className="mb-6 bg-ink text-paper px-4 py-2 placard-label"
       >
         {showForm ? "Close" : "+ Add new piece"}
       </button>
 
       {showForm && (
-        <NewProductForm
-          onCreated={() => {
+        <ProductForm
+          onSaved={() => {
             setShowForm(false);
             loadProducts();
           }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      {editingProduct && (
+        <ProductForm
+          product={editingProduct}
+          onSaved={() => {
+            setEditingProduct(null);
+            loadProducts();
+          }}
+          onCancel={() => setEditingProduct(null)}
         />
       )}
 
@@ -258,12 +280,23 @@ function ProductsTab() {
                       className="w-16 border border-line px-2 py-1 bg-paper"
                     />
                   </label>
-                  <button
-                    onClick={() => deleteProduct(p.id)}
-                    className="text-oxblood text-sm"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowForm(false);
+                        setEditingProduct(p);
+                      }}
+                      className="text-ink-soft text-sm hover:text-ink"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => deleteProduct(p.id)}
+                      className="text-oxblood text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -274,14 +307,22 @@ function ProductsTab() {
   );
 }
 
-function NewProductForm({ onCreated }: { onCreated: () => void }) {
+function ProductForm({
+  product,
+  onSaved,
+  onCancel,
+}: {
+  product?: Product;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
   const [form, setForm] = useState({
-    title: "",
-    medium: "",
-    dimensions: "",
-    price: "",
-    artist_note: "",
-    stock_quantity: "",
+    title: product?.title ?? "",
+    medium: product?.medium ?? "",
+    dimensions: product?.dimensions ?? "",
+    price: product ? (product.price_cents / 100).toString() : "",
+    artist_note: product?.artist_note ?? "",
+    stock_quantity: product ? product.stock_quantity.toString() : "",
   });
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -292,7 +333,8 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
     setSubmitting(true);
     setError("");
     try {
-      let image_url = "";
+      // Keep the existing picture unless the admin chose a new one.
+      let image_url = product?.image_url ?? "";
       if (file) {
         const fd = new FormData();
         fd.append("file", file);
@@ -306,13 +348,15 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
       }
 
       const res = await fetch("/api/admin/products", {
-        method: "POST",
+        method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, image_url }),
+        body: JSON.stringify(
+          product ? { id: product.id, ...form, image_url } : { ...form, image_url }
+        ),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      onCreated();
+      onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
     } finally {
@@ -369,19 +413,45 @@ function NewProductForm({ onCreated }: { onCreated: () => void }) {
         className="w-full border border-line px-3 py-2 bg-paper"
         rows={3}
       />
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-      />
+      <div>
+        {product?.image_url && !file && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image_url}
+            alt={product.title}
+            className="w-24 h-24 object-cover border border-line mb-2"
+          />
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+        />
+        {product && (
+          <p className="text-ink-soft text-sm mt-1">
+            Leave empty to keep the current picture.
+          </p>
+        )}
+      </div>
       {error && <p className="text-oxblood text-sm">{error}</p>}
-      <button
-        type="submit"
-        disabled={submitting}
-        className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
-      >
-        {submitting ? "Saving…" : "Save piece"}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+        >
+          {submitting ? "Saving…" : product ? "Save changes" : "Save piece"}
+        </button>
+        {product && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="border border-line px-6 py-2 placard-label"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }

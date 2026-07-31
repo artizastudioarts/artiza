@@ -29,9 +29,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { id, ...fields } = await req.json();
+  const { id, price, ...fields } = await req.json();
   const db = supabaseAdmin();
-  const { error } = await db.from("products").update(fields).eq("id", id);
+  const updateFields: Record<string, unknown> = { ...fields };
+  if (price !== undefined) {
+    updateFields.price_cents = Math.round(Number(price) * 100);
+  }
+  const { error } = await db.from("products").update(updateFields).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
