@@ -22,20 +22,33 @@ export default function HomeCarousel({
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+  const [inView, setInView] = useState(false);
   const isPointerDown = useRef(false);
   const dragStartX = useRef(0);
   const dragStartScroll = useRef(0);
-  const didDrag = useRef(false);
   const pausedUntil = useRef(0);
 
   // Render the strip twice back-to-back so we can loop seamlessly: once we
   // scroll past the first copy, we silently snap back by one copy's width.
-  const loop = images.length > 2;
+  const loop = images.length > 1;
   const strip = loop ? [...images, ...images] : images;
+
+  // Start the film rolling only once this section actually enters view —
+  // like a projector starting when the reel reaches the gate, not before.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { threshold: 0.25 }
+    );
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const track = trackRef.current;
-    if (!track || !loop) return;
+    if (!track || !loop || !inView) return;
 
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
@@ -43,7 +56,7 @@ export default function HomeCarousel({
     if (prefersReducedMotion) return;
 
     let raf: number;
-    const SPEED_PX_PER_MS = 0.018; // slow, gallery-walk pace
+    const SPEED_PX_PER_MS = 0.03; // slow, steady film-reel pace
     let last = performance.now();
 
     function tick(now: number) {
@@ -61,13 +74,13 @@ export default function HomeCarousel({
     }
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [loop]);
+  }, [loop, inView]);
 
   function updateProgress() {
     const track = trackRef.current;
     if (!track) return;
-    const max = track.scrollWidth / (loop ? 2 : 1) - track.clientWidth;
     const singleSetWidth = track.scrollWidth / (loop ? 2 : 1);
+    const max = singleSetWidth - track.clientWidth;
     const pos = loop ? track.scrollLeft % singleSetWidth : track.scrollLeft;
     setProgress(max > 0 ? Math.min(1, Math.max(0, pos / max)) : 0);
   }
@@ -81,7 +94,6 @@ export default function HomeCarousel({
     const track = trackRef.current;
     if (!track) return;
     isPointerDown.current = true;
-    didDrag.current = false;
     dragStartX.current = e.clientX;
     dragStartScroll.current = track.scrollLeft;
     track.setPointerCapture(e.pointerId);
@@ -92,7 +104,6 @@ export default function HomeCarousel({
     const track = trackRef.current;
     if (!track) return;
     const dx = e.clientX - dragStartX.current;
-    if (Math.abs(dx) > 3) didDrag.current = true;
     track.scrollLeft = dragStartScroll.current - dx;
   }
 
@@ -105,7 +116,7 @@ export default function HomeCarousel({
     const track = trackRef.current;
     if (!track) return;
     const cardWidth = track.querySelector("[data-card]")?.clientWidth ?? 320;
-    track.scrollBy({ left: direction * (cardWidth + 20), behavior: "smooth" });
+    track.scrollBy({ left: direction * cardWidth, behavior: "smooth" });
     pause();
   }
 
@@ -121,35 +132,32 @@ export default function HomeCarousel({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
-        onMouseEnter={pause}
         onTouchStart={pause}
         onKeyDown={(e) => {
           if (e.key === "ArrowRight") scrollByOne(1);
           if (e.key === "ArrowLeft") scrollByOne(-1);
         }}
-        className="flex gap-5 overflow-x-auto px-6 md:px-[max(1.5rem,calc((100vw-72rem)/2+1.5rem))] pb-2 select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing snap-x snap-proximity"
+        className="flex overflow-x-auto select-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden cursor-grab active:cursor-grabbing"
       >
         {strip.map((img, i) => (
-          <figure
+          <div
             key={`${img.id}-${i}`}
             data-card
-            className="shrink-0 w-[68vw] sm:w-[320px] snap-start"
+            className="group relative shrink-0 w-[78vw] sm:w-[380px] aspect-[4/5] bg-paper-dim"
           >
-            <div className="relative aspect-[4/5] bg-paper-dim border border-line overflow-hidden">
-              <Image
-                src={img.image_url}
-                alt={img.caption ?? ""}
-                fill
-                draggable={false}
-                className="object-cover"
-              />
-            </div>
+            <Image
+              src={img.image_url}
+              alt={img.caption ?? ""}
+              fill
+              draggable={false}
+              className="object-cover"
+            />
             {img.caption && (
-              <figcaption className="placard-label text-ink-soft mt-2">
-                {img.caption}
-              </figcaption>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/70 to-transparent pt-10 pb-3 px-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="placard-label text-paper">{img.caption}</p>
+              </div>
             )}
-          </figure>
+          </div>
         ))}
       </div>
 
