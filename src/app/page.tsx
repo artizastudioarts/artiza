@@ -6,8 +6,16 @@ import Link from "next/link";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { getPageContent } from "@/lib/getPageContent";
+import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
 
 export const revalidate = 0;
+
+type CarouselRow = {
+  id: string;
+  image_url: string;
+  caption_de: string | null;
+  caption_en: string | null;
+};
 
 export default async function Home() {
   const { data } = await supabasePublic
@@ -20,6 +28,19 @@ export default async function Home() {
   const locale = await getLocale();
   const dict = getDictionary(locale);
   const pageContent = await getPageContent("home", locale);
+
+  const { data: carouselRows } = await supabasePublic
+    .from("home_carousel_images")
+    .select("id, image_url, caption_de, caption_en")
+    .order("sort_order", { ascending: true });
+
+  const carouselImages: CarouselImage[] = ((carouselRows as CarouselRow[]) ?? []).map(
+    (row) => ({
+      id: row.id,
+      image_url: row.image_url,
+      caption: (locale === "de" ? row.caption_de : row.caption_en) ?? null,
+    })
+  );
 
   return (
     <>
@@ -64,6 +85,40 @@ export default async function Home() {
             {dict.home.videoCaption}
           </p>
         </section>
+
+        <section className="border-t border-line">
+          <div className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-12 gap-8 md:gap-12">
+            <div className="md:col-span-5">
+              <p className="placard-label text-ink-soft mb-3">
+                {pageContent.storyEyebrow ?? dict.home.defaultStoryEyebrow}
+              </p>
+              <h2 className="font-display text-3xl md:text-4xl italic leading-tight">
+                {pageContent.storyHeading ?? dict.home.defaultStoryHeading}
+              </h2>
+            </div>
+            <div className="md:col-span-7">
+              <p className="text-ink-soft leading-relaxed text-lg">
+                {pageContent.storyBody ?? dict.home.defaultStoryBody}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {carouselImages.length > 0 && (
+          <section className="pb-20">
+            <div className="max-w-6xl mx-auto px-6 mb-6">
+              <p className="placard-label text-ink-soft">
+                {pageContent.carouselEyebrow ?? dict.home.defaultCarouselEyebrow}
+              </p>
+            </div>
+            <HomeCarousel
+              images={carouselImages}
+              prevLabel={dict.home.carouselPrev}
+              nextLabel={dict.home.carouselNext}
+              regionLabel={dict.home.carouselRegionLabel}
+            />
+          </section>
+        )}
 
         <section className="border-t border-line">
           <div className="max-w-6xl mx-auto px-6 py-14 text-center">

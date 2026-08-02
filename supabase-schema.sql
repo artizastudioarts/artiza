@@ -76,7 +76,24 @@ create table site_content (
 insert into site_content (page_key, field_key, label, field_type, sort_order) values
   ('home', 'subheadline', 'Small label above the headline', 'text', 1),
   ('home', 'headline', 'Headline', 'text', 2),
-  ('home', 'body', 'Body text', 'textarea', 3);
+  ('home', 'body', 'Body text', 'textarea', 3),
+  ('home', 'storyEyebrow', 'Story section — small label above the heading', 'text', 4),
+  ('home', 'storyHeading', 'Story section — heading', 'text', 5),
+  ('home', 'storyBody', 'Story section — paragraph', 'textarea', 6),
+  ('home', 'carouselEyebrow', 'Gallery section — small label above the photos', 'text', 7);
 alter table site_content enable row level security;
 create policy "Public can view site content" on site_content
+  for select using (true);
+
+-- Photos shown in the scrolling gallery near the bottom of the homepage
+create table home_carousel_images (
+  id uuid primary key default gen_random_uuid(),
+  image_url text not null,
+  caption_de text,
+  caption_en text,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table home_carousel_images enable row level security;
+create policy "Public can view carousel images" on home_carousel_images
   for select using (true);

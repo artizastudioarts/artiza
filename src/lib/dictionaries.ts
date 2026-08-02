@@ -19,6 +19,13 @@ export type Dictionary = {
     videoCaption: string;
     readyHeading: string;
     browseButton: string;
+    defaultStoryEyebrow: string;
+    defaultStoryHeading: string;
+    defaultStoryBody: string;
+    defaultCarouselEyebrow: string;
+    carouselPrev: string;
+    carouselNext: string;
+    carouselRegionLabel: string;
   };
   shop: {
     eyebrow: string;
@@ -130,6 +137,14 @@ const de: Dictionary = {
     videoCaption: "Jedes Modell, handveredelt vor dem Versand",
     readyHeading: "Bereit, ein Modell auszuwählen?",
     browseButton: "Shop durchstöbern",
+    defaultStoryEyebrow: "UNSER HANDWERK",
+    defaultStoryHeading: "Von Hand gestaltet, für kleine Künstler gemacht",
+    defaultStoryBody:
+      "Jedes Modell beginnt als Skizze in unserem Studio, wird in Handarbeit geformt und sorgfältig grundiert, bevor es zu dir nach Hause reist. Wir glauben, dass ein Spielzeug, das man selbst bemalt, länger in Erinnerung bleibt als eines, das schon fertig ist — deshalb liefern wir jedes Stück bereit für die eigene Handschrift deines Kindes.",
+    defaultCarouselEyebrow: "EIN BLICK INS STUDIO",
+    carouselPrev: "Vorheriges Bild",
+    carouselNext: "Nächstes Bild",
+    carouselRegionLabel: "Bildergalerie, mit der Maus oder durch Wischen durchsuchbar",
   },
   shop: {
     eyebrow: "Bemalbare Figuren für Kinder",
@@ -278,6 +293,14 @@ const en: Dictionary = {
     videoCaption: "Every model, hand-finished before it ships",
     readyHeading: "Ready to pick a model?",
     browseButton: "Browse the shop",
+    defaultStoryEyebrow: "OUR CRAFT",
+    defaultStoryHeading: "Shaped by hand, made for small artists",
+    defaultStoryBody:
+      "Every model starts as a sketch in our studio, is hand-formed and carefully primed before it travels to your door. We believe a toy you paint yourself stays with you longer than one that arrives finished — so we ship each piece ready for your child's own hand.",
+    defaultCarouselEyebrow: "A LOOK INSIDE THE STUDIO",
+    carouselPrev: "Previous photo",
+    carouselNext: "Next photo",
+    carouselRegionLabel: "Photo gallery, scrollable with mouse or swipe",
   },
   shop: {
     eyebrow: "Paintable figures for kids",

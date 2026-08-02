@@ -616,46 +616,50 @@ function HomeTab() {
   if (!form) return <p className="text-ink-soft">Loading…</p>;
 
   return (
-    <form onSubmit={handleSave} className="max-w-xl space-y-5">
-      <p className="text-ink-soft text-sm">
-        This is the video shown on your homepage. To edit the homepage
-        headline and text (in German or English), use the{" "}
-        <strong>Content</strong> tab above.
-      </p>
+    <div className="max-w-xl space-y-14">
+      <form onSubmit={handleSave} className="space-y-5">
+        <p className="text-ink-soft text-sm">
+          This is the video shown on your homepage. To edit the homepage
+          headline and text (in German or English), use the{" "}
+          <strong>Content</strong> tab above.
+        </p>
 
-      <div>
-        <label className="placard-label text-ink-soft block mb-1">
-          Video (slow-mo of the making process, mp4 works best)
-        </label>
-        {form.video_url && !videoFile && (
-          <video
-            src={form.video_url}
-            className="w-full max-w-sm mb-2 border border-line"
-            controls
-            muted
+        <div>
+          <label className="placard-label text-ink-soft block mb-1">
+            Video (slow-mo of the making process, mp4 works best)
+          </label>
+          {form.video_url && !videoFile && (
+            <video
+              src={form.video_url}
+              className="w-full max-w-sm mb-2 border border-line"
+              controls
+              muted
+            />
+          )}
+          <input
+            type="file"
+            accept="video/*"
+            onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
           />
-        )}
-        <input
-          type="file"
-          accept="video/*"
-          onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
-        />
-        {uploading && (
-          <p className="placard-label text-ink-soft mt-1">Uploading video, this can take a moment…</p>
-        )}
-      </div>
+          {uploading && (
+            <p className="placard-label text-ink-soft mt-1">Uploading video, this can take a moment…</p>
+          )}
+        </div>
 
-      {error && <p className="text-oxblood text-sm">{error}</p>}
-      {saved && <p className="text-sm text-ink-soft">Saved — check the homepage.</p>}
+        {error && <p className="text-oxblood text-sm">{error}</p>}
+        {saved && <p className="text-sm text-ink-soft">Saved — check the homepage.</p>}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
-      >
-        {saving ? "Saving…" : "Save homepage content"}
-      </button>
-    </form>
+        <button
+          type="submit"
+          disabled={saving}
+          className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save homepage content"}
+        </button>
+      </form>
+
+      <CarouselManager />
+    </div>
   );
 }
 
@@ -820,6 +824,208 @@ function ContentTab() {
           </button>
         </form>
       )}
+    </div>
+  );
+}
+
+type CarouselImageRow = {
+  id: string;
+  image_url: string;
+  caption_de: string | null;
+  caption_en: string | null;
+  sort_order: number;
+};
+
+function CarouselManager() {
+  const [images, setImages] = useState<CarouselImageRow[] | null>(null);
+  const [captions, setCaptions] = useState<Record<string, { de: string; en: string }>>({});
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  function load() {
+    fetch("/api/admin/carousel")
+      .then((r) => r.json())
+      .then((d) => {
+        const rows: CarouselImageRow[] = d.images ?? [];
+        setImages(rows);
+        setCaptions(
+          Object.fromEntries(
+            rows.map((r) => [r.id, { de: r.caption_de ?? "", en: r.caption_en ?? "" }])
+          )
+        );
+      });
+  }
+
+  useEffect(load, []);
+
+  async function handleUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setError("");
+    try {
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const uploadRes = await fetch("/api/admin/upload", { method: "POST", body: fd });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error);
+
+        const res = await fetch("/api/admin/carousel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image_url: uploadData.url }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+      }
+      load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function saveCaptions(id: string) {
+    const c = captions[id];
+    await fetch("/api/admin/carousel", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, caption_de: c.de || null, caption_en: c.en || null }),
+    });
+  }
+
+  async function remove(id: string) {
+    if (!confirm("Remove this photo from the gallery?")) return;
+    setImages((prev) => prev?.filter((i) => i.id !== id) ?? null);
+    await fetch("/api/admin/carousel", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  async function move(id: string, direction: -1 | 1) {
+    if (!images) return;
+    const index = images.findIndex((i) => i.id === id);
+    const swapIndex = index + direction;
+    if (swapIndex < 0 || swapIndex >= images.length) return;
+    const a = images[index];
+    const b = images[swapIndex];
+
+    const next = [...images];
+    next[index] = b;
+    next[swapIndex] = a;
+    setImages(next);
+
+    await Promise.all([
+      fetch("/api/admin/carousel", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: a.id, sort_order: b.sort_order }),
+      }),
+      fetch("/api/admin/carousel", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: b.id, sort_order: a.sort_order }),
+      }),
+    ]);
+  }
+
+  return (
+    <div>
+      <h2 className="font-display text-xl italic mb-2">Homepage gallery carousel</h2>
+      <p className="text-ink-soft text-sm mb-5">
+        Photos shown in the scrolling gallery near the bottom of the
+        homepage. Captions are optional and can differ between German and
+        English.
+      </p>
+
+      {images === null ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : (
+        <div className="space-y-4 mb-6">
+          {images.map((img, i) => (
+            <div key={img.id} className="border border-line p-3 flex gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={img.image_url}
+                alt=""
+                className="w-20 h-20 object-cover border border-line shrink-0"
+              />
+              <div className="flex-1 space-y-2">
+                <input
+                  placeholder="Caption (German)"
+                  value={captions[img.id]?.de ?? ""}
+                  onChange={(e) =>
+                    setCaptions({
+                      ...captions,
+                      [img.id]: { ...captions[img.id], de: e.target.value },
+                    })
+                  }
+                  onBlur={() => saveCaptions(img.id)}
+                  className="w-full border border-line px-2 py-1.5 bg-paper text-sm"
+                />
+                <input
+                  placeholder="Caption (English)"
+                  value={captions[img.id]?.en ?? ""}
+                  onChange={(e) =>
+                    setCaptions({
+                      ...captions,
+                      [img.id]: { ...captions[img.id], en: e.target.value },
+                    })
+                  }
+                  onBlur={() => saveCaptions(img.id)}
+                  className="w-full border border-line px-2 py-1.5 bg-paper text-sm"
+                />
+              </div>
+              <div className="flex flex-col justify-between items-end shrink-0">
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => move(img.id, -1)}
+                    disabled={i === 0}
+                    aria-label="Move earlier"
+                    className="border border-line w-7 h-7 text-ink-soft disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(img.id, 1)}
+                    disabled={i === images.length - 1}
+                    aria-label="Move later"
+                    className="border border-line w-7 h-7 text-ink-soft disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => remove(img.id)}
+                  className="text-oxblood text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          {images.length === 0 && (
+            <p className="text-ink-soft text-sm">No photos yet — add some below.</p>
+          )}
+        </div>
+      )}
+
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={(e) => handleUpload(e.target.files)}
+      />
+      {uploading && (
+        <p className="placard-label text-ink-soft mt-2">Uploading…</p>
+      )}
+      {error && <p className="text-oxblood text-sm mt-2">{error}</p>}
     </div>
   );
 }
