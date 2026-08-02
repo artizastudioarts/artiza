@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
+import { interpolate } from "@/lib/i18n";
 
 export default async function TermsPage() {
   const locale = await getLocale();
@@ -22,7 +23,7 @@ export default async function TermsPage() {
         <h1 className="font-display text-3xl italic mb-8">{dict.terms.title}</h1>
 
         <div className="space-y-8 text-sm leading-relaxed text-ink">
-          <p className="text-ink-soft">{dict.terms.lastUpdated(lastUpdated)}</p>
+          <p className="text-ink-soft">{interpolate(dict.terms.lastUpdated, { date: lastUpdated })}</p>
 
           {sections.map((s) => (
             <section key={s.heading}>

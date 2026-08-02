@@ -4,7 +4,7 @@ export type Dictionary = {
   nav: {
     home: string;
     shop: string;
-    cart: (count: number) => string;
+    cartLabel: string; // combine with item count in the component, e.g. `${cartLabel} (${count})`
     account: string;
     login: string;
     openMenu: string;
@@ -35,17 +35,17 @@ export type Dictionary = {
   };
   productCard: {
     soldOut: string;
-    onlyLeft: (n: number) => string;
+    onlyLeft: string; // template with {n}
   };
   product: {
     originalArtworkFallback: string;
     soldOut: string;
-    onlyLeft: (n: number) => string;
-    inStock: (n: number) => string;
-    qty: (n: number) => string;
+    onlyLeft: string; // template with {n}
+    inStock: string; // template with {n}
+    qty: string; // template with {n}
     addToCart: string;
     viewCart: string;
-    showPhoto: (n: number, total: number) => string;
+    showPhoto: string; // template with {n} and {total}
   };
   cart: {
     title: string;
@@ -53,7 +53,7 @@ export type Dictionary = {
     browseShop: string;
     each: string;
     remove: string;
-    qty: (n: number) => string;
+    qty: string; // template with {n}
     total: string;
     checkout: string;
     redirecting: string;
@@ -93,13 +93,13 @@ export type Dictionary = {
     backToShop: string;
   };
   footer: {
-    rights: (year: number) => string;
+    rights: string; // template with {year}
     terms: string;
   };
   terms: {
     eyebrow: string;
     title: string;
-    lastUpdated: (date: string) => string;
+    lastUpdated: string; // template with {date}
     s1: { heading: string; body: string };
     s2: { heading: string; body: string };
     s3: { heading: string; body: string };
@@ -121,7 +121,7 @@ const de: Dictionary = {
   nav: {
     home: "Start",
     shop: "Shop",
-    cart: (count) => (count > 0 ? `Warenkorb (${count})` : "Warenkorb"),
+    cartLabel: "Warenkorb",
     account: "Konto",
     login: "Anmelden",
     openMenu: "Menü öffnen",
@@ -154,17 +154,17 @@ const de: Dictionary = {
   },
   productCard: {
     soldOut: "Ausverkauft",
-    onlyLeft: (n) => `Nur noch ${n} übrig`,
+    onlyLeft: "Nur noch {n} übrig",
   },
   product: {
     originalArtworkFallback: "Originalkunstwerk",
     soldOut: "Derzeit ausverkauft",
-    onlyLeft: (n) => `Nur noch ${n} übrig`,
-    inStock: (n) => `${n} auf Lager`,
-    qty: (n) => `Menge ${n}`,
+    onlyLeft: "Nur noch {n} übrig",
+    inStock: "{n} auf Lager",
+    qty: "Menge {n}",
     addToCart: "In den Warenkorb",
     viewCart: "Warenkorb ansehen",
-    showPhoto: (n, total) => `Foto ${n} von ${total} anzeigen`,
+    showPhoto: "Foto {n} von {total} anzeigen",
   },
   cart: {
     title: "Dein Warenkorb",
@@ -172,7 +172,7 @@ const de: Dictionary = {
     browseShop: "Shop durchstöbern",
     each: "je Stück",
     remove: "Entfernen",
-    qty: (n) => `Menge ${n}`,
+    qty: "Menge {n}",
     total: "Gesamt",
     checkout: "Zur Kasse",
     redirecting: "Weiterleitung zur Kasse…",
@@ -215,13 +215,13 @@ const de: Dictionary = {
     backToShop: "Zurück zum Shop",
   },
   footer: {
-    rights: (year) => `© ${year} Artiza Studio. Alle Artikel werden mit Sorgfalt versendet.`,
+    rights: "© {year} Artiza Studio. Alle Artikel werden mit Sorgfalt versendet.",
     terms: "AGB",
   },
   terms: {
     eyebrow: "Rechtliches",
     title: "Allgemeine Geschäftsbedingungen",
-    lastUpdated: (date) => `Zuletzt aktualisiert: ${date}`,
+    lastUpdated: "Zuletzt aktualisiert: {date}",
     s1: {
       heading: "1. Wer wir sind",
       body: 'Diese Allgemeinen Geschäftsbedingungen gelten für alle Bestellungen, die über diese Website bei Artiza Studio ("wir", "uns", "unser") aufgegeben werden. Mit der Aufgabe einer Bestellung erklärst du dich mit diesen Bedingungen einverstanden.',
@@ -277,7 +277,7 @@ const en: Dictionary = {
   nav: {
     home: "Home",
     shop: "Shop",
-    cart: (count) => (count > 0 ? `Cart (${count})` : "Cart"),
+    cartLabel: "Cart",
     account: "Account",
     login: "Log in",
     openMenu: "Open menu",
@@ -310,17 +310,17 @@ const en: Dictionary = {
   },
   productCard: {
     soldOut: "Sold out",
-    onlyLeft: (n) => `Only ${n} left`,
+    onlyLeft: "Only {n} left",
   },
   product: {
     originalArtworkFallback: "Original artwork",
     soldOut: "Currently sold out",
-    onlyLeft: (n) => `Only ${n} left`,
-    inStock: (n) => `${n} in stock`,
-    qty: (n) => `Qty ${n}`,
+    onlyLeft: "Only {n} left",
+    inStock: "{n} in stock",
+    qty: "Qty {n}",
     addToCart: "Add to cart",
     viewCart: "View cart",
-    showPhoto: (n, total) => `Show photo ${n} of ${total}`,
+    showPhoto: "Show photo {n} of {total}",
   },
   cart: {
     title: "Your cart",
@@ -328,7 +328,7 @@ const en: Dictionary = {
     browseShop: "Browse the shop",
     each: "each",
     remove: "Remove",
-    qty: (n) => `Qty ${n}`,
+    qty: "Qty {n}",
     total: "Total",
     checkout: "Checkout",
     redirecting: "Redirecting to checkout…",
@@ -369,13 +369,13 @@ const en: Dictionary = {
     backToShop: "Back to shop",
   },
   footer: {
-    rights: (year) => `© ${year} Artiza Studio. All items shipped with care.`,
+    rights: "© {year} Artiza Studio. All items shipped with care.",
     terms: "Terms & Conditions",
   },
   terms: {
     eyebrow: "Legal",
     title: "Terms & Conditions",
-    lastUpdated: (date) => `Last updated: ${date}`,
+    lastUpdated: "Last updated: {date}",
     s1: {
       heading: "1. Who we are",
       body: 'These Terms & Conditions govern all orders placed with Artiza Studio ("we", "us", "our") through this website. By placing an order, you agree to these terms.',

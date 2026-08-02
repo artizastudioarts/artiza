@@ -34,7 +34,7 @@ export default function Header() {
         onClick={() => setMenuOpen(false)}
         className="placard-label text-ink-soft hover:text-ink"
       >
-        {dict.nav.cart(items.length)}
+        {dict.nav.cartLabel}{items.length > 0 ? ` (${items.length})` : ""}
       </Link>
       <Link
         href="/account"

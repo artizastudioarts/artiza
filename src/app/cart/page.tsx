@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
+import { interpolate } from "@/lib/i18n";
 import { formatPrice } from "@/lib/types";
 
 export default function CartPage() {
@@ -82,7 +83,7 @@ export default function CartPage() {
                         (_, i) => i + 1
                       ).map((n) => (
                         <option key={n} value={n}>
-                          {dict.cart.qty(n)}
+                          {interpolate(dict.cart.qty, { n })}
                         </option>
                       ))}
                     </select>

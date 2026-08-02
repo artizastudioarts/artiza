@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
+import { interpolate } from "@/lib/i18n";
 
 export default function AddToCartButton({
   product,
@@ -57,7 +58,7 @@ export default function AddToCartButton({
         {Array.from({ length: Math.min(remaining, 20) }, (_, i) => i + 1).map(
           (n) => (
             <option key={n} value={n}>
-              {dict.product.qty(n)}
+              {interpolate(dict.product.qty, { n })}
             </option>
           )
         )}

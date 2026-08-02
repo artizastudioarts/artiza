@@ -7,6 +7,7 @@ import ProductGallery from "@/components/ProductGallery";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
+import { interpolate } from "@/lib/i18n";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
 
@@ -72,8 +73,8 @@ export default async function ProductPage({
             <>
               <p className="placard-label text-ink-soft mb-4">
                 {product.stock_quantity <= 5
-                  ? dict.product.onlyLeft(product.stock_quantity)
-                  : dict.product.inStock(product.stock_quantity)}
+                  ? interpolate(dict.product.onlyLeft, { n: product.stock_quantity })
+                  : interpolate(dict.product.inStock, { n: product.stock_quantity })}
               </p>
               <AddToCartButton product={displayProduct} dict={dict} />
             </>

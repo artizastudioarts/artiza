@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Product, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
+import { interpolate } from "@/lib/i18n";
 import { localizeProduct } from "@/lib/localizeProduct";
 
 export default function ProductCard({
@@ -53,7 +54,7 @@ export default function ProductCard({
         )}
         {lowStock && (
           <div className="absolute top-3 left-3 bg-oxblood text-paper px-2 py-1 placard-label">
-            {dict.productCard.onlyLeft(product.stock_quantity)}
+            {interpolate(dict.productCard.onlyLeft, { n: product.stock_quantity })}
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { Dictionary } from "@/lib/dictionaries";
+import { interpolate } from "@/lib/i18n";
 
 export default function ProductGallery({
   images,
@@ -40,7 +41,7 @@ export default function ProductGallery({
             <button
               key={url}
               onClick={() => setActive(i)}
-              aria-label={dict.product.showPhoto(i + 1, images.length)}
+              aria-label={interpolate(dict.product.showPhoto, { n: i + 1, total: images.length })}
               className={`relative w-16 h-16 shrink-0 border ${
                 i === active ? "border-ink" : "border-line opacity-70 hover:opacity-100"
               }`}
