@@ -5,11 +5,13 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useLocale } from "@/context/LocaleContext";
 import { formatPrice } from "@/lib/types";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCart();
   const { user, session } = useAuth();
+  const { dict } = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,13 +45,13 @@ export default function CartPage() {
     <>
       <Header />
       <main className="max-w-2xl mx-auto px-6 py-14 flex-1 w-full">
-        <h1 className="font-display text-3xl italic mb-8">Your cart</h1>
+        <h1 className="font-display text-3xl italic mb-8">{dict.cart.title}</h1>
 
         {items.length === 0 ? (
           <p className="text-ink-soft">
-            Your cart is empty.{" "}
+            {dict.cart.empty}{" "}
             <Link href="/shop" className="underline">
-              Browse the shop
+              {dict.cart.browseShop}
             </Link>
             .
           </p>
@@ -64,7 +66,7 @@ export default function CartPage() {
                   <div>
                     <p className="font-display text-lg">{item.title}</p>
                     <p className="text-sm text-ink-soft">
-                      {formatPrice(item.price_cents, item.currency)} each
+                      {formatPrice(item.price_cents, item.currency)} {dict.cart.each}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
@@ -80,7 +82,7 @@ export default function CartPage() {
                         (_, i) => i + 1
                       ).map((n) => (
                         <option key={n} value={n}>
-                          Qty {n}
+                          {dict.cart.qty(n)}
                         </option>
                       ))}
                     </select>
@@ -88,7 +90,7 @@ export default function CartPage() {
                       onClick={() => removeItem(item.id)}
                       className="placard-label text-ink-soft hover:text-oxblood"
                     >
-                      Remove
+                      {dict.cart.remove}
                     </button>
                   </div>
                 </li>
@@ -96,7 +98,7 @@ export default function CartPage() {
             </ul>
 
             <div className="flex items-center justify-between mb-8">
-              <span className="placard-label text-ink-soft">Total</span>
+              <span className="placard-label text-ink-soft">{dict.cart.total}</span>
               <span className="font-display text-xl">
                 {formatPrice(total, currency)}
               </span>
@@ -110,7 +112,7 @@ export default function CartPage() {
                 disabled={loading}
                 className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
               >
-                {loading ? "Redirecting to checkout…" : "Checkout"}
+                {loading ? dict.cart.redirecting : dict.cart.checkout}
               </button>
             ) : (
               <div className="space-y-3">
@@ -119,18 +121,18 @@ export default function CartPage() {
                   disabled={loading}
                   className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
                 >
-                  {loading ? "Redirecting to checkout…" : "Continue as guest"}
+                  {loading ? dict.cart.redirecting : dict.cart.continueGuest}
                 </button>
                 <Link
                   href="/account/login?redirect=/cart"
                   className="block w-full text-center border border-line px-6 py-4 placard-label hover:bg-paper-dim transition-colors"
                 >
-                  Log in / Sign up to track this order
+                  {dict.cart.loginTrack}
                 </Link>
               </div>
             )}
             <p className="placard-label text-ink-soft mt-3 text-center">
-              Card &amp; PayPal accepted via Stripe
+              {dict.cart.paymentNote}
             </p>
           </>
         )}

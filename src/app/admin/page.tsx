@@ -25,6 +25,10 @@ type Product = {
   medium: string | null;
   dimensions: string | null;
   artist_note: string | null;
+  title_en: string | null;
+  medium_en: string | null;
+  dimensions_en: string | null;
+  artist_note_en: string | null;
   price_cents: number;
   currency: string;
   image_url: string | null;
@@ -33,7 +37,7 @@ type Product = {
 };
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState<"orders" | "products" | "home">("orders");
+  const [tab, setTab] = useState<"orders" | "products" | "home" | "content">("orders");
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12">
@@ -64,6 +68,14 @@ export default function AdminDashboard() {
           >
             Home Page
           </button>
+          <button
+            onClick={() => setTab("content")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "content" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Content
+          </button>
         </div>
       </div>
 
@@ -71,8 +83,10 @@ export default function AdminDashboard() {
         <OrdersTab />
       ) : tab === "products" ? (
         <ProductsTab />
-      ) : (
+      ) : tab === "home" ? (
         <HomeTab />
+      ) : (
+        <ContentTab />
       )}
     </main>
   );
@@ -319,7 +333,12 @@ function ProductForm({
     price: product ? (product.price_cents / 100).toString() : "",
     artist_note: product?.artist_note ?? "",
     stock_quantity: product ? product.stock_quantity.toString() : "",
+    title_en: product?.title_en ?? "",
+    medium_en: product?.medium_en ?? "",
+    dimensions_en: product?.dimensions_en ?? "",
+    artist_note_en: product?.artist_note_en ?? "",
   });
+  const [formLocale, setFormLocale] = useState<"de" | "en">("de");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -377,25 +396,89 @@ function ProductForm({
       onSubmit={handleSubmit}
       className="border border-line p-6 mb-8 space-y-4 max-w-md"
     >
-      <input
-        required
-        placeholder="Title"
-        value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
-        className="w-full border border-line px-3 py-2 bg-paper"
-      />
-      <input
-        placeholder="Model / category (e.g. Paint-your-own dinosaur)"
-        value={form.medium}
-        onChange={(e) => setForm({ ...form, medium: e.target.value })}
-        className="w-full border border-line px-3 py-2 bg-paper"
-      />
-      <input
-        placeholder="Size / kit contents (e.g. 12cm figure + 6 paints)"
-        value={form.dimensions}
-        onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
-        className="w-full border border-line px-3 py-2 bg-paper"
-      />
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setFormLocale("de")}
+          className={`placard-label px-3 py-1.5 border border-line ${
+            formLocale === "de" ? "bg-ink text-paper" : ""
+          }`}
+        >
+          Deutsch
+        </button>
+        <button
+          type="button"
+          onClick={() => setFormLocale("en")}
+          className={`placard-label px-3 py-1.5 border border-line ${
+            formLocale === "en" ? "bg-ink text-paper" : ""
+          }`}
+        >
+          English
+        </button>
+      </div>
+
+      {formLocale === "de" ? (
+        <>
+          <input
+            required
+            placeholder="Title"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+          />
+          <input
+            placeholder="Model / category (e.g. Paint-your-own dinosaur)"
+            value={form.medium}
+            onChange={(e) => setForm({ ...form, medium: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+          />
+          <input
+            placeholder="Size / kit contents (e.g. 12cm figure + 6 paints)"
+            value={form.dimensions}
+            onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+          />
+          <textarea
+            placeholder="Description (what's included, age range, etc.)"
+            value={form.artist_note}
+            onChange={(e) => setForm({ ...form, artist_note: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+            rows={3}
+          />
+        </>
+      ) : (
+        <>
+          <p className="text-ink-soft text-sm">
+            Optional — leave any field empty to show the German text to English visitors instead.
+          </p>
+          <input
+            placeholder="Title (English)"
+            value={form.title_en}
+            onChange={(e) => setForm({ ...form, title_en: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+          />
+          <input
+            placeholder="Model / category (English)"
+            value={form.medium_en}
+            onChange={(e) => setForm({ ...form, medium_en: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+          />
+          <input
+            placeholder="Size / kit contents (English)"
+            value={form.dimensions_en}
+            onChange={(e) => setForm({ ...form, dimensions_en: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+          />
+          <textarea
+            placeholder="Description (English)"
+            value={form.artist_note_en}
+            onChange={(e) => setForm({ ...form, artist_note_en: e.target.value })}
+            className="w-full border border-line px-3 py-2 bg-paper"
+            rows={3}
+          />
+        </>
+      )}
+
       <input
         required
         type="number"
@@ -413,13 +496,6 @@ function ProductForm({
         value={form.stock_quantity}
         onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })}
         className="w-full border border-line px-3 py-2 bg-paper"
-      />
-      <textarea
-        placeholder="Description (what's included, age range, etc.)"
-        value={form.artist_note}
-        onChange={(e) => setForm({ ...form, artist_note: e.target.value })}
-        className="w-full border border-line px-3 py-2 bg-paper"
-        rows={3}
       />
       <div>
         {product?.image_urls?.length && files.length === 0 ? (
@@ -471,9 +547,6 @@ function ProductForm({
 }
 
 type HomeContentForm = {
-  headline: string;
-  subheadline: string;
-  body: string;
   video_url: string;
 };
 
@@ -490,9 +563,6 @@ function HomeTab() {
       .then((r) => r.json())
       .then((d) =>
         setForm({
-          headline: d.content?.headline ?? "",
-          subheadline: d.content?.subheadline ?? "",
-          body: d.content?.body ?? "",
           video_url: d.content?.video_url ?? "",
         })
       );
@@ -548,37 +618,10 @@ function HomeTab() {
   return (
     <form onSubmit={handleSave} className="max-w-xl space-y-5">
       <p className="text-ink-soft text-sm">
-        This is the content shown on your homepage — the brand story people
-        see before they ever reach the shop.
+        This is the video shown on your homepage. To edit the homepage
+        headline and text (in German or English), use the{" "}
+        <strong>Content</strong> tab above.
       </p>
-
-      <div>
-        <label className="placard-label text-ink-soft block mb-1">Small label above headline</label>
-        <input
-          value={form.subheadline}
-          onChange={(e) => setForm({ ...form, subheadline: e.target.value })}
-          className="w-full border border-line px-3 py-2 bg-paper"
-        />
-      </div>
-
-      <div>
-        <label className="placard-label text-ink-soft block mb-1">Headline</label>
-        <input
-          value={form.headline}
-          onChange={(e) => setForm({ ...form, headline: e.target.value })}
-          className="w-full border border-line px-3 py-2 bg-paper"
-        />
-      </div>
-
-      <div>
-        <label className="placard-label text-ink-soft block mb-1">Body text</label>
-        <textarea
-          value={form.body}
-          onChange={(e) => setForm({ ...form, body: e.target.value })}
-          rows={4}
-          className="w-full border border-line px-3 py-2 bg-paper"
-        />
-      </div>
 
       <div>
         <label className="placard-label text-ink-soft block mb-1">
@@ -613,5 +656,170 @@ function HomeTab() {
         {saving ? "Saving…" : "Save homepage content"}
       </button>
     </form>
+  );
+}
+
+// Pages whose text is editable here. When a new page is built with
+// translatable text wired to site_content, add it to this list — the rest
+// of this tab is fully generic and needs no other changes.
+const CONTENT_PAGES: { key: string; label: string }[] = [
+  { key: "home", label: "Home page" },
+];
+
+type ContentField = {
+  field_key: string;
+  label: string;
+  field_type: "text" | "textarea";
+  value_de: string | null;
+  value_en: string | null;
+  sort_order: number;
+};
+
+function ContentTab() {
+  const [pageKey, setPageKey] = useState(CONTENT_PAGES[0].key);
+  const [locale, setLocale] = useState<"de" | "en">("de");
+  const [fields, setFields] = useState<ContentField[] | null>(null);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting to a loading state before fetching a newly selected page's fields is intentional, not derived state
+    setFields(null);
+    fetch(`/api/admin/content?page=${pageKey}`)
+      .then((r) => r.json())
+      .then((d) => setFields(d.fields ?? []));
+  }, [pageKey]);
+
+  useEffect(() => {
+    if (!fields) return;
+    const next: Record<string, string> = {};
+    for (const f of fields) {
+      next[f.field_key] = (locale === "de" ? f.value_de : f.value_en) ?? "";
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- re-seeding the editable form values when the selected page or language changes, not state that can be derived at render time
+    setValues(next);
+    setSaved(false);
+  }, [fields, locale]);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    setSaved(false);
+    try {
+      const res = await fetch("/api/admin/content", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page_key: pageKey, locale, values }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      // Reflect the save locally so switching languages shows it right away.
+      setFields((prev) =>
+        prev
+          ? prev.map((f) =>
+              locale === "de"
+                ? { ...f, value_de: values[f.field_key] ?? "" }
+                : { ...f, value_en: values[f.field_key] ?? "" }
+            )
+          : prev
+      );
+      setSaved(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="max-w-xl">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <select
+          value={pageKey}
+          onChange={(e) => setPageKey(e.target.value)}
+          className="border border-line px-3 py-2 bg-paper placard-label"
+        >
+          {CONTENT_PAGES.map((p) => (
+            <option key={p.key} value={p.key}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setLocale("de")}
+            className={`placard-label px-3 py-2 border border-line ${
+              locale === "de" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Deutsch
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale("en")}
+            className={`placard-label px-3 py-2 border border-line ${
+              locale === "en" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            English
+          </button>
+        </div>
+      </div>
+
+      {!fields ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : (
+        <form onSubmit={handleSave} className="space-y-5">
+          <p className="text-ink-soft text-sm">
+            {locale === "de"
+              ? "Leave a field empty to fall back to the site's built-in German text."
+              : "Leave a field empty to fall back to the site's built-in English text."}
+          </p>
+          {fields
+            .slice()
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((f) => (
+              <div key={f.field_key}>
+                <label className="placard-label text-ink-soft block mb-1">
+                  {f.label}
+                </label>
+                {f.field_type === "textarea" ? (
+                  <textarea
+                    value={values[f.field_key] ?? ""}
+                    onChange={(e) =>
+                      setValues({ ...values, [f.field_key]: e.target.value })
+                    }
+                    rows={4}
+                    className="w-full border border-line px-3 py-2 bg-paper"
+                  />
+                ) : (
+                  <input
+                    value={values[f.field_key] ?? ""}
+                    onChange={(e) =>
+                      setValues({ ...values, [f.field_key]: e.target.value })
+                    }
+                    className="w-full border border-line px-3 py-2 bg-paper"
+                  />
+                )}
+              </div>
+            ))}
+
+          {error && <p className="text-oxblood text-sm">{error}</p>}
+          {saved && <p className="text-sm text-ink-soft">Saved.</p>}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+          >
+            {saving ? "Saving…" : `Save ${locale === "de" ? "German" : "English"} text`}
+          </button>
+        </form>
+      )}
+    </div>
   );
 }

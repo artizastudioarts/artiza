@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
+import { useLocale } from "@/context/LocaleContext";
 
 type OrderSummary = { order_number: string; product_title: string; quantity: number };
 
 function SuccessContent() {
   const { clear, loaded } = useCart();
+  const { dict } = useLocale();
   const sessionId = useSearchParams().get("session_id");
   const [orders, setOrders] = useState<OrderSummary[] | null>(null);
 
@@ -46,14 +48,9 @@ function SuccessContent() {
 
   return (
     <main className="max-w-xl mx-auto px-6 py-24 flex-1 w-full text-center">
-      <p className="placard-label text-ink-soft mb-3">Order confirmed</p>
-      <h1 className="font-display text-3xl italic mb-4">
-        Thank you for your order
-      </h1>
-      <p className="text-ink-soft mb-8">
-        A confirmation has been sent to your email. Your piece will be
-        carefully packed and shipped soon.
-      </p>
+      <p className="placard-label text-ink-soft mb-3">{dict.success.orderConfirmed}</p>
+      <h1 className="font-display text-3xl italic mb-4">{dict.success.thankYou}</h1>
+      <p className="text-ink-soft mb-8">{dict.success.confirmationSent}</p>
 
       {orders && orders.length > 0 && (
         <div className="border border-line p-5 mb-8 text-left inline-block">
@@ -66,9 +63,7 @@ function SuccessContent() {
               {o.quantity > 1 ? ` × ${o.quantity}` : ""}
             </p>
           ))}
-          <p className="text-sm text-ink-soft mt-3">
-            Save this order number to reference it later.
-          </p>
+          <p className="text-sm text-ink-soft mt-3">{dict.success.saveOrderNumber}</p>
         </div>
       )}
 
@@ -77,7 +72,7 @@ function SuccessContent() {
           href="/shop"
           className="inline-block bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
         >
-          Back to shop
+          {dict.success.backToShop}
         </Link>
       </div>
     </main>

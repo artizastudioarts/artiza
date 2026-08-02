@@ -4,8 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { Product } from "@/lib/types";
+import type { Dictionary } from "@/lib/dictionaries";
 
-export default function AddToCartButton({ product }: { product: Product }) {
+export default function AddToCartButton({
+  product,
+  dict,
+}: {
+  product: Product;
+  dict: Dictionary;
+}) {
   const { addItem, items } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -35,7 +42,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
         onClick={() => router.push("/cart")}
         className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
       >
-        View cart
+        {dict.product.viewCart}
       </button>
     );
   }
@@ -50,7 +57,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
         {Array.from({ length: Math.min(remaining, 20) }, (_, i) => i + 1).map(
           (n) => (
             <option key={n} value={n}>
-              Qty {n}
+              {dict.product.qty(n)}
             </option>
           )
         )}
@@ -60,7 +67,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
         disabled={remaining === 0}
         className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
       >
-        Add to cart
+        {dict.product.addToCart}
       </button>
     </div>
   );

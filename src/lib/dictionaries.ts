@@ -1,0 +1,411 @@
+import type { Locale } from "./i18n";
+
+export type Dictionary = {
+  nav: {
+    home: string;
+    shop: string;
+    cart: (count: number) => string;
+    account: string;
+    login: string;
+    openMenu: string;
+    closeMenu: string;
+  };
+  home: {
+    defaultSubheadline: string;
+    defaultHeadline: string;
+    defaultBody: string;
+    shopButton: string;
+    videoFallback: string;
+    videoCaption: string;
+    readyHeading: string;
+    browseButton: string;
+  };
+  shop: {
+    eyebrow: string;
+    heading: string;
+    body: string;
+    empty: string;
+  };
+  productCard: {
+    soldOut: string;
+    onlyLeft: (n: number) => string;
+  };
+  product: {
+    originalArtworkFallback: string;
+    soldOut: string;
+    onlyLeft: (n: number) => string;
+    inStock: (n: number) => string;
+    qty: (n: number) => string;
+    addToCart: string;
+    viewCart: string;
+    showPhoto: (n: number, total: number) => string;
+  };
+  cart: {
+    title: string;
+    empty: string;
+    browseShop: string;
+    each: string;
+    remove: string;
+    qty: (n: number) => string;
+    total: string;
+    checkout: string;
+    redirecting: string;
+    continueGuest: string;
+    loginTrack: string;
+    paymentNote: string;
+  };
+  auth: {
+    loginTitle: string;
+    signupTitle: string;
+    loginSubtitle: string;
+    signupSubtitle: string;
+    emailPlaceholder: string;
+    passwordPlaceholder: string;
+    pleaseWait: string;
+    loginButton: string;
+    signupButton: string;
+    noAccount: string;
+    haveAccount: string;
+    confirmEmailInfo: string;
+  };
+  account: {
+    yourAccount: string;
+    logout: string;
+    yourOrders: string;
+    loading: string;
+    noOrders: string;
+    statusPaid: string;
+    statusShipped: string;
+    statusCancelled: string;
+  };
+  success: {
+    orderConfirmed: string;
+    thankYou: string;
+    confirmationSent: string;
+    saveOrderNumber: string;
+    backToShop: string;
+  };
+  footer: {
+    rights: (year: number) => string;
+    terms: string;
+  };
+  terms: {
+    eyebrow: string;
+    title: string;
+    lastUpdated: (date: string) => string;
+    s1: { heading: string; body: string };
+    s2: { heading: string; body: string };
+    s3: { heading: string; body: string };
+    s4: { heading: string; body: string };
+    s5: { heading: string; before: string; bold: string; after: string };
+    s6: { heading: string; body: string };
+    s7: { heading: string; body: string };
+    s8: { heading: string; body: string };
+    s9: { heading: string; body: string };
+    s10: { heading: string; before: string; after: string };
+  };
+  languageSwitcher: {
+    switchToEnglish: string;
+    switchToGerman: string;
+  };
+};
+
+const de: Dictionary = {
+  nav: {
+    home: "Start",
+    shop: "Shop",
+    cart: (count) => (count > 0 ? `Warenkorb (${count})` : "Warenkorb"),
+    account: "Konto",
+    login: "Anmelden",
+    openMenu: "Menü öffnen",
+    closeMenu: "Menü schließen",
+  },
+  home: {
+    defaultSubheadline: "ZUM-SELBST-BEMALEN-FIGUREN FÜR KINDER",
+    defaultHeadline: "Mit Sorgfalt gefertigt, von dir bemalt",
+    defaultBody:
+      "Wir gestalten und arbeiten jedes Figurenmodell von Hand vor, bevor es als Bemal-Set zu dir nach Hause geschickt wird. Sieh dir an, wie jedes Stück entsteht, und stöbere dann im Shop, um eines für deinen kleinen Künstler auszuwählen.",
+    shopButton: "Zur Kollektion",
+    videoFallback: "Füge im Admin-Bereich ein Video hinzu, um es hier anzuzeigen",
+    videoCaption: "Jedes Modell, handveredelt vor dem Versand",
+    readyHeading: "Bereit, ein Modell auszuwählen?",
+    browseButton: "Shop durchstöbern",
+  },
+  shop: {
+    eyebrow: "Bemalbare Figuren für Kinder",
+    heading: "Modell wählen, loslegen.",
+    body: "Stöbere unten durch die aktuelle Kollektion. Jedes Modell wird als Bemal-Set versendet — solange der Vorrat reicht.",
+    empty: "Es sind noch keine Stücke gelistet. Füge welche im Admin-Bereich hinzu.",
+  },
+  productCard: {
+    soldOut: "Ausverkauft",
+    onlyLeft: (n) => `Nur noch ${n} übrig`,
+  },
+  product: {
+    originalArtworkFallback: "Originalkunstwerk",
+    soldOut: "Derzeit ausverkauft",
+    onlyLeft: (n) => `Nur noch ${n} übrig`,
+    inStock: (n) => `${n} auf Lager`,
+    qty: (n) => `Menge ${n}`,
+    addToCart: "In den Warenkorb",
+    viewCart: "Warenkorb ansehen",
+    showPhoto: (n, total) => `Foto ${n} von ${total} anzeigen`,
+  },
+  cart: {
+    title: "Dein Warenkorb",
+    empty: "Dein Warenkorb ist leer.",
+    browseShop: "Shop durchstöbern",
+    each: "je Stück",
+    remove: "Entfernen",
+    qty: (n) => `Menge ${n}`,
+    total: "Gesamt",
+    checkout: "Zur Kasse",
+    redirecting: "Weiterleitung zur Kasse…",
+    continueGuest: "Als Gast fortfahren",
+    loginTrack: "Anmelden / Registrieren, um diese Bestellung zu verfolgen",
+    paymentNote: "Karte & PayPal akzeptiert über Stripe",
+  },
+  auth: {
+    loginTitle: "Anmelden",
+    signupTitle: "Konto erstellen",
+    loginSubtitle: "Verfolge deine Bestellungen und ihren Status.",
+    signupSubtitle: "So kannst du deine Bestellungen nach dem Kauf verfolgen.",
+    emailPlaceholder: "E-Mail",
+    passwordPlaceholder: "Passwort",
+    pleaseWait: "Einen Moment…",
+    loginButton: "Anmelden",
+    signupButton: "Registrieren",
+    noAccount: "Noch kein Konto? Jetzt erstellen",
+    haveAccount: "Bereits ein Konto? Anmelden",
+    confirmEmailInfo:
+      "Konto erstellt. Bitte bestätige deine E-Mail-Adresse und melde dich anschließend an.",
+  },
+  account: {
+    yourAccount: "Dein Konto",
+    logout: "Abmelden",
+    yourOrders: "Deine Bestellungen",
+    loading: "Wird geladen…",
+    noOrders:
+      "Noch keine Bestellungen — Bestellungen, die du angemeldet aufgibst, erscheinen hier.",
+    statusPaid: "Bestellung eingegangen",
+    statusShipped: "Versendet",
+    statusCancelled: "Storniert",
+  },
+  success: {
+    orderConfirmed: "Bestellung bestätigt",
+    thankYou: "Vielen Dank für deine Bestellung",
+    confirmationSent:
+      "Eine Bestätigung wurde an deine E-Mail-Adresse gesendet. Dein Stück wird sorgfältig verpackt und bald versendet.",
+    saveOrderNumber: "Speichere diese Bestellnummer, um sie später griffbereit zu haben.",
+    backToShop: "Zurück zum Shop",
+  },
+  footer: {
+    rights: (year) => `© ${year} Artiza Studio. Alle Artikel werden mit Sorgfalt versendet.`,
+    terms: "AGB",
+  },
+  terms: {
+    eyebrow: "Rechtliches",
+    title: "Allgemeine Geschäftsbedingungen",
+    lastUpdated: (date) => `Zuletzt aktualisiert: ${date}`,
+    s1: {
+      heading: "1. Wer wir sind",
+      body: 'Diese Allgemeinen Geschäftsbedingungen gelten für alle Bestellungen, die über diese Website bei Artiza Studio ("wir", "uns", "unser") aufgegeben werden. Mit der Aufgabe einer Bestellung erklärst du dich mit diesen Bedingungen einverstanden.',
+    },
+    s2: {
+      heading: "2. Bestellungen und Zahlung",
+      body: "Alle Preise werden in Euro (EUR) angezeigt und enthalten die geltende Mehrwertsteuer, sofern nicht anders angegeben. Die Zahlung wird zum Zeitpunkt der Bestellung sicher über Stripe abgewickelt. Wir speichern keine Kartendaten. Eine Bestellung gilt als bestätigt, sobald die Zahlung erfolgreich abgeschlossen wurde; du erhältst dann eine Bestätigung mit deiner eindeutigen Bestellnummer.",
+    },
+    s3: {
+      heading: "3. Konten",
+      body: "Du kannst als Gast oder mit einem Konto bestellen. Wenn du ein Konto erstellst, bist du dafür verantwortlich, deine Anmeldedaten sicher aufzubewahren und für alle Aktivitäten unter deinem Konto.",
+    },
+    s4: {
+      heading: "4. Versand",
+      body: "Wir bemühen uns, Bestellungen zügig zu verpacken und zu versenden. Geschätzte Lieferzeiten hängen von deinem Standort ab und dienen nur zur Orientierung; sie sind keine garantierten Liefertermine. Das Risiko des Verlusts und das Eigentum an den Artikeln gehen auf dich über, sobald die Bestellung an die von dir angegebene Lieferadresse geliefert wurde.",
+    },
+    s5: {
+      heading: "5. Rückgabe und Erstattung",
+      before: "Du kannst die meisten Artikel innerhalb von ",
+      bold: "14 Tagen",
+      after:
+        " nach Erhalt deiner Bestellung gegen vollständige Erstattung zurückgeben, sofern der Artikel unbenutzt und in seiner Originalverpackung ist. Um eine Rückgabe zu starten, kontaktiere uns mit deiner Bestellnummer. Erstattungen erfolgen auf die ursprüngliche Zahlungsmethode, sobald wir den zurückgesendeten Artikel erhalten und geprüft haben. Die Kosten für die Rücksendung trägt der Kunde, es sei denn, der Artikel kam fehlerhaft oder falsch an.",
+    },
+    s6: {
+      heading: "6. Stornierungen",
+      body: "Du kannst eine Bestellung stornieren, bevor sie versendet wurde, indem du uns kontaktierst. Sobald eine Bestellung versendet wurde, gilt stattdessen das oben beschriebene Rückgabeverfahren.",
+    },
+    s7: {
+      heading: "7. Werbliche Kommunikation",
+      body: "Wenn du dich beim Checkout dafür entscheidest, senden wir dir möglicherweise gelegentlich Newsletter, Angebote oder Updates per E-Mail. Du kannst dich jederzeit über den Link in einer solchen E-Mail abmelden.",
+    },
+    s8: {
+      heading: "8. Deine Daten",
+      body: "Wir erheben die Informationen, die zur Bearbeitung und zum Versand deiner Bestellung erforderlich sind — wie Name, E-Mail, Telefonnummer und Lieferadresse — und geben sie nur an die Dienstleister weiter, die zur Erfüllung deiner Bestellung notwendig sind (z. B. unser Zahlungsdienstleister und Versanddienstleister).",
+    },
+    s9: {
+      heading: "9. Änderungen dieser Bedingungen",
+      body: "Wir können diese Allgemeinen Geschäftsbedingungen von Zeit zu Zeit aktualisieren. Es gilt jeweils die Fassung, die zum Zeitpunkt deiner Bestellung in Kraft war.",
+    },
+    s10: {
+      heading: "10. Kontakt",
+      before: "Fragen zu einer Bestellung oder diesen Bedingungen? Schreib uns an ",
+      after: ".",
+    },
+  },
+  languageSwitcher: {
+    switchToEnglish: "Switch to English",
+    switchToGerman: "Auf Deutsch anzeigen",
+  },
+};
+
+const en: Dictionary = {
+  nav: {
+    home: "Home",
+    shop: "Shop",
+    cart: (count) => (count > 0 ? `Cart (${count})` : "Cart"),
+    account: "Account",
+    login: "Log in",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+  },
+  home: {
+    defaultSubheadline: "PAINT-YOUR-OWN FIGURE KITS FOR KIDS",
+    defaultHeadline: "Handmade with care, painted by you",
+    defaultBody:
+      "We design and hand-finish every figure model before it ships to your door as a paint-it-yourself kit. Watch how each piece comes together, then browse the shop to pick one for your own little artist.",
+    shopButton: "Shop the collection",
+    videoFallback: "Add a video in the admin dashboard to show it here",
+    videoCaption: "Every model, hand-finished before it ships",
+    readyHeading: "Ready to pick a model?",
+    browseButton: "Browse the shop",
+  },
+  shop: {
+    eyebrow: "Paintable figures for kids",
+    heading: "Pick a model, get painting.",
+    body: "Browse the current collection below. Each model ships as a paint kit — while stock lasts.",
+    empty: "No pieces are listed yet. Add some in the admin dashboard.",
+  },
+  productCard: {
+    soldOut: "Sold out",
+    onlyLeft: (n) => `Only ${n} left`,
+  },
+  product: {
+    originalArtworkFallback: "Original artwork",
+    soldOut: "Currently sold out",
+    onlyLeft: (n) => `Only ${n} left`,
+    inStock: (n) => `${n} in stock`,
+    qty: (n) => `Qty ${n}`,
+    addToCart: "Add to cart",
+    viewCart: "View cart",
+    showPhoto: (n, total) => `Show photo ${n} of ${total}`,
+  },
+  cart: {
+    title: "Your cart",
+    empty: "Your cart is empty.",
+    browseShop: "Browse the shop",
+    each: "each",
+    remove: "Remove",
+    qty: (n) => `Qty ${n}`,
+    total: "Total",
+    checkout: "Checkout",
+    redirecting: "Redirecting to checkout…",
+    continueGuest: "Continue as guest",
+    loginTrack: "Log in / Sign up to track this order",
+    paymentNote: "Card & PayPal accepted via Stripe",
+  },
+  auth: {
+    loginTitle: "Log in",
+    signupTitle: "Create an account",
+    loginSubtitle: "Track your orders and see their status.",
+    signupSubtitle: "So you can track your orders after checkout.",
+    emailPlaceholder: "Email",
+    passwordPlaceholder: "Password",
+    pleaseWait: "Please wait…",
+    loginButton: "Log in",
+    signupButton: "Sign up",
+    noAccount: "No account yet? Create one",
+    haveAccount: "Already have an account? Log in",
+    confirmEmailInfo: "Account created. Check your email to confirm, then log in.",
+  },
+  account: {
+    yourAccount: "Your account",
+    logout: "Log out",
+    yourOrders: "Your orders",
+    loading: "Loading…",
+    noOrders: "No orders yet — orders you place while logged in will show up here.",
+    statusPaid: "Order received",
+    statusShipped: "Shipped",
+    statusCancelled: "Cancelled",
+  },
+  success: {
+    orderConfirmed: "Order confirmed",
+    thankYou: "Thank you for your order",
+    confirmationSent:
+      "A confirmation has been sent to your email. Your piece will be carefully packed and shipped soon.",
+    saveOrderNumber: "Save this order number to reference it later.",
+    backToShop: "Back to shop",
+  },
+  footer: {
+    rights: (year) => `© ${year} Artiza Studio. All items shipped with care.`,
+    terms: "Terms & Conditions",
+  },
+  terms: {
+    eyebrow: "Legal",
+    title: "Terms & Conditions",
+    lastUpdated: (date) => `Last updated: ${date}`,
+    s1: {
+      heading: "1. Who we are",
+      body: 'These Terms & Conditions govern all orders placed with Artiza Studio ("we", "us", "our") through this website. By placing an order, you agree to these terms.',
+    },
+    s2: {
+      heading: "2. Orders and payment",
+      body: "All prices are shown in Euros (EUR) and include applicable taxes unless stated otherwise. Payment is processed securely by Stripe at the time of checkout. We do not store your card details. An order is confirmed once payment has been successfully completed, at which point you will receive a confirmation with your unique order number.",
+    },
+    s3: {
+      heading: "3. Accounts",
+      body: "You may check out as a guest or create an account. If you create an account, you are responsible for keeping your login details secure and for all activity under your account.",
+    },
+    s4: {
+      heading: "4. Shipping",
+      body: "We aim to pack and ship orders promptly. Estimated delivery times depend on your location and are provided for guidance only; they are not guaranteed delivery dates. Risk of loss and title for items pass to you once the order is delivered to the shipping address you provided.",
+    },
+    s5: {
+      heading: "5. Returns and refunds",
+      before: "You may return most items within ",
+      bold: "14 days",
+      after:
+        " of receiving your order for a full refund, provided the item is unused and in its original condition and packaging. To start a return, contact us with your order number. Refunds are issued to your original payment method once we've received and inspected the returned item. Return shipping costs are the responsibility of the customer unless the item arrived faulty or incorrect.",
+    },
+    s6: {
+      heading: "6. Cancellations",
+      body: "You may cancel an order before it has shipped by contacting us. Once an order has shipped, the return process above applies instead.",
+    },
+    s7: {
+      heading: "7. Promotional communications",
+      body: "If you opt in at checkout, we may send you occasional newsletters, offers, or updates by email. You can unsubscribe at any time using the link in any such email.",
+    },
+    s8: {
+      heading: "8. Your information",
+      body: "We collect the information needed to process and ship your order — such as your name, email, phone number, and shipping address — and share it only with the service providers necessary to fulfil your order (such as our payment processor and delivery carriers).",
+    },
+    s9: {
+      heading: "9. Changes to these terms",
+      body: "We may update these Terms & Conditions from time to time. The version in effect at the time you place an order is the one that applies to that order.",
+    },
+    s10: {
+      heading: "10. Contact",
+      before: "Questions about an order or these terms? Reach out to us at ",
+      after: ".",
+    },
+  },
+  languageSwitcher: {
+    switchToEnglish: "Switch to English",
+    switchToGerman: "Auf Deutsch anzeigen",
+  },
+};
+
+const dictionaries: Record<Locale, Dictionary> = { de, en };
+
+export function getDictionary(locale: Locale): Dictionary {
+  return dictionaries[locale];
+}

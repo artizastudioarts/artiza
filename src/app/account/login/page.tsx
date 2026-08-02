@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import { useAuth } from "@/context/AuthContext";
+import { useLocale } from "@/context/LocaleContext";
 
 function LoginForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -14,6 +15,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   const { signIn, signUp } = useAuth();
+  const { dict } = useLocale();
   const router = useRouter();
   const params = useSearchParams();
   const redirectTo = params.get("redirect") || "/account";
@@ -35,7 +37,7 @@ function LoginForm() {
 
     if (mode === "signup") {
       // If Supabase has "confirm email" turned on, there's no session yet.
-      setInfo("Account created. Check your email to confirm, then log in.");
+      setInfo(dict.auth.confirmEmailInfo);
       setMode("login");
       return;
     }
@@ -47,12 +49,10 @@ function LoginForm() {
   return (
     <main className="max-w-sm mx-auto px-6 py-24 flex-1 w-full">
       <h1 className="font-display text-3xl italic mb-2">
-        {mode === "login" ? "Log in" : "Create an account"}
+        {mode === "login" ? dict.auth.loginTitle : dict.auth.signupTitle}
       </h1>
       <p className="text-ink-soft text-sm mb-8">
-        {mode === "login"
-          ? "Track your orders and see their status."
-          : "So you can track your orders after checkout."}
+        {mode === "login" ? dict.auth.loginSubtitle : dict.auth.signupSubtitle}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -60,7 +60,7 @@ function LoginForm() {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
+          placeholder={dict.auth.emailPlaceholder}
           required
           className="w-full border border-line px-4 py-3 bg-paper"
           autoFocus
@@ -69,7 +69,7 @@ function LoginForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
+          placeholder={dict.auth.passwordPlaceholder}
           required
           minLength={6}
           className="w-full border border-line px-4 py-3 bg-paper"
@@ -81,7 +81,11 @@ function LoginForm() {
           disabled={loading}
           className="w-full bg-ink text-paper px-6 py-3 placard-label disabled:opacity-50"
         >
-          {loading ? "Please wait…" : mode === "login" ? "Log in" : "Sign up"}
+          {loading
+            ? dict.auth.pleaseWait
+            : mode === "login"
+              ? dict.auth.loginButton
+              : dict.auth.signupButton}
         </button>
       </form>
 
@@ -93,9 +97,7 @@ function LoginForm() {
         }}
         className="placard-label text-ink-soft hover:text-ink mt-6"
       >
-        {mode === "login"
-          ? "No account yet? Create one"
-          : "Already have an account? Log in"}
+        {mode === "login" ? dict.auth.noAccount : dict.auth.haveAccount}
       </button>
     </main>
   );

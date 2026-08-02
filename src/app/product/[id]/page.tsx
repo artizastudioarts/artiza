@@ -4,6 +4,9 @@ import Header from "@/components/Header";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductGallery from "@/components/ProductGallery";
+import { getLocale } from "@/lib/getLocale";
+import { getDictionary } from "@/lib/dictionaries";
+import { localizeProduct } from "@/lib/localizeProduct";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
 
@@ -22,6 +25,13 @@ export default async function ProductPage({
   const product = data as Product | null;
   if (!product) notFound();
 
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const display = localizeProduct(product, locale);
+  // The cart, checkout, and order emails should show whichever language
+  // the customer was actually looking at when they added it.
+  const displayProduct: Product = { ...product, ...display };
+
   const images =
     product.image_urls?.length
       ? product.image_urls
@@ -33,39 +43,39 @@ export default async function ProductPage({
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
-        <ProductGallery images={images} title={product.title} />
+        <ProductGallery images={images} title={display.title ?? ""} dict={dict} />
 
         <div className="max-w-md">
           <p className="placard-label text-ink-soft mb-3">
-            {product.medium ?? "Original artwork"}
+            {display.medium ?? dict.product.originalArtworkFallback}
           </p>
           <h1 className="font-display text-4xl italic leading-tight mb-4">
-            {product.title}
+            {display.title}
           </h1>
-          {product.dimensions && (
-            <p className="text-ink-soft mb-1">{product.dimensions}</p>
+          {display.dimensions && (
+            <p className="text-ink-soft mb-1">{display.dimensions}</p>
           )}
           <p className="text-2xl font-display mb-6">
             {formatPrice(product.price_cents, product.currency)}
           </p>
-          {product.artist_note && (
+          {display.artist_note && (
             <p className="text-ink-soft leading-relaxed mb-8">
-              {product.artist_note}
+              {display.artist_note}
             </p>
           )}
 
           {product.stock_quantity <= 0 ? (
             <div className="placard-label text-ink-soft border border-line px-4 py-3 inline-block">
-              Currently sold out
+              {dict.product.soldOut}
             </div>
           ) : (
             <>
               <p className="placard-label text-ink-soft mb-4">
                 {product.stock_quantity <= 5
-                  ? `Only ${product.stock_quantity} left`
-                  : `${product.stock_quantity} in stock`}
+                  ? dict.product.onlyLeft(product.stock_quantity)
+                  : dict.product.inStock(product.stock_quantity)}
               </p>
-              <AddToCartButton product={product} />
+              <AddToCartButton product={displayProduct} dict={dict} />
             </>
           )}
         </div>

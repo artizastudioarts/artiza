@@ -4,6 +4,10 @@ export type Product = {
   artist_note: string | null;
   medium: string | null;
   dimensions: string | null;
+  title_en: string | null;
+  artist_note_en: string | null;
+  medium_en: string | null;
+  dimensions_en: string | null;
   price_cents: number;
   currency: string;
   image_url: string | null;
@@ -25,9 +29,6 @@ export type Order = {
 
 export type HomeContent = {
   id: number;
-  headline: string;
-  subheadline: string;
-  body: string;
   video_url: string | null;
 };
 

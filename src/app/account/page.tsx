@@ -4,20 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { useAuth } from "@/context/AuthContext";
+import { useLocale } from "@/context/LocaleContext";
 import { formatPrice, type Order } from "@/lib/types";
-
-const STATUS_LABELS: Record<string, string> = {
-  paid: "Order received",
-  shipped: "Shipped",
-  cancelled: "Cancelled",
-};
 
 export default function AccountPage() {
   const { user, session, loaded, signOut } = useAuth();
+  const { dict, locale } = useLocale();
   const router = useRouter();
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState("");
+
+  const STATUS_LABELS: Record<string, string> = {
+    paid: dict.account.statusPaid,
+    shipped: dict.account.statusShipped,
+    cancelled: dict.account.statusCancelled,
+  };
 
   useEffect(() => {
     if (!loaded) return;
@@ -52,7 +54,7 @@ export default function AccountPage() {
       <main className="max-w-2xl mx-auto px-6 py-14 flex-1 w-full">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-display text-3xl italic">Your account</h1>
+            <h1 className="font-display text-3xl italic">{dict.account.yourAccount}</h1>
             <p className="text-ink-soft text-sm mt-1">{user.email}</p>
           </div>
           <button
@@ -63,22 +65,20 @@ export default function AccountPage() {
             }}
             className="placard-label text-ink-soft hover:text-oxblood"
           >
-            Log out
+            {dict.account.logout}
           </button>
         </div>
 
-        <h2 className="placard-label text-ink-soft mb-4">Your orders</h2>
+        <h2 className="placard-label text-ink-soft mb-4">{dict.account.yourOrders}</h2>
 
         {error && <p className="text-oxblood text-sm">{error}</p>}
 
         {!error && orders === null && (
-          <p className="text-ink-soft text-sm">Loading…</p>
+          <p className="text-ink-soft text-sm">{dict.account.loading}</p>
         )}
 
         {orders && orders.length === 0 && (
-          <p className="text-ink-soft text-sm">
-            No orders yet — orders you place while logged in will show up here.
-          </p>
+          <p className="text-ink-soft text-sm">{dict.account.noOrders}</p>
         )}
 
         {orders && orders.length > 0 && (
@@ -97,8 +97,10 @@ export default function AccountPage() {
                     {order.quantity > 1 ? ` × ${order.quantity}` : ""}
                   </p>
                   <p className="text-sm text-ink-soft">
-                    {new Date(order.created_at).toLocaleDateString()} ·{" "}
-                    {formatPrice(order.amount_total_cents, order.currency)}
+                    {new Date(order.created_at).toLocaleDateString(
+                      locale === "de" ? "de-DE" : "en-GB"
+                    )}{" "}
+                    · {formatPrice(order.amount_total_cents, order.currency)}
                   </p>
                 </div>
                 <span className="placard-label text-ink-soft">

@@ -17,12 +17,7 @@ export async function PATCH(req: NextRequest) {
   const db = supabaseAdmin();
   const { error } = await db
     .from("home_content")
-    .update({
-      headline: body.headline,
-      subheadline: body.subheadline,
-      body: body.body,
-      video_url: body.video_url,
-    })
+    .update({ video_url: body.video_url })
     .eq("id", 1);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

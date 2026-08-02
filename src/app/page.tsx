@@ -3,6 +3,9 @@ import { HomeContent } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { getLocale } from "@/lib/getLocale";
+import { getDictionary } from "@/lib/dictionaries";
+import { getPageContent } from "@/lib/getPageContent";
 
 export const revalidate = 0;
 
@@ -14,6 +17,9 @@ export default async function Home() {
     .single();
 
   const content = data as HomeContent | null;
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const pageContent = await getPageContent("home", locale);
 
   return (
     <>
@@ -21,20 +27,19 @@ export default async function Home() {
       <main className="flex-1 w-full">
         <section className="max-w-6xl mx-auto px-6 pt-16 pb-10 text-center">
           <p className="placard-label text-ink-soft mb-4">
-            {content?.subheadline ?? "PAINT-YOUR-OWN FIGURE KITS FOR KIDS"}
+            {pageContent.subheadline ?? dict.home.defaultSubheadline}
           </p>
           <h1 className="font-display text-4xl md:text-6xl italic leading-tight max-w-3xl mx-auto">
-            {content?.headline ?? "Handmade with care, painted by you"}
+            {pageContent.headline ?? dict.home.defaultHeadline}
           </h1>
           <p className="mt-6 text-ink-soft max-w-xl mx-auto leading-relaxed">
-            {content?.body ??
-              "We design and hand-finish every figure model before it ships to your door as a paint-it-yourself kit. Watch how each piece comes together, then browse the shop to pick one for your own little artist."}
+            {pageContent.body ?? dict.home.defaultBody}
           </p>
           <Link
             href="/shop"
             className="inline-block mt-8 bg-ink text-paper px-8 py-4 placard-label hover:bg-oxblood transition-colors"
           >
-            Shop the collection
+            {dict.home.shopButton}
           </Link>
         </section>
 
@@ -51,25 +56,25 @@ export default async function Home() {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft text-center px-6">
-                Add a video in the admin dashboard to show it here
+                {dict.home.videoFallback}
               </div>
             )}
           </div>
           <p className="placard-label text-ink-soft text-center mt-4">
-            Every model, hand-finished before it ships
+            {dict.home.videoCaption}
           </p>
         </section>
 
         <section className="border-t border-line">
           <div className="max-w-6xl mx-auto px-6 py-14 text-center">
             <h2 className="font-display text-2xl italic mb-4">
-              Ready to pick a model?
+              {dict.home.readyHeading}
             </h2>
             <Link
               href="/shop"
               className="inline-block bg-ink text-paper px-8 py-4 placard-label hover:bg-oxblood transition-colors"
             >
-              Browse the shop
+              {dict.home.browseButton}
             </Link>
           </div>
         </section>

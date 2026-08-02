@@ -38,6 +38,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating from localStorage on mount is client-only and can't be done in the initializer (no window during SSR)
       if (raw) setItems(JSON.parse(raw));
     } catch {
       // ignore corrupt storage

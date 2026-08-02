@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import type { Dictionary } from "@/lib/dictionaries";
 
 export default function ProductGallery({
   images,
   title,
+  dict,
 }: {
   images: string[];
   title: string;
+  dict: Dictionary;
 }) {
   const [active, setActive] = useState(0);
 
@@ -37,7 +40,7 @@ export default function ProductGallery({
             <button
               key={url}
               onClick={() => setActive(i)}
-              aria-label={`Show photo ${i + 1} of ${title}`}
+              aria-label={dict.product.showPhoto(i + 1, images.length)}
               className={`relative w-16 h-16 shrink-0 border ${
                 i === active ? "border-ink" : "border-line opacity-70 hover:opacity-100"
               }`}

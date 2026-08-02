@@ -4,10 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useLocale } from "@/context/LocaleContext";
+import LanguageToggle from "@/components/LanguageToggle";
 
 export default function Header() {
   const { items } = useCart();
   const { user } = useAuth();
+  const { dict } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navLinks = (
@@ -17,28 +20,28 @@ export default function Header() {
         onClick={() => setMenuOpen(false)}
         className="placard-label text-ink-soft hover:text-ink"
       >
-        Home
+        {dict.nav.home}
       </Link>
       <Link
         href="/shop"
         onClick={() => setMenuOpen(false)}
         className="placard-label text-ink-soft hover:text-ink"
       >
-        Shop
+        {dict.nav.shop}
       </Link>
       <Link
         href="/cart"
         onClick={() => setMenuOpen(false)}
         className="placard-label text-ink-soft hover:text-ink"
       >
-        Cart{items.length > 0 ? ` (${items.length})` : ""}
+        {dict.nav.cart(items.length)}
       </Link>
       <Link
         href="/account"
         onClick={() => setMenuOpen(false)}
         className="placard-label text-ink-soft hover:text-ink"
       >
-        {user ? "Account" : "Log in"}
+        {user ? dict.nav.account : dict.nav.login}
       </Link>
     </>
   );
@@ -64,30 +67,36 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden sm:flex items-center gap-6">{navLinks}</nav>
+        <nav className="hidden sm:flex items-center gap-6">
+          {navLinks}
+          <LanguageToggle />
+        </nav>
 
-        {/* Mobile hamburger button */}
-        <button
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          className="sm:hidden flex flex-col justify-center gap-1.5 w-8 h-8"
-        >
-          <span
-            className={`block h-0.5 w-6 bg-ink transition-transform ${
-              menuOpen ? "translate-y-2 rotate-45" : ""
-            }`}
-          />
-          <span
-            className={`block h-0.5 w-6 bg-ink transition-opacity ${
-              menuOpen ? "opacity-0" : ""
-            }`}
-          />
-          <span
-            className={`block h-0.5 w-6 bg-ink transition-transform ${
-              menuOpen ? "-translate-y-2 -rotate-45" : ""
-            }`}
-          />
-        </button>
+        {/* Mobile: language toggle + hamburger */}
+        <div className="sm:hidden flex items-center gap-3">
+          <LanguageToggle />
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? dict.nav.closeMenu : dict.nav.openMenu}
+            className="flex flex-col justify-center gap-1.5 w-8 h-8"
+          >
+            <span
+              className={`block h-0.5 w-6 bg-ink transition-transform ${
+                menuOpen ? "translate-y-2 rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`block h-0.5 w-6 bg-ink transition-opacity ${
+                menuOpen ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`block h-0.5 w-6 bg-ink transition-transform ${
+                menuOpen ? "-translate-y-2 -rotate-45" : ""
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu panel */}

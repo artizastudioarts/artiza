@@ -48,16 +48,35 @@ alter table orders enable row level security;
 create policy "Customers can view their own orders" on orders
   for select using (auth.uid() = user_id);
 
--- Single-row table holding the marketing homepage's editable content
+-- Single-row table holding the marketing homepage's editable video
 create table home_content (
   id integer primary key default 1,
-  headline text not null default 'Handmade with care, painted by you',
-  subheadline text not null default 'PAINT-YOUR-OWN FIGURE KITS FOR KIDS',
-  body text not null default 'We design and hand-finish every figure model before it ships to your door as a paint-it-yourself kit. Watch how each piece comes together, then browse the shop to pick one for your own little artist.',
   video_url text,
   constraint single_row check (id = 1)
 );
 insert into home_content (id) values (1);
 alter table home_content enable row level security;
 create policy "Public can view home content" on home_content
+  for select using (true);
+
+-- Generic bilingual text store for page content (see migration-page-content.sql
+-- for a longer explanation). Extended with more rows whenever a new page
+-- needs editable, translatable text.
+create table site_content (
+  id uuid primary key default gen_random_uuid(),
+  page_key text not null,
+  field_key text not null,
+  label text not null,
+  field_type text not null default 'text',
+  value_de text,
+  value_en text,
+  sort_order integer not null default 0,
+  unique (page_key, field_key)
+);
+insert into site_content (page_key, field_key, label, field_type, sort_order) values
+  ('home', 'subheadline', 'Small label above the headline', 'text', 1),
+  ('home', 'headline', 'Headline', 'text', 2),
+  ('home', 'body', 'Body text', 'textarea', 3);
+alter table site_content enable row level security;
+create policy "Public can view site content" on site_content
   for select using (true);

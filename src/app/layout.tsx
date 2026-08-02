@@ -3,6 +3,8 @@ import { Fraunces, Inter, Caveat } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { LocaleProvider } from "@/context/LocaleContext";
+import { getLocale } from "@/lib/getLocale";
 
 const fraunces = Fraunces({
   variable: "--font-display",
@@ -32,20 +34,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${fraunces.variable} ${inter.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
-        <AuthProvider>
-          <CartProvider>{children}</CartProvider>
-        </AuthProvider>
+        <LocaleProvider initialLocale={locale}>
+          <AuthProvider>
+            <CartProvider>{children}</CartProvider>
+          </AuthProvider>
+        </LocaleProvider>
       </body>
     </html>
   );
