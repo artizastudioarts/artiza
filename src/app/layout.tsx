@@ -26,11 +26,24 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
   title: "Artiza Studio — Paint-Your-Own Figures",
   description:
     "Paintable figure kits for kids, shipped with care.",
   icons: {
     icon: "/logo.svg",
+  },
+  openGraph: {
+    title: "Artiza Studio — Paint-Your-Own Figures",
+    description: "Paintable figure kits for kids, shipped with care.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Artiza Studio — Paint-Your-Own Figures",
+    description: "Paintable figure kits for kids, shipped with care.",
+    images: ["/og-image.png"],
   },
 };
 
