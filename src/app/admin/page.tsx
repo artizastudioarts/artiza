@@ -37,7 +37,9 @@ type Product = {
 };
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState<"orders" | "products" | "home" | "content">("orders");
+  const [tab, setTab] = useState<"orders" | "products" | "home" | "content" | "reviews">(
+    "orders"
+  );
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12">
@@ -76,6 +78,14 @@ export default function AdminDashboard() {
           >
             Content
           </button>
+          <button
+            onClick={() => setTab("reviews")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "reviews" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Reviews
+          </button>
         </div>
       </div>
 
@@ -85,8 +95,10 @@ export default function AdminDashboard() {
         <ProductsTab />
       ) : tab === "home" ? (
         <HomeTab />
-      ) : (
+      ) : tab === "content" ? (
         <ContentTab />
+      ) : (
+        <ReviewsTab />
       )}
     </main>
   );
@@ -1026,6 +1038,148 @@ function CarouselManager() {
         <p className="placard-label text-ink-soft mt-2">Uploading…</p>
       )}
       {error && <p className="text-oxblood text-sm mt-2">{error}</p>}
+    </div>
+  );
+}
+
+type AdminReview = {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  rating: number | null;
+  review_text: string;
+  image_url: string | null;
+  status: "pending" | "approved" | "featured" | "rejected";
+  created_at: string;
+};
+
+const REVIEW_STATUS_LABELS: Record<AdminReview["status"], string> = {
+  pending: "New",
+  approved: "Approved (on /reviews)",
+  featured: "Featured (on homepage)",
+  rejected: "Rejected",
+};
+
+function ReviewsTab() {
+  const [reviews, setReviews] = useState<AdminReview[] | null>(null);
+  const [filter, setFilter] = useState<"all" | AdminReview["status"]>("all");
+
+  function load() {
+    fetch("/api/admin/reviews")
+      .then((r) => r.json())
+      .then((d) => setReviews(d.reviews ?? []));
+  }
+
+  useEffect(load, []);
+
+  async function setStatus(id: string, status: AdminReview["status"]) {
+    setReviews((prev) =>
+      prev ? prev.map((r) => (r.id === id ? { ...r, status } : r)) : prev
+    );
+    await fetch("/api/admin/reviews", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status }),
+    });
+  }
+
+  async function remove(id: string) {
+    if (!confirm("Delete this review permanently?")) return;
+    setReviews((prev) => prev?.filter((r) => r.id !== id) ?? null);
+    await fetch("/api/admin/reviews", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  const filtered = reviews?.filter((r) => filter === "all" || r.status === filter) ?? [];
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {(["all", "pending", "approved", "featured", "rejected"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`placard-label px-3 py-1.5 border border-line ${
+              filter === f ? "bg-ink text-paper" : ""
+            }`}
+          >
+            {f === "all" ? "All" : REVIEW_STATUS_LABELS[f]}
+          </button>
+        ))}
+      </div>
+
+      {reviews === null ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-ink-soft">No reviews here yet.</p>
+      ) : (
+        <div className="space-y-4 max-w-3xl">
+          {filtered.map((r) => (
+            <div key={r.id} className="border border-line p-4 flex gap-4">
+              {r.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={r.image_url}
+                  alt=""
+                  className="w-24 h-24 object-cover border border-line shrink-0"
+                />
+              ) : (
+                <div className="w-24 h-24 border border-line shrink-0 flex items-center justify-center text-ink-soft placard-label">
+                  No photo
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <p className="font-display text-lg">{r.customer_name}</p>
+                  <span className="placard-label text-ink-soft">
+                    {REVIEW_STATUS_LABELS[r.status]}
+                  </span>
+                </div>
+                <p className="placard-label text-ink-soft mb-1">
+                  Order {r.order_number}
+                  {r.rating ? ` · ${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}` : ""}
+                </p>
+                <p className="text-sm text-ink-soft mb-3">{r.review_text}</p>
+                <div className="flex gap-3 flex-wrap text-sm">
+                  {r.status !== "featured" && (
+                    <button
+                      onClick={() => setStatus(r.id, "featured")}
+                      className="text-oxblood hover:underline"
+                    >
+                      Feature on homepage
+                    </button>
+                  )}
+                  {r.status !== "approved" && (
+                    <button
+                      onClick={() => setStatus(r.id, "approved")}
+                      className="text-ink-soft hover:underline"
+                    >
+                      {r.status === "featured" ? "Un-feature (keep approved)" : "Approve"}
+                    </button>
+                  )}
+                  {r.status !== "rejected" && (
+                    <button
+                      onClick={() => setStatus(r.id, "rejected")}
+                      className="text-ink-soft hover:underline"
+                    >
+                      Reject
+                    </button>
+                  )}
+                  <button
+                    onClick={() => remove(r.id)}
+                    className="text-oxblood hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

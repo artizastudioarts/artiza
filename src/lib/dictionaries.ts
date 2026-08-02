@@ -26,6 +26,8 @@ export type Dictionary = {
     carouselPrev: string;
     carouselNext: string;
     carouselRegionLabel: string;
+    defaultReviewsEyebrow: string;
+    defaultReviewsHeading: string;
   };
   shop: {
     eyebrow: string;
@@ -115,6 +117,31 @@ export type Dictionary = {
     switchToEnglish: string;
     switchToGerman: string;
   };
+  reviews: {
+    homeReadAll: string;
+    verifiedBadge: string;
+    pageEyebrow: string;
+    pageTitle: string;
+    pageEmpty: string;
+    writeReviewButton: string;
+    writeTitle: string;
+    writeSubtitle: string;
+    orderNumberLabel: string;
+    orderNumberPlaceholder: string;
+    nameLabel: string;
+    ratingLabel: string;
+    ratingOptional: string;
+    reviewLabel: string;
+    photoLabel: string;
+    submitButton: string;
+    submitting: string;
+    successTitle: string;
+    successBody: string;
+    backToShop: string;
+    errorOrderNotFound: string;
+    errorAlreadyReviewed: string;
+    errorGeneric: string;
+  };
 };
 
 const de: Dictionary = {
@@ -145,6 +172,8 @@ const de: Dictionary = {
     carouselPrev: "Vorheriges Bild",
     carouselNext: "Nächstes Bild",
     carouselRegionLabel: "Bildergalerie, mit der Maus oder durch Wischen durchsuchbar",
+    defaultReviewsEyebrow: "WAS UNSERE KUNDEN SAGEN",
+    defaultReviewsHeading: "Echte Bewertungen von echten Käufern",
   },
   shop: {
     eyebrow: "Bemalbare Figuren für Kinder",
@@ -271,6 +300,34 @@ const de: Dictionary = {
     switchToEnglish: "Switch to English",
     switchToGerman: "Auf Deutsch anzeigen",
   },
+  reviews: {
+    homeReadAll: "Alle Bewertungen lesen",
+    verifiedBadge: "Verifizierter Kauf",
+    pageEyebrow: "Kundenstimmen",
+    pageTitle: "Bewertungen",
+    pageEmpty: "Noch keine Bewertungen — sei die erste Person, die eine schreibt.",
+    writeReviewButton: "Bewertung schreiben",
+    writeTitle: "Teile deine Bewertung",
+    writeSubtitle:
+      "Nur Kunden mit einer gültigen Bestellnummer können eine Bewertung abgeben.",
+    orderNumberLabel: "Bestellnummer",
+    orderNumberPlaceholder: "z. B. AS-2607-000001",
+    nameLabel: "Dein Name",
+    ratingLabel: "Bewertung",
+    ratingOptional: "(optional)",
+    reviewLabel: "Deine Bewertung",
+    photoLabel: "Foto deines fertigen Stücks (optional)",
+    submitButton: "Bewertung absenden",
+    submitting: "Wird gesendet…",
+    successTitle: "Vielen Dank!",
+    successBody:
+      "Deine Bewertung wurde eingereicht und erscheint, sobald wir sie geprüft haben.",
+    backToShop: "Zurück zum Shop",
+    errorOrderNotFound:
+      "Wir konnten diese Bestellnummer nicht finden. Bitte überprüfe sie und versuche es erneut.",
+    errorAlreadyReviewed: "Für diese Bestellung wurde bereits eine Bewertung abgegeben.",
+    errorGeneric: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+  },
 };
 
 const en: Dictionary = {
@@ -301,6 +358,8 @@ const en: Dictionary = {
     carouselPrev: "Previous photo",
     carouselNext: "Next photo",
     carouselRegionLabel: "Photo gallery, scrollable with mouse or swipe",
+    defaultReviewsEyebrow: "WHAT OUR CUSTOMERS SAY",
+    defaultReviewsHeading: "Real reviews from real buyers",
   },
   shop: {
     eyebrow: "Paintable figures for kids",
@@ -424,6 +483,31 @@ const en: Dictionary = {
   languageSwitcher: {
     switchToEnglish: "Switch to English",
     switchToGerman: "Auf Deutsch anzeigen",
+  },
+  reviews: {
+    homeReadAll: "Read all reviews",
+    verifiedBadge: "Verified purchase",
+    pageEyebrow: "Customer voices",
+    pageTitle: "Reviews",
+    pageEmpty: "No reviews yet — be the first to write one.",
+    writeReviewButton: "Write a review",
+    writeTitle: "Share your review",
+    writeSubtitle: "Only customers with a valid order number can leave a review.",
+    orderNumberLabel: "Order number",
+    orderNumberPlaceholder: "e.g. AS-2607-000001",
+    nameLabel: "Your name",
+    ratingLabel: "Rating",
+    ratingOptional: "(optional)",
+    reviewLabel: "Your review",
+    photoLabel: "Photo of your finished piece (optional)",
+    submitButton: "Submit review",
+    submitting: "Submitting…",
+    successTitle: "Thank you!",
+    successBody: "Your review has been submitted and will appear once we've reviewed it.",
+    backToShop: "Back to shop",
+    errorOrderNotFound: "We couldn't find that order number. Please check and try again.",
+    errorAlreadyReviewed: "This order has already been reviewed.",
+    errorGeneric: "Something went wrong. Please try again.",
   },
 };
 

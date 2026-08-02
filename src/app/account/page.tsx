@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "@/components/Header";
 import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
@@ -103,9 +104,17 @@ export default function AccountPage() {
                     · {formatPrice(order.amount_total_cents, order.currency)}
                   </p>
                 </div>
-                <span className="placard-label text-ink-soft">
-                  {STATUS_LABELS[order.status] ?? order.status}
-                </span>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className="placard-label text-ink-soft">
+                    {STATUS_LABELS[order.status] ?? order.status}
+                  </span>
+                  <Link
+                    href={`/reviews/write?order=${encodeURIComponent(order.order_number)}`}
+                    className="placard-label text-oxblood hover:underline"
+                  >
+                    {dict.reviews.writeReviewButton}
+                  </Link>
+                </div>
               </li>
             ))}
           </ul>

@@ -80,7 +80,9 @@ insert into site_content (page_key, field_key, label, field_type, sort_order) va
   ('home', 'storyEyebrow', 'Story section — small label above the heading', 'text', 4),
   ('home', 'storyHeading', 'Story section — heading', 'text', 5),
   ('home', 'storyBody', 'Story section — paragraph', 'textarea', 6),
-  ('home', 'carouselEyebrow', 'Gallery section — small label above the photos', 'text', 7);
+  ('home', 'carouselEyebrow', 'Gallery section — small label above the photos', 'text', 7),
+  ('home', 'reviewsEyebrow', 'Reviews section — small label above the heading', 'text', 8),
+  ('home', 'reviewsHeading', 'Reviews section — heading', 'text', 9);
 alter table site_content enable row level security;
 create policy "Public can view site content" on site_content
   for select using (true);
@@ -97,3 +99,18 @@ create table home_carousel_images (
 alter table home_carousel_images enable row level security;
 create policy "Public can view carousel images" on home_carousel_images
   for select using (true);
+
+-- Customer reviews, verified by order number
+create table reviews (
+  id uuid primary key default gen_random_uuid(),
+  order_number text not null unique,
+  customer_name text not null,
+  rating integer,
+  review_text text not null,
+  image_url text,
+  status text not null default 'pending', -- pending | approved | featured | rejected
+  created_at timestamptz not null default now()
+);
+alter table reviews enable row level security;
+create policy "Public can view approved reviews" on reviews
+  for select using (status in ('approved', 'featured'));

@@ -7,6 +7,8 @@ import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { getPageContent } from "@/lib/getPageContent";
 import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
+import ReviewCard from "@/components/ReviewCard";
+import type { Review } from "@/lib/types";
 
 export const revalidate = 0;
 
@@ -41,6 +43,15 @@ export default async function Home() {
       caption: (locale === "de" ? row.caption_de : row.caption_en) ?? null,
     })
   );
+
+  const { data: reviewRows } = await supabasePublic
+    .from("reviews")
+    .select("*")
+    .eq("status", "featured")
+    .order("created_at", { ascending: false })
+    .limit(6);
+
+  const featuredReviews = (reviewRows as Review[]) ?? [];
 
   return (
     <>
@@ -117,6 +128,38 @@ export default async function Home() {
               nextLabel={dict.home.carouselNext}
               regionLabel={dict.home.carouselRegionLabel}
             />
+          </section>
+        )}
+
+        {featuredReviews.length > 0 && (
+          <section className="border-t border-line">
+            <div className="max-w-6xl mx-auto px-6 py-16">
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
+                <div>
+                  <p className="placard-label text-ink-soft mb-3">
+                    {pageContent.reviewsEyebrow ?? dict.home.defaultReviewsEyebrow}
+                  </p>
+                  <h2 className="font-display text-3xl md:text-4xl italic leading-tight">
+                    {pageContent.reviewsHeading ?? dict.home.defaultReviewsHeading}
+                  </h2>
+                </div>
+                <Link
+                  href="/reviews"
+                  className="placard-label text-ink-soft hover:text-ink"
+                >
+                  {dict.reviews.homeReadAll} →
+                </Link>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {featuredReviews.map((review) => (
+                  <ReviewCard
+                    key={review.id}
+                    review={review}
+                    verifiedLabel={dict.reviews.verifiedBadge}
+                  />
+                ))}
+              </div>
+            </div>
           </section>
         )}
 

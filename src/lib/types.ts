@@ -27,6 +27,23 @@ export type Order = {
   created_at: string;
 };
 
+export type Review = {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  rating: number | null;
+  review_text: string;
+  image_url: string | null;
+  status: "pending" | "approved" | "featured" | "rejected";
+  created_at: string;
+};
+
+export function truncateWords(text: string, maxWords: number) {
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "…";
+}
+
 export type HomeContent = {
   id: number;
   video_url: string | null;
