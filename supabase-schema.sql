@@ -121,3 +121,44 @@ create table reviews (
 alter table reviews enable row level security;
 create policy "Public can view approved reviews" on reviews
   for select using (status in ('approved', 'featured'));
+
+-- Admin-editable email templates (order confirmation, status updates,
+-- abandoned cart). Not publicly readable — admin dashboard only.
+create table email_templates (
+  key text primary key,
+  subject text not null,
+  body text not null,
+  updated_at timestamptz not null default now()
+);
+-- No public policies on purpose — internal templates, admin-only via the
+-- service-role key, which bypasses RLS regardless.
+alter table email_templates enable row level security;
+insert into email_templates (key, subject, body) values
+(
+  'order_confirmation',
+  'Deine Bestellung bei Artiza Studio ({{order_numbers}})',
+  '<p>Hallo {{customer_name}},</p>
+<p>vielen Dank für deine Bestellung bei Artiza Studio! Wir haben sie erhalten und machen uns bald an die Verpackung.</p>
+{{items}}
+<p><strong>Gesamt: {{total}}</strong></p>
+<p>Du kannst den Status deiner Bestellung jederzeit über dein Konto auf unserer Website einsehen.</p>
+<p>Herzliche Grüße,<br>Artiza Studio</p>'
+),
+(
+  'order_status_changed',
+  'Update zu deiner Bestellung {{order_number}}',
+  '<p>Hallo {{customer_name}},</p>
+<p>der Status deiner Bestellung <strong>{{order_number}}</strong> hat sich geändert:</p>
+<p style="font-size:18px"><strong>{{status}}</strong></p>
+{{items}}
+<p>Herzliche Grüße,<br>Artiza Studio</p>'
+),
+(
+  'abandoned_cart',
+  'Du hast noch etwas im Warenkorb vergessen',
+  '<p>Hallo,</p>
+<p>uns ist aufgefallen, dass du diese Stücke in deinem Warenkorb hattest, den Kauf aber noch nicht abgeschlossen hast:</p>
+{{items}}
+<p>Falls du noch Fragen hast, antworte einfach auf diese E-Mail — wir helfen gerne weiter.</p>
+<p>Herzliche Grüße,<br>Artiza Studio</p>'
+);

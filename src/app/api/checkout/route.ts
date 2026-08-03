@@ -85,6 +85,9 @@ export async function POST(req: NextRequest) {
       },
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart`,
+      // Shorter than Stripe's 24h default so an abandoned-cart email (sent
+      // when this session expires unpaid) goes out reasonably promptly.
+      expires_at: Math.floor(Date.now() / 1000) + 60 * 60,
     });
 
     return NextResponse.json({ url: session.url });

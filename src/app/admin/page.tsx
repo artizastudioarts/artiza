@@ -53,9 +53,9 @@ type Product = {
 };
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState<"orders" | "products" | "home" | "content" | "reviews">(
-    "orders"
-  );
+  const [tab, setTab] = useState<
+    "orders" | "products" | "home" | "content" | "reviews" | "emails"
+  >("orders");
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12">
@@ -102,6 +102,14 @@ export default function AdminDashboard() {
           >
             Reviews
           </button>
+          <button
+            onClick={() => setTab("emails")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "emails" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Emails
+          </button>
         </div>
       </div>
 
@@ -113,8 +121,10 @@ export default function AdminDashboard() {
         <HomeTab />
       ) : tab === "content" ? (
         <ContentTab />
-      ) : (
+      ) : tab === "reviews" ? (
         <ReviewsTab />
+      ) : (
+        <EmailsTab />
       )}
     </main>
   );
@@ -1207,6 +1217,173 @@ function ReviewsTab() {
             </div>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+type EmailTemplateKey = "order_confirmation" | "order_status_changed" | "abandoned_cart";
+
+type EmailTemplateRow = {
+  key: EmailTemplateKey;
+  subject: string;
+  body: string;
+};
+
+const EMAIL_TEMPLATE_META: Record<
+  EmailTemplateKey,
+  { label: string; description: string; placeholders: string[] }
+> = {
+  order_confirmation: {
+    label: "Order confirmation",
+    description: "Sent once, right after a customer completes checkout.",
+    placeholders: ["{{customer_name}}", "{{order_numbers}}", "{{items}}", "{{total}}"],
+  },
+  order_status_changed: {
+    label: "Order status update",
+    description: "Sent whenever you change an order's status in the Orders tab.",
+    placeholders: ["{{customer_name}}", "{{order_number}}", "{{status}}", "{{items}}"],
+  },
+  abandoned_cart: {
+    label: "Abandoned cart",
+    description:
+      "Sent automatically if a customer reaches Stripe checkout, enters their email, but doesn't finish paying within an hour.",
+    placeholders: ["{{items}}"],
+  },
+};
+
+const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
+  "order_confirmation",
+  "order_status_changed",
+  "abandoned_cart",
+];
+
+function EmailsTab() {
+  const [selected, setSelected] = useState<EmailTemplateKey>("order_confirmation");
+  const [templates, setTemplates] = useState<Record<string, EmailTemplateRow> | null>(null);
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/admin/email-templates")
+      .then((r) => r.json())
+      .then((d) => {
+        const map: Record<string, EmailTemplateRow> = {};
+        for (const t of d.templates ?? []) map[t.key] = t;
+        setTemplates(map);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!templates?.[selected]) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- re-seeding the editable form fields when the selected template changes, not state that can be derived at render time
+    setSubject(templates[selected].subject);
+    setBody(templates[selected].body);
+    setSaved(false);
+  }, [templates, selected]);
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    setSaved(false);
+    try {
+      const res = await fetch("/api/admin/email-templates", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: selected, subject, body }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setTemplates((prev) =>
+        prev ? { ...prev, [selected]: { key: selected, subject, body } } : prev
+      );
+      setSaved(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const meta = EMAIL_TEMPLATE_META[selected];
+
+  return (
+    <div className="max-w-2xl">
+      <div className="flex gap-2 mb-6 flex-wrap">
+        {EMAIL_TEMPLATE_KEYS.map((key) => (
+          <button
+            key={key}
+            onClick={() => setSelected(key)}
+            className={`placard-label px-3 py-2 border border-line ${
+              selected === key ? "bg-ink text-paper" : ""
+            }`}
+          >
+            {EMAIL_TEMPLATE_META[key].label}
+          </button>
+        ))}
+      </div>
+
+      {!templates ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : (
+        <form onSubmit={handleSave} className="space-y-5">
+          <p className="text-ink-soft text-sm">{meta.description}</p>
+
+          <div className="border border-line p-3 bg-paper-dim">
+            <p className="placard-label text-ink-soft mb-2">
+              Available placeholders — click to copy the idea, then type them into your text:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {meta.placeholders.map((p) => (
+                <code key={p} className="bg-paper border border-line px-2 py-1 text-xs">
+                  {p}
+                </code>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="placard-label text-ink-soft block mb-1">Subject</label>
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              required
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+          </div>
+
+          <div>
+            <label className="placard-label text-ink-soft block mb-1">
+              Email body (HTML)
+            </label>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              required
+              rows={14}
+              className="w-full border border-line px-3 py-2 bg-paper font-mono text-sm"
+            />
+            <p className="text-ink-soft text-xs mt-1">
+              This is raw HTML — simple tags like &lt;p&gt;, &lt;strong&gt;, and &lt;br&gt;
+              work well. {"{{items}}"} inserts a ready-made list, not raw data.
+            </p>
+          </div>
+
+          {error && <p className="text-oxblood text-sm">{error}</p>}
+          {saved && <p className="text-sm text-ink-soft">Saved.</p>}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save template"}
+          </button>
+        </form>
       )}
     </div>
   );
