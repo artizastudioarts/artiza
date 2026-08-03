@@ -54,11 +54,11 @@ function SuccessContent() {
 
       {orders && orders.length > 0 && (
         <div className="border border-line p-5 mb-8 text-left inline-block">
-          {orders.map((o) => (
-            <p key={o.order_number} className="mb-1 last:mb-0">
-              <span className="placard-label text-ink-soft mr-2">
-                {o.order_number}
-              </span>
+          <p className="placard-label text-ink-soft mb-3">
+            {orders[0].order_number}
+          </p>
+          {orders.map((o, i) => (
+            <p key={i} className="mb-1 last:mb-0">
               {o.product_title}
               {o.quantity > 1 ? ` × ${o.quantity}` : ""}
             </p>

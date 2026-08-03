@@ -49,6 +49,19 @@ export default function AccountPage() {
     );
   }
 
+  // Multiple products bought in one checkout now share one order number —
+  // group them together instead of listing the same number repeatedly.
+  const groups: Order[][] = [];
+  if (orders) {
+    const byNumber = new Map<string, Order[]>();
+    for (const order of orders) {
+      const list = byNumber.get(order.order_number) ?? [];
+      list.push(order);
+      byNumber.set(order.order_number, list);
+    }
+    groups.push(...byNumber.values());
+  }
+
   return (
     <>
       <Header />
@@ -82,41 +95,44 @@ export default function AccountPage() {
           <p className="text-ink-soft text-sm">{dict.account.noOrders}</p>
         )}
 
-        {orders && orders.length > 0 && (
+        {groups.length > 0 && (
           <ul className="divide-y divide-line border-y border-line">
-            {orders.map((order) => (
-              <li
-                key={order.id}
-                className="py-4 flex items-center justify-between gap-4"
-              >
-                <div>
-                  <p className="placard-label text-ink-soft mb-0.5">
-                    {order.order_number}
-                  </p>
-                  <p className="font-display text-lg">
-                    {order.product_title}
-                    {order.quantity > 1 ? ` × ${order.quantity}` : ""}
-                  </p>
-                  <p className="text-sm text-ink-soft">
-                    {new Date(order.created_at).toLocaleDateString(
+            {groups.map((group) => {
+              const first = group[0];
+              const total = group.reduce((sum, o) => sum + o.amount_total_cents, 0);
+              return (
+                <li key={first.order_number} className="py-4">
+                  <div className="flex items-center justify-between gap-4 mb-2">
+                    <p className="placard-label text-ink-soft">{first.order_number}</p>
+                    <Link
+                      href={`/reviews/write?order=${encodeURIComponent(first.order_number)}`}
+                      className="placard-label text-oxblood hover:underline"
+                    >
+                      {dict.reviews.writeReviewButton}
+                    </Link>
+                  </div>
+                  <div className="space-y-1.5">
+                    {group.map((order, i) => (
+                      <div key={i} className="flex items-center justify-between gap-4">
+                        <p className="font-display text-lg">
+                          {order.product_title}
+                          {order.quantity > 1 ? ` × ${order.quantity}` : ""}
+                        </p>
+                        <span className="placard-label text-ink-soft shrink-0">
+                          {STATUS_LABELS[order.status] ?? order.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm text-ink-soft mt-2">
+                    {new Date(first.created_at).toLocaleDateString(
                       locale === "de" ? "de-DE" : "en-GB"
                     )}{" "}
-                    · {formatPrice(order.amount_total_cents, order.currency)}
+                    · {formatPrice(total, first.currency)}
                   </p>
-                </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <span className="placard-label text-ink-soft">
-                    {STATUS_LABELS[order.status] ?? order.status}
-                  </span>
-                  <Link
-                    href={`/reviews/write?order=${encodeURIComponent(order.order_number)}`}
-                    className="placard-label text-oxblood hover:underline"
-                  >
-                    {dict.reviews.writeReviewButton}
-                  </Link>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </main>

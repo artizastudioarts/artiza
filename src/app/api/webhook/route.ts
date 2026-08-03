@@ -40,9 +40,14 @@ export async function POST(req: NextRequest) {
     const db = supabaseAdmin();
     const cartEntries = parseCart(session.metadata?.cart);
 
-    const orderNumbers: string[] = [];
+    // One order number for the whole checkout, even if it contains
+    // several different products — not one per product.
+    const { data: orderNumberData } = await db.rpc("generate_order_number");
+    const orderNumber: string = orderNumberData ?? "";
+
     const itemLines: string[] = [];
     let totalCents = 0;
+    let anyInserted = false;
 
     for (const { productId, quantity } of cartEntries) {
       const { data: product } = await db
@@ -59,6 +64,7 @@ export async function POST(req: NextRequest) {
         .from("orders")
         .insert({
           stripe_session_id: `${session.id}:${productId}`,
+          order_number: orderNumber,
           customer_email: session.customer_details?.email,
           customer_name: session.customer_details?.name,
           phone: session.customer_details?.phone,
@@ -76,22 +82,22 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (inserted) {
-        orderNumbers.push(inserted.order_number);
+        anyInserted = true;
         totalCents += lineTotal;
         itemLines.push(
-          `<li>${product.title} × ${quantity} — ${formatPrice(lineTotal, session.currency ?? "eur")} (Bestellnr. ${inserted.order_number})</li>`
+          `<li>${product.title} × ${quantity} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
         );
       }
     }
 
     // One consolidated confirmation email per checkout, not one per item.
     const email = session.customer_details?.email;
-    if (email && orderNumbers.length > 0) {
+    if (email && anyInserted) {
       const template = await getEmailTemplate("order_confirmation");
       if (template) {
         const vars = {
           customer_name: session.customer_details?.name ?? "",
-          order_numbers: orderNumbers.join(", "),
+          order_numbers: orderNumber,
           items: `<ul>${itemLines.join("")}</ul>`,
           total: formatPrice(totalCents, session.currency ?? "eur"),
         };

@@ -23,10 +23,17 @@ create table products (
 
 create sequence order_number_seq;
 
+create or replace function generate_order_number() returns text
+language sql
+as $$
+  select 'AS-' || to_char(now(), 'YYMM') || '-' || lpad(nextval('order_number_seq')::text, 6, '0');
+$$;
+
 create table orders (
   id uuid primary key default gen_random_uuid(),
-  order_number text not null unique default
-    ('AS-' || to_char(now(), 'YYMM') || '-' || lpad(nextval('order_number_seq')::text, 6, '0')),
+  -- Not unique: every product bought together in one checkout shares the
+  -- same order_number, generated once via generate_order_number().
+  order_number text not null default generate_order_number(),
   stripe_session_id text unique not null,
   customer_email text,
   customer_name text,
@@ -48,6 +55,7 @@ alter table products enable row level security;
 create policy "Public can view products" on products
   for select using (true);
 
+create index orders_order_number_idx on orders (order_number);
 alter table orders enable row level security;
 -- Guest orders (user_id is null) stay accessible only via the service role
 -- key (used server-side in the webhook and admin dashboard). Logged-in

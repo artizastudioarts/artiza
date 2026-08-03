@@ -15,14 +15,16 @@ export async function POST(req: NextRequest) {
 
   const db = supabaseAdmin();
 
-  // Order number is the proof of purchase — only real orders can be reviewed.
-  const { data: order } = await db
+  // Order number is the proof of purchase — only real orders can be
+  // reviewed. It's no longer unique per row (one order can have several
+  // product rows), so just check that at least one match exists.
+  const { data: matchingOrders } = await db
     .from("orders")
     .select("id")
     .eq("order_number", order_number)
-    .maybeSingle();
+    .limit(1);
 
-  if (!order) {
+  if (!matchingOrders || matchingOrders.length === 0) {
     return NextResponse.json({ error: "order_not_found" }, { status: 404 });
   }
 
