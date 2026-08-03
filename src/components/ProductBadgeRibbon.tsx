@@ -11,8 +11,18 @@ export default function ProductBadgeRibbon({
   if (!badge) return null;
 
   return (
-    <div className="absolute top-[18px] left-[-38px] w-[150px] -rotate-45 bg-oxblood py-1 shadow-sm z-10">
-      <p className="placard-label text-paper text-center text-[10px] tracking-wider">
+    <div
+      className="absolute top-[22px] left-[-42px] w-[180px] py-1.5 bg-oxblood shadow-sm z-10"
+      style={{
+        transform: "rotate(-45deg)",
+        // Rotated text renders blurry in most browsers unless promoted to
+        // its own crisp compositing layer — these three properties fix it.
+        backfaceVisibility: "hidden",
+        WebkitFontSmoothing: "antialiased",
+        willChange: "transform",
+      }}
+    >
+      <p className="placard-label text-paper text-center text-[11px] tracking-wide whitespace-nowrap">
         {dict.productCard.badges[badge]}
       </p>
     </div>
