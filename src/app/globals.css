@@ -9,6 +9,10 @@
   --oxblood: #6b2737;
   --brass: #a8823c;
   --line: #d8d6cf;
+  /* Muted, desaturated additions for product badges — same restrained
+     "aged material" family as brass/oxblood, not bright web colors */
+  --forest: #3f5443;
+  --navy: #33455a;
 }
 
 @theme inline {
@@ -19,6 +23,8 @@
   --color-oxblood: var(--oxblood);
   --color-brass: var(--brass);
   --color-line: var(--line);
+  --color-forest: var(--forest);
+  --color-navy: var(--navy);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
   --font-script: var(--font-script);
