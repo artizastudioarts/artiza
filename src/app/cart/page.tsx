@@ -7,7 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
 import { interpolate } from "@/lib/i18n";
-import { formatPrice } from "@/lib/types";
+import { formatPrice, MAX_CART_QTY } from "@/lib/types";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCart();
@@ -79,7 +79,7 @@ export default function CartPage() {
                       className="border border-line px-2 py-2 bg-paper placard-label text-ink-soft"
                     >
                       {Array.from(
-                        { length: Math.min(item.stock_quantity, 20) },
+                        { length: MAX_CART_QTY },
                         (_, i) => i + 1
                       ).map((n) => (
                         <option key={n} value={n}>

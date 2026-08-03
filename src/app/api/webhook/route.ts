@@ -59,13 +59,6 @@ export async function POST(req: NextRequest) {
         // Empty string means guest checkout — store as null, not "".
         user_id: session.metadata?.user_id || null,
       });
-
-      // Automatically deduct stock — no manual step, never goes negative
-      const newStock = Math.max(0, product.stock_quantity - quantity);
-      await db
-        .from("products")
-        .update({ stock_quantity: newStock })
-        .eq("id", productId);
     }
   }
 

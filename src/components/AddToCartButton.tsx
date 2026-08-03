@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { Product } from "@/lib/types";
+import { Product, MAX_CART_QTY } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
 
@@ -14,13 +14,10 @@ export default function AddToCartButton({
   product: Product;
   dict: Dictionary;
 }) {
-  const { addItem, items } = useCart();
+  const { addItem } = useCart();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const router = useRouter();
-
-  const inCart = items.find((i) => i.id === product.id)?.quantity ?? 0;
-  const remaining = Math.max(0, product.stock_quantity - inCart);
 
   function handleAdd() {
     addItem(
@@ -30,7 +27,6 @@ export default function AddToCartButton({
         price_cents: product.price_cents,
         currency: product.currency,
         image_url: product.image_url,
-        stock_quantity: product.stock_quantity,
       },
       qty
     );
@@ -55,18 +51,15 @@ export default function AddToCartButton({
         onChange={(e) => setQty(Number(e.target.value))}
         className="border border-line px-3 py-3 bg-paper placard-label text-ink-soft"
       >
-        {Array.from({ length: Math.min(remaining, 20) }, (_, i) => i + 1).map(
-          (n) => (
-            <option key={n} value={n}>
-              {interpolate(dict.product.qty, { n })}
-            </option>
-          )
-        )}
+        {Array.from({ length: MAX_CART_QTY }, (_, i) => i + 1).map((n) => (
+          <option key={n} value={n}>
+            {interpolate(dict.product.qty, { n })}
+          </option>
+        ))}
       </select>
       <button
         onClick={handleAdd}
-        disabled={remaining === 0}
-        className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+        className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
       >
         {dict.product.addToCart}
       </button>

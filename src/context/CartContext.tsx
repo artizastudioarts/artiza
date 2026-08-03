@@ -7,6 +7,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { MAX_CART_QTY } from "@/lib/types";
 
 export type CartItem = {
   id: string;
@@ -15,7 +16,6 @@ export type CartItem = {
   currency: string;
   image_url: string | null;
   quantity: number;
-  stock_quantity: number; // available stock, used to cap quantity client-side
 };
 
 type CartContextType = {
@@ -55,15 +55,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
       if (existing) {
-        const next = Math.min(
-          existing.quantity + quantity,
-          item.stock_quantity
-        );
+        const next = Math.min(existing.quantity + quantity, MAX_CART_QTY);
         return prev.map((i) =>
           i.id === item.id ? { ...i, quantity: next } : i
         );
       }
-      const capped = Math.max(1, Math.min(quantity, item.stock_quantity));
+      const capped = Math.max(1, Math.min(quantity, MAX_CART_QTY));
       return [...prev, { ...item, quantity: capped }];
     });
   }
@@ -73,7 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       prev
         .map((i) =>
           i.id === id
-            ? { ...i, quantity: Math.max(1, Math.min(quantity, i.stock_quantity)) }
+            ? { ...i, quantity: Math.max(1, Math.min(quantity, MAX_CART_QTY)) }
             : i
         )
         .filter((i) => i.quantity > 0)

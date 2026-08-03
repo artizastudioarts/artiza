@@ -7,7 +7,6 @@ import ProductGallery from "@/components/ProductGallery";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
-import { interpolate } from "@/lib/i18n";
 import type { Metadata } from "next";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
@@ -80,7 +79,7 @@ export default async function ProductPage({
     <>
       <Header />
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
-        <ProductGallery images={images} title={display.title ?? ""} dict={dict} />
+        <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge} />
 
         <div className="max-w-md">
           <p className="placard-label text-ink-soft mb-3">
@@ -101,20 +100,7 @@ export default async function ProductPage({
             </p>
           )}
 
-          {product.stock_quantity <= 0 ? (
-            <div className="placard-label text-ink-soft border border-line px-4 py-3 inline-block">
-              {dict.product.soldOut}
-            </div>
-          ) : (
-            <>
-              <p className="placard-label text-ink-soft mb-4">
-                {product.stock_quantity <= 5
-                  ? interpolate(dict.product.onlyLeft, { n: product.stock_quantity })
-                  : interpolate(dict.product.inStock, { n: product.stock_quantity })}
-              </p>
-              <AddToCartButton product={displayProduct} dict={dict} />
-            </>
-          )}
+          <AddToCartButton product={displayProduct} dict={dict} />
         </div>
       </main>
     </>

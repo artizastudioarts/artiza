@@ -42,20 +42,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Re-check stock server-side — never trust the client's cart quantities
-    for (const item of items) {
-      const product = products.find((p) => p.id === item.id);
-      if (!product) continue;
-      if (item.quantity > product.stock_quantity) {
-        return NextResponse.json(
-          {
-            error: `Sorry, only ${product.stock_quantity} of "${product.title}" left. Update your cart and try again.`,
-          },
-          { status: 409 }
-        );
-      }
-    }
-
     const origin = req.headers.get("origin") ?? process.env.SITE_URL!;
 
     const session = await stripe.checkout.sessions.create({

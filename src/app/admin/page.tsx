@@ -19,6 +19,22 @@ type Order = {
   created_at: string;
 };
 
+type ProductBadge =
+  | "best_seller"
+  | "artists_pick"
+  | "trending"
+  | "customer_favorite"
+  | "new_creations";
+
+const BADGE_OPTIONS: { value: ProductBadge | ""; label: string }[] = [
+  { value: "", label: "None" },
+  { value: "best_seller", label: "Best Seller" },
+  { value: "artists_pick", label: "Artist's Pick" },
+  { value: "trending", label: "Trending" },
+  { value: "customer_favorite", label: "Customer Favorite" },
+  { value: "new_creations", label: "New Creation" },
+];
+
 type Product = {
   id: string;
   title: string;
@@ -33,7 +49,7 @@ type Product = {
   currency: string;
   image_url: string | null;
   image_urls: string[];
-  stock_quantity: number;
+  badge: ProductBadge | null;
 };
 
 export default function AdminDashboard() {
@@ -216,14 +232,14 @@ function ProductsTab() {
 
   useEffect(loadProducts, []);
 
-  async function updateStock(id: string, stock_quantity: number) {
+  async function updateBadge(id: string, badge: ProductBadge | "") {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, stock_quantity } : p))
+      prev.map((p) => (p.id === id ? { ...p, badge: badge || null } : p))
     );
     await fetch("/api/admin/products", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, stock_quantity }),
+      body: JSON.stringify({ id, badge: badge || null }),
     });
   }
 
@@ -291,16 +307,20 @@ function ProductsTab() {
                 </p>
                 <div className="flex items-center justify-between mt-3 gap-3">
                   <label className="flex items-center gap-2 text-sm">
-                    In stock:
-                    <input
-                      type="number"
-                      min={0}
-                      value={p.stock_quantity}
+                    Badge:
+                    <select
+                      value={p.badge ?? ""}
                       onChange={(e) =>
-                        updateStock(p.id, Math.max(0, Number(e.target.value)))
+                        updateBadge(p.id, e.target.value as ProductBadge | "")
                       }
-                      className="w-16 border border-line px-2 py-1 bg-paper"
-                    />
+                      className="border border-line px-2 py-1 bg-paper text-sm"
+                    >
+                      {BADGE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                   <div className="flex gap-3">
                     <button
@@ -344,7 +364,7 @@ function ProductForm({
     dimensions: product?.dimensions ?? "",
     price: product ? (product.price_cents / 100).toString() : "",
     artist_note: product?.artist_note ?? "",
-    stock_quantity: product ? product.stock_quantity.toString() : "",
+    badge: product?.badge ?? "",
     title_en: product?.title_en ?? "",
     medium_en: product?.medium_en ?? "",
     dimensions_en: product?.dimensions_en ?? "",
@@ -383,14 +403,15 @@ function ProductForm({
       }
 
       const image_url = image_urls[0] ?? "";
+      const badge = form.badge || null;
 
       const res = await fetch("/api/admin/products", {
         method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           product
-            ? { id: product.id, ...form, image_url, image_urls }
-            : { ...form, image_url, image_urls }
+            ? { id: product.id, ...form, badge, image_url, image_urls }
+            : { ...form, badge, image_url, image_urls }
         ),
       });
       const data = await res.json();
@@ -500,15 +521,22 @@ function ProductForm({
         onChange={(e) => setForm({ ...form, price: e.target.value })}
         className="w-full border border-line px-3 py-2 bg-paper"
       />
-      <input
-        required
-        type="number"
-        min={0}
-        placeholder="Stock quantity"
-        value={form.stock_quantity}
-        onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })}
-        className="w-full border border-line px-3 py-2 bg-paper"
-      />
+      <div>
+        <label className="placard-label text-ink-soft block mb-1">Badge</label>
+        <select
+          value={form.badge}
+          onChange={(e) =>
+            setForm({ ...form, badge: e.target.value as ProductBadge | "" })
+          }
+          className="w-full border border-line px-3 py-2 bg-paper"
+        >
+          {BADGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
       <div>
         {product?.image_urls?.length && files.length === 0 ? (
           <div className="flex gap-2 mb-2 flex-wrap">

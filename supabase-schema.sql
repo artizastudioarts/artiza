@@ -6,12 +6,19 @@ create table products (
   artist_note text,
   medium text,
   dimensions text,
+  title_en text,
+  artist_note_en text,
+  medium_en text,
+  dimensions_en text,
   price_cents integer not null,
   currency text not null default 'eur',
   image_url text,
   image_urls text[] not null default '{}',
-  stock_quantity integer not null default 0,
-  created_at timestamptz not null default now()
+  badge text,
+  created_at timestamptz not null default now(),
+  constraint products_badge_check check (badge is null or badge in (
+    'best_seller', 'artists_pick', 'trending', 'customer_favorite', 'new_creations'
+  ))
 );
 
 create sequence order_number_seq;

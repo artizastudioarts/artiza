@@ -36,14 +36,16 @@ export type Dictionary = {
     empty: string;
   };
   productCard: {
-    soldOut: string;
-    onlyLeft: string; // template with {n}
+    badges: {
+      best_seller: string;
+      artists_pick: string;
+      trending: string;
+      customer_favorite: string;
+      new_creations: string;
+    };
   };
   product: {
     originalArtworkFallback: string;
-    soldOut: string;
-    onlyLeft: string; // template with {n}
-    inStock: string; // template with {n}
     qty: string; // template with {n}
     addToCart: string;
     viewCart: string;
@@ -178,18 +180,20 @@ const de: Dictionary = {
   shop: {
     eyebrow: "Bemalbare Figuren für Kinder",
     heading: "Modell wählen, loslegen.",
-    body: "Stöbere unten durch die aktuelle Kollektion. Jedes Modell wird als Bemal-Set versendet — solange der Vorrat reicht.",
+    body: "Stöbere unten durch die aktuelle Kollektion und wähle dein Lieblingsstück.",
     empty: "Es sind noch keine Stücke gelistet. Füge welche im Admin-Bereich hinzu.",
   },
   productCard: {
-    soldOut: "Ausverkauft",
-    onlyLeft: "Nur noch {n} übrig",
+    badges: {
+      best_seller: "Bestseller",
+      artists_pick: "Künstlerfavorit",
+      trending: "Im Trend",
+      customer_favorite: "Kundenliebling",
+      new_creations: "Neue Kreation",
+    },
   },
   product: {
     originalArtworkFallback: "Originalkunstwerk",
-    soldOut: "Derzeit ausverkauft",
-    onlyLeft: "Nur noch {n} übrig",
-    inStock: "{n} auf Lager",
     qty: "Menge {n}",
     addToCart: "In den Warenkorb",
     viewCart: "Warenkorb ansehen",
@@ -364,18 +368,20 @@ const en: Dictionary = {
   shop: {
     eyebrow: "Paintable figures for kids",
     heading: "Pick a model, get painting.",
-    body: "Browse the current collection below. Each model ships as a paint kit — while stock lasts.",
+    body: "Browse the current collection below and choose your favorite.",
     empty: "No pieces are listed yet. Add some in the admin dashboard.",
   },
   productCard: {
-    soldOut: "Sold out",
-    onlyLeft: "Only {n} left",
+    badges: {
+      best_seller: "Best Seller",
+      artists_pick: "Artist's Pick",
+      trending: "Trending",
+      customer_favorite: "Customer Favorite",
+      new_creations: "New Creation",
+    },
   },
   product: {
     originalArtworkFallback: "Original artwork",
-    soldOut: "Currently sold out",
-    onlyLeft: "Only {n} left",
-    inStock: "{n} in stock",
     qty: "Qty {n}",
     addToCart: "Add to cart",
     viewCart: "View cart",

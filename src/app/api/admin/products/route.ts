@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     currency: body.currency || "eur",
     image_url: body.image_url || null,
     image_urls: Array.isArray(body.image_urls) ? body.image_urls : [],
-    stock_quantity: Math.max(0, Math.round(Number(body.stock_quantity) || 0)),
+    badge: body.badge || null,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

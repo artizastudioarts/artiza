@@ -3,8 +3,8 @@ import Image from "next/image";
 import { Product, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
-import { interpolate } from "@/lib/i18n";
 import { localizeProduct } from "@/lib/localizeProduct";
+import ProductBadgeRibbon from "@/components/ProductBadgeRibbon";
 
 export default function ProductCard({
   product,
@@ -15,8 +15,6 @@ export default function ProductCard({
   dict: Dictionary;
   locale: Locale;
 }) {
-  const soldOut = product.stock_quantity <= 0;
-  const lowStock = !soldOut && product.stock_quantity <= 5;
   const secondImage = product.image_urls?.[1];
   const display = localizeProduct(product, locale);
 
@@ -47,16 +45,7 @@ export default function ProductCard({
             No image
           </div>
         )}
-        {soldOut && (
-          <div className="absolute top-3 left-3 bg-ink text-paper px-2 py-1 placard-label">
-            {dict.productCard.soldOut}
-          </div>
-        )}
-        {lowStock && (
-          <div className="absolute top-3 left-3 bg-oxblood text-paper px-2 py-1 placard-label">
-            {interpolate(dict.productCard.onlyLeft, { n: product.stock_quantity })}
-          </div>
-        )}
+        <ProductBadgeRibbon badge={product.badge} dict={dict} />
       </div>
       <div className="mt-3 space-y-0.5">
         <h3 className="font-display text-lg leading-snug">{display.title}</h3>

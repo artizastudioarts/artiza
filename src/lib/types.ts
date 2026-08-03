@@ -1,3 +1,10 @@
+export type ProductBadge =
+  | "best_seller"
+  | "artists_pick"
+  | "trending"
+  | "customer_favorite"
+  | "new_creations";
+
 export type Product = {
   id: string;
   title: string;
@@ -12,9 +19,13 @@ export type Product = {
   currency: string;
   image_url: string | null;
   image_urls: string[];
-  stock_quantity: number;
+  badge: ProductBadge | null;
   created_at: string;
 };
+
+// No stock tracking — quantity is simply whatever the customer chooses,
+// capped at a sane number rather than actual inventory.
+export const MAX_CART_QTY = 20;
 
 export type Order = {
   id: string;
