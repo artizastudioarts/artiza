@@ -9,6 +9,7 @@ import { getPageContent } from "@/lib/getPageContent";
 import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
 import ReviewCard from "@/components/ReviewCard";
 import type { Review } from "@/lib/types";
+import type { Metadata } from "next";
 
 export const revalidate = 0;
 
@@ -18,6 +19,21 @@ type CarouselRow = {
   caption_de: string | null;
   caption_en: string | null;
 };
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const pageContent = await getPageContent("home", locale);
+  const headline = pageContent.headline ?? dict.home.defaultHeadline;
+  const body = pageContent.body ?? dict.home.defaultBody;
+
+  return {
+    title: headline,
+    description: body,
+    openGraph: { title: headline, description: body },
+    twitter: { title: headline, description: body },
+  };
+}
 
 export default async function Home() {
   const { data } = await supabasePublic

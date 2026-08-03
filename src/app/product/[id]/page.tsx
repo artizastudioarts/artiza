@@ -8,8 +8,44 @@ import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
 import { interpolate } from "@/lib/i18n";
+import type { Metadata } from "next";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const { data } = await supabasePublic
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  const product = data as Product | null;
+  if (!product) return {};
+
+  const locale = await getLocale();
+  const display = localizeProduct(product, locale);
+  const description = (display.artist_note ?? display.medium ?? "").slice(0, 160);
+
+  return {
+    title: display.title ?? undefined,
+    description,
+    openGraph: {
+      title: display.title ?? undefined,
+      description,
+      images: product.image_url ? [{ url: product.image_url }] : undefined,
+    },
+    twitter: {
+      title: display.title ?? undefined,
+      description,
+      images: product.image_url ? [product.image_url] : undefined,
+    },
+  };
+}
 
 export default async function ProductPage({
   params,

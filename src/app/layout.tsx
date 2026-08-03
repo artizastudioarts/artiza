@@ -27,7 +27,10 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
-  title: "Artiza Studio — Paint-Your-Own Figures",
+  title: {
+    default: "Artiza Studio — Paint-Your-Own Figures",
+    template: "%s — Artiza Studio",
+  },
   description:
     "Paintable figure kits for kids, shipped with care.",
   icons: {

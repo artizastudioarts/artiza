@@ -6,8 +6,24 @@ import { supabasePublic } from "@/lib/supabase";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import type { Review } from "@/lib/types";
+import type { Metadata } from "next";
 
 export const revalidate = 0;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const description =
+    locale === "de"
+      ? "Echte, verifizierte Bewertungen von Kunden, die bei Artiza Studio bestellt haben."
+      : "Real, verified reviews from customers who've ordered from Artiza Studio.";
+  return {
+    title: dict.reviews.pageTitle,
+    description,
+    openGraph: { title: dict.reviews.pageTitle, description },
+    twitter: { title: dict.reviews.pageTitle, description },
+  };
+}
 
 function Stars({ rating }: { rating: number }) {
   return (

@@ -5,8 +5,20 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
+import type { Metadata } from "next";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  return {
+    title: dict.shop.heading,
+    description: dict.shop.body,
+    openGraph: { title: dict.shop.heading, description: dict.shop.body },
+    twitter: { title: dict.shop.heading, description: dict.shop.body },
+  };
+}
 
 export default async function ShopPage() {
   const { data: products } = await supabasePublic

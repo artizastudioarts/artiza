@@ -3,6 +3,13 @@ import Footer from "@/components/Footer";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const dict = getDictionary(locale);
+  return { title: dict.terms.title };
+}
 
 export default async function TermsPage() {
   const locale = await getLocale();
