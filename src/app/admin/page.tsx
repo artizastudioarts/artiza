@@ -154,6 +154,17 @@ function OrdersTab() {
   if (orders.length === 0)
     return <p className="text-ink-soft">No orders yet.</p>;
 
+  // Multiple products bought in one checkout share one order number —
+  // group them so it reads as one order, not several unrelated rows.
+  const groups: Order[][] = [];
+  const byNumber = new Map<string, Order[]>();
+  for (const o of orders) {
+    const list = byNumber.get(o.order_number) ?? [];
+    list.push(o);
+    byNumber.set(o.order_number, list);
+  }
+  groups.push(...byNumber.values());
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
@@ -170,57 +181,76 @@ function OrdersTab() {
           </tr>
         </thead>
         <tbody>
-          {orders.map((o) => (
-            <tr key={o.id} className="border-b border-line align-top">
-              <td className="py-3 pr-4 whitespace-nowrap font-mono text-xs">
-                {o.order_number}
-              </td>
-              <td className="py-3 pr-4 whitespace-nowrap">
-                {new Date(o.created_at).toLocaleDateString("de-DE")}
-              </td>
-              <td className="py-3 pr-4">{o.product_title}</td>
-              <td className="py-3 pr-4">{o.quantity}</td>
-              <td className="py-3 pr-4">
-                {o.customer_name}
-                <br />
-                <span className="text-ink-soft">{o.customer_email}</span>
-                {o.phone && (
+          {groups.map((group) => {
+            const first = group[0];
+            return group.map((o, i) => (
+              <tr
+                key={o.id}
+                className={`border-b border-line align-top ${
+                  i === 0 ? "border-t-2 border-t-ink" : ""
+                }`}
+              >
+                {i === 0 && (
                   <>
-                    <br />
-                    <span className="text-ink-soft">{o.phone}</span>
+                    <td
+                      className="py-3 pr-4 whitespace-nowrap font-mono text-xs"
+                      rowSpan={group.length}
+                    >
+                      {first.order_number}
+                    </td>
+                    <td className="py-3 pr-4 whitespace-nowrap" rowSpan={group.length}>
+                      {new Date(first.created_at).toLocaleDateString("de-DE")}
+                    </td>
                   </>
                 )}
-              </td>
-              <td className="py-3 pr-4 text-ink-soft">
-                {o.shipping_address
-                  ? [
-                      o.shipping_address.line1,
-                      o.shipping_address.postal_code,
-                      o.shipping_address.city,
-                      o.shipping_address.country,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")
-                  : "—"}
-              </td>
-              <td className="py-3 pr-4">
-                {o.amount_total_cents != null
-                  ? formatPrice(o.amount_total_cents, o.currency ?? "eur")
-                  : "—"}
-              </td>
-              <td className="py-3 pr-4">
-                <select
-                  value={o.status}
-                  onChange={(e) => updateStatus(o.id, e.target.value)}
-                  className="border border-line px-2 py-1 bg-paper"
-                >
-                  <option value="paid">Paid</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
-            </tr>
-          ))}
+                <td className="py-3 pr-4">{o.product_title}</td>
+                <td className="py-3 pr-4">{o.quantity}</td>
+                {i === 0 && (
+                  <td className="py-3 pr-4" rowSpan={group.length}>
+                    {first.customer_name}
+                    <br />
+                    <span className="text-ink-soft">{first.customer_email}</span>
+                    {first.phone && (
+                      <>
+                        <br />
+                        <span className="text-ink-soft">{first.phone}</span>
+                      </>
+                    )}
+                  </td>
+                )}
+                {i === 0 && (
+                  <td className="py-3 pr-4 text-ink-soft" rowSpan={group.length}>
+                    {first.shipping_address
+                      ? [
+                          first.shipping_address.line1,
+                          first.shipping_address.postal_code,
+                          first.shipping_address.city,
+                          first.shipping_address.country,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")
+                      : "—"}
+                  </td>
+                )}
+                <td className="py-3 pr-4">
+                  {o.amount_total_cents != null
+                    ? formatPrice(o.amount_total_cents, o.currency ?? "eur")
+                    : "—"}
+                </td>
+                <td className="py-3 pr-4">
+                  <select
+                    value={o.status}
+                    onChange={(e) => updateStatus(o.id, e.target.value)}
+                    className="border border-line px-2 py-1 bg-paper"
+                  >
+                    <option value="paid">Paid</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </td>
+              </tr>
+            ));
+          })}
         </tbody>
       </table>
     </div>
