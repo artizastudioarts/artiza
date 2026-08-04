@@ -14,6 +14,7 @@ type Order = {
   product_title: string | null;
   quantity: number;
   amount_total_cents: number | null;
+  shipping_cents: number | null;
   currency: string | null;
   status: string;
   created_at: string;
@@ -50,11 +51,12 @@ type Product = {
   image_url: string | null;
   image_urls: string[];
   badge: ProductBadge | null;
+  weight_grams: number | null;
 };
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<
-    "orders" | "products" | "home" | "content" | "reviews" | "emails"
+    "orders" | "products" | "home" | "content" | "reviews" | "emails" | "shipping"
   >("orders");
 
   return (
@@ -110,6 +112,14 @@ export default function AdminDashboard() {
           >
             Emails
           </button>
+          <button
+            onClick={() => setTab("shipping")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "shipping" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Shipping
+          </button>
         </div>
       </div>
 
@@ -123,8 +133,10 @@ export default function AdminDashboard() {
         <ContentTab />
       ) : tab === "reviews" ? (
         <ReviewsTab />
-      ) : (
+      ) : tab === "emails" ? (
         <EmailsTab />
+      ) : (
+        <ShippingTab />
       )}
     </main>
   );
@@ -230,6 +242,17 @@ function OrdersTab() {
                           .filter(Boolean)
                           .join(", ")
                       : "—"}
+                    {first.shipping_cents != null && (
+                      <>
+                        <br />
+                        <span className="text-xs">
+                          Versand:{" "}
+                          {first.shipping_cents === 0
+                            ? "kostenlos"
+                            : formatPrice(first.shipping_cents, first.currency ?? "eur")}
+                        </span>
+                      </>
+                    )}
                   </td>
                 )}
                 <td className="py-3 pr-4">
@@ -405,6 +428,7 @@ function ProductForm({
     price: product ? (product.price_cents / 100).toString() : "",
     artist_note: product?.artist_note ?? "",
     badge: product?.badge ?? "",
+    weight_grams: product?.weight_grams != null ? product.weight_grams.toString() : "",
     title_en: product?.title_en ?? "",
     medium_en: product?.medium_en ?? "",
     dimensions_en: product?.dimensions_en ?? "",
@@ -444,14 +468,15 @@ function ProductForm({
 
       const image_url = image_urls[0] ?? "";
       const badge = form.badge || null;
+      const weight_grams = form.weight_grams ? Math.max(0, Math.round(Number(form.weight_grams))) : null;
 
       const res = await fetch("/api/admin/products", {
         method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           product
-            ? { id: product.id, ...form, badge, image_url, image_urls }
-            : { ...form, badge, image_url, image_urls }
+            ? { id: product.id, ...form, badge, weight_grams, image_url, image_urls }
+            : { ...form, badge, weight_grams, image_url, image_urls }
         ),
       });
       const data = await res.json();
@@ -576,6 +601,19 @@ function ProductForm({
             </option>
           ))}
         </select>
+      </div>
+      <div>
+        <label className="placard-label text-ink-soft block mb-1">
+          Weight (grams) — used to calculate shipping
+        </label>
+        <input
+          type="number"
+          min={0}
+          placeholder="e.g. 400"
+          value={form.weight_grams}
+          onChange={(e) => setForm({ ...form, weight_grams: e.target.value })}
+          className="w-full border border-line px-3 py-2 bg-paper"
+        />
       </div>
       <div>
         {product?.image_urls?.length && files.length === 0 ? (
@@ -1415,6 +1453,296 @@ function EmailsTab() {
           </button>
         </form>
       )}
+    </div>
+  );
+}
+
+type ShippingRateRow = {
+  id: string;
+  method: "standard" | "express";
+  min_weight_g: number;
+  max_weight_g: number | null;
+  price_cents: number;
+  sort_order: number;
+};
+
+function ShippingTab() {
+  const [rates, setRates] = useState<ShippingRateRow[] | null>(null);
+  const [threshold, setThreshold] = useState("");
+  const [thresholdEnabled, setThresholdEnabled] = useState(false);
+  const [savingThreshold, setSavingThreshold] = useState(false);
+  const [newTier, setNewTier] = useState<
+    Record<"standard" | "express", { min: string; max: string; price: string }>
+  >({
+    standard: { min: "", max: "", price: "" },
+    express: { min: "", max: "", price: "" },
+  });
+
+  function load() {
+    fetch("/api/admin/shipping")
+      .then((r) => r.json())
+      .then((d) => {
+        setRates(d.rates ?? []);
+        const cents = d.settings?.free_standard_threshold_cents;
+        setThresholdEnabled(cents != null);
+        setThreshold(cents != null ? (cents / 100).toString() : "");
+      });
+  }
+
+  useEffect(load, []);
+
+  async function saveThreshold() {
+    setSavingThreshold(true);
+    const value = thresholdEnabled ? Math.round(Number(threshold) * 100) : null;
+    await fetch("/api/admin/shipping", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ setting: "free_standard_threshold_cents", value }),
+    });
+    setSavingThreshold(false);
+  }
+
+  async function updateTier(id: string, fields: Partial<ShippingRateRow>) {
+    setRates((prev) =>
+      prev ? prev.map((r) => (r.id === id ? { ...r, ...fields } : r)) : prev
+    );
+    await fetch("/api/admin/shipping", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...fields }),
+    });
+  }
+
+  async function deleteTier(id: string) {
+    if (!confirm("Remove this shipping tier?")) return;
+    setRates((prev) => prev?.filter((r) => r.id !== id) ?? null);
+    await fetch("/api/admin/shipping", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  async function addTier(method: "standard" | "express") {
+    const t = newTier[method];
+    if (!t.min || !t.price) return;
+    const res = await fetch("/api/admin/shipping", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        method,
+        min_weight_g: Number(t.min),
+        max_weight_g: t.max ? Number(t.max) : null,
+        price_cents: Math.round(Number(t.price) * 100),
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setRates((prev) => (prev ? [...prev, data.rate] : [data.rate]));
+      setNewTier((prev) => ({ ...prev, [method]: { min: "", max: "", price: "" } }));
+    }
+  }
+
+  if (rates === null) return <p className="text-ink-soft">Loading…</p>;
+
+  return (
+    <div className="max-w-3xl space-y-10">
+      <p className="text-ink-soft text-sm">
+        Shipping cost is calculated automatically from the total weight of
+        everything in a customer&apos;s cart, against the tiers below. Set
+        each product&apos;s weight in the Artwork tab — products left blank
+        use a 300g default so checkout never breaks.
+      </p>
+
+      <div className="border border-line p-4">
+        <label className="flex items-center gap-2 mb-2">
+          <input
+            type="checkbox"
+            checked={thresholdEnabled}
+            onChange={(e) => setThresholdEnabled(e.target.checked)}
+          />
+          <span className="placard-label text-ink-soft">
+            Free Standard shipping above a certain order amount
+          </span>
+        </label>
+        {thresholdEnabled && (
+          <div className="flex items-center gap-2 mb-2">
+            <span>€</span>
+            <input
+              type="number"
+              step="0.01"
+              value={threshold}
+              onChange={(e) => setThreshold(e.target.value)}
+              className="w-28 border border-line px-2 py-1 bg-paper"
+            />
+            <span className="text-ink-soft text-sm">
+              (Express always stays paid, even above this amount)
+            </span>
+          </div>
+        )}
+        <button
+          onClick={saveThreshold}
+          disabled={savingThreshold}
+          className="bg-ink text-paper px-4 py-1.5 placard-label text-sm disabled:opacity-50"
+        >
+          {savingThreshold ? "Saving…" : "Save"}
+        </button>
+      </div>
+
+      <TierTable
+        method="standard"
+        tiers={rates.filter((r) => r.method === "standard")}
+        draft={newTier.standard}
+        onUpdate={updateTier}
+        onDelete={deleteTier}
+        onDraftChange={(field, value) =>
+          setNewTier((prev) => ({
+            ...prev,
+            standard: { ...prev.standard, [field]: value },
+          }))
+        }
+        onAdd={() => addTier("standard")}
+      />
+      <TierTable
+        method="express"
+        tiers={rates.filter((r) => r.method === "express")}
+        draft={newTier.express}
+        onUpdate={updateTier}
+        onDelete={deleteTier}
+        onDraftChange={(field, value) =>
+          setNewTier((prev) => ({
+            ...prev,
+            express: { ...prev.express, [field]: value },
+          }))
+        }
+        onAdd={() => addTier("express")}
+      />
+    </div>
+  );
+}
+
+type TierDraft = { min: string; max: string; price: string };
+
+function TierTable({
+  method,
+  tiers,
+  draft,
+  onUpdate,
+  onDelete,
+  onDraftChange,
+  onAdd,
+}: {
+  method: "standard" | "express";
+  tiers: ShippingRateRow[];
+  draft: TierDraft;
+  onUpdate: (id: string, fields: Partial<ShippingRateRow>) => void;
+  onDelete: (id: string) => void;
+  onDraftChange: (field: keyof TierDraft, value: string) => void;
+  onAdd: () => void;
+}) {
+  return (
+    <div>
+      <h3 className="font-display text-lg italic mb-3 capitalize">
+        {method === "standard" ? "Standard shipping" : "Express shipping"}
+      </h3>
+      <table className="w-full text-sm border-collapse mb-3">
+        <thead>
+          <tr className="text-left border-b border-line placard-label text-ink-soft">
+            <th className="py-2 pr-4">Min (g)</th>
+            <th className="py-2 pr-4">Max (g)</th>
+            <th className="py-2 pr-4">Price (€)</th>
+            <th className="py-2 pr-4"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {tiers.map((tier) => (
+            <tr key={tier.id} className="border-b border-line">
+              <td className="py-2 pr-4">
+                <input
+                  type="number"
+                  value={tier.min_weight_g}
+                  onChange={(e) =>
+                    onUpdate(tier.id, { min_weight_g: Number(e.target.value) })
+                  }
+                  className="w-20 border border-line px-2 py-1 bg-paper"
+                />
+              </td>
+              <td className="py-2 pr-4">
+                <input
+                  type="number"
+                  placeholder="no limit"
+                  value={tier.max_weight_g ?? ""}
+                  onChange={(e) =>
+                    onUpdate(tier.id, {
+                      max_weight_g: e.target.value ? Number(e.target.value) : null,
+                    })
+                  }
+                  className="w-24 border border-line px-2 py-1 bg-paper"
+                />
+              </td>
+              <td className="py-2 pr-4">
+                <input
+                  type="number"
+                  step="0.01"
+                  value={(tier.price_cents / 100).toString()}
+                  onChange={(e) =>
+                    onUpdate(tier.id, {
+                      price_cents: Math.round(Number(e.target.value) * 100),
+                    })
+                  }
+                  className="w-24 border border-line px-2 py-1 bg-paper"
+                />
+              </td>
+              <td className="py-2 pr-4">
+                <button
+                  onClick={() => onDelete(tier.id)}
+                  className="text-oxblood text-sm"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+          <tr>
+            <td className="py-2 pr-4">
+              <input
+                type="number"
+                placeholder="min"
+                value={draft.min}
+                onChange={(e) => onDraftChange("min", e.target.value)}
+                className="w-20 border border-line px-2 py-1 bg-paper"
+              />
+            </td>
+            <td className="py-2 pr-4">
+              <input
+                type="number"
+                placeholder="no limit"
+                value={draft.max}
+                onChange={(e) => onDraftChange("max", e.target.value)}
+                className="w-24 border border-line px-2 py-1 bg-paper"
+              />
+            </td>
+            <td className="py-2 pr-4">
+              <input
+                type="number"
+                step="0.01"
+                placeholder="price"
+                value={draft.price}
+                onChange={(e) => onDraftChange("price", e.target.value)}
+                className="w-24 border border-line px-2 py-1 bg-paper"
+              />
+            </td>
+            <td className="py-2 pr-4">
+              <button
+                onClick={onAdd}
+                className="placard-label text-ink-soft hover:text-ink"
+              >
+                + Add
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

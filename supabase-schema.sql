@@ -170,3 +170,38 @@ insert into email_templates (key, subject, body) values
 <p>Falls du noch Fragen hast, antworte einfach auf diese E-Mail — wir helfen gerne weiter.</p>
 <p>Herzliche Grüße,<br>Artiza Studio</p>'
 );
+
+-- Optional weight per product, used to calculate shipping automatically
+alter table products add column weight_grams integer;
+
+-- Weight-based shipping price tiers (Standard / Express)
+create table shipping_rates (
+  id uuid primary key default gen_random_uuid(),
+  method text not null check (method in ('standard', 'express')),
+  min_weight_g integer not null,
+  max_weight_g integer,
+  price_cents integer not null,
+  sort_order integer not null default 0
+);
+alter table shipping_rates enable row level security;
+insert into shipping_rates (method, min_weight_g, max_weight_g, price_cents, sort_order) values
+  ('standard', 0, 500, 399, 1),
+  ('standard', 501, 2000, 549, 2),
+  ('standard', 2001, 5000, 799, 3),
+  ('standard', 5001, null, 1099, 4),
+  ('express', 0, 500, 799, 1),
+  ('express', 501, 2000, 999, 2),
+  ('express', 2001, 5000, 1299, 3),
+  ('express', 5001, null, 1599, 4);
+
+-- Free-Standard-shipping threshold (Express always stays paid)
+create table shipping_settings (
+  id integer primary key default 1,
+  free_standard_threshold_cents integer,
+  constraint single_row check (id = 1)
+);
+insert into shipping_settings (id, free_standard_threshold_cents) values (1, 5000);
+alter table shipping_settings enable row level security;
+
+-- Shipping cost actually charged, captured from Stripe at checkout
+alter table orders add column shipping_cents integer;

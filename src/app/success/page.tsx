@@ -6,12 +6,19 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
 import { useLocale } from "@/context/LocaleContext";
+import { formatPrice } from "@/lib/types";
 
-type OrderSummary = { order_number: string; product_title: string; quantity: number };
+type OrderSummary = {
+  order_number: string;
+  product_title: string;
+  quantity: number;
+  shipping_cents: number | null;
+  currency: string;
+};
 
 function SuccessContent() {
   const { clear, loaded } = useCart();
-  const { dict } = useLocale();
+  const { dict, locale } = useLocale();
   const sessionId = useSearchParams().get("session_id");
   const [orders, setOrders] = useState<OrderSummary[] | null>(null);
 
@@ -63,6 +70,20 @@ function SuccessContent() {
               {o.quantity > 1 ? ` × ${o.quantity}` : ""}
             </p>
           ))}
+          {(() => {
+            const shipping = orders.find((o) => o.shipping_cents != null);
+            if (!shipping) return null;
+            return (
+              <p className="mb-1 text-ink-soft">
+                {locale === "de" ? "Versand" : "Shipping"}:{" "}
+                {shipping.shipping_cents === 0
+                  ? locale === "de"
+                    ? "kostenlos"
+                    : "free"
+                  : formatPrice(shipping.shipping_cents!, shipping.currency)}
+              </p>
+            );
+          })()}
           <p className="text-sm text-ink-soft mt-3">{dict.success.saveOrderNumber}</p>
         </div>
       )}

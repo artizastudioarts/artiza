@@ -20,7 +20,24 @@ export type Product = {
   image_url: string | null;
   image_urls: string[];
   badge: ProductBadge | null;
+  weight_grams: number | null;
   created_at: string;
+};
+
+export type ShippingMethod = "standard" | "express";
+
+export type ShippingRate = {
+  id: string;
+  method: ShippingMethod;
+  min_weight_g: number;
+  max_weight_g: number | null;
+  price_cents: number;
+  sort_order: number;
+};
+
+export type ShippingSettings = {
+  id: number;
+  free_standard_threshold_cents: number | null;
 };
 
 // No stock tracking — quantity is simply whatever the customer chooses,
@@ -33,6 +50,7 @@ export type Order = {
   product_title: string;
   quantity: number;
   amount_total_cents: number;
+  shipping_cents: number | null;
   currency: string;
   status: string;
   created_at: string;

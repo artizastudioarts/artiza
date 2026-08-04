@@ -45,9 +45,15 @@ export async function POST(req: NextRequest) {
     const { data: orderNumberData } = await db.rpc("generate_order_number");
     const orderNumber: string = orderNumberData ?? "";
 
+    // The shipping cost the customer actually chose and paid at checkout.
+    // Stored once, on the first product row, so grouped totals don't
+    // double-count it across multiple product lines in the same order.
+    const shippingCents = session.shipping_cost?.amount_total ?? 0;
+
     const itemLines: string[] = [];
     let totalCents = 0;
     let anyInserted = false;
+    let isFirstRow = true;
 
     for (const { productId, quantity } of cartEntries) {
       const { data: product } = await db
@@ -73,6 +79,7 @@ export async function POST(req: NextRequest) {
           product_title: product.title,
           quantity,
           amount_total_cents: lineTotal,
+          shipping_cents: isFirstRow ? shippingCents : null,
           currency: session.currency,
           status: "paid",
           // Empty string means guest checkout — store as null, not "".
@@ -83,12 +90,20 @@ export async function POST(req: NextRequest) {
 
       if (inserted) {
         anyInserted = true;
+        isFirstRow = false;
         totalCents += lineTotal;
         itemLines.push(
           `<li>${product.title} × ${quantity} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
         );
       }
     }
+
+    if (shippingCents > 0) {
+      itemLines.push(
+        `<li>Versand — ${formatPrice(shippingCents, session.currency ?? "eur")}</li>`
+      );
+    }
+    totalCents += shippingCents;
 
     // One consolidated confirmation email per checkout, not one per item.
     const email = session.customer_details?.email;

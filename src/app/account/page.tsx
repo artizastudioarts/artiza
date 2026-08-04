@@ -99,7 +99,9 @@ export default function AccountPage() {
           <ul className="divide-y divide-line border-y border-line">
             {groups.map((group) => {
               const first = group[0];
-              const total = group.reduce((sum, o) => sum + o.amount_total_cents, 0);
+              const total =
+                group.reduce((sum, o) => sum + o.amount_total_cents, 0) +
+                (first.shipping_cents ?? 0);
               return (
                 <li key={first.order_number} className="py-4">
                   <div className="flex items-center justify-between gap-4 mb-2">

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   // product), each stored as "<stripe session id>:<product id>".
   const { data: orders, error } = await db
     .from("orders")
-    .select("order_number, product_title, quantity")
+    .select("order_number, product_title, quantity, shipping_cents, currency")
     .like("stripe_session_id", `${sessionId}:%`);
 
   if (error) {
