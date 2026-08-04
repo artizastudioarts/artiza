@@ -537,7 +537,7 @@ function ProductForm({
             className="w-full border border-line px-3 py-2 bg-paper"
           />
           <textarea
-            placeholder="Description (what's included, age range, etc.)"
+            placeholder="Description (what's included, materials, etc.)"
             value={form.artist_note}
             onChange={(e) => setForm({ ...form, artist_note: e.target.value })}
             className="w-full border border-line px-3 py-2 bg-paper"

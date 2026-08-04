@@ -59,8 +59,8 @@ export default async function TermsPage() {
             <h2 className="font-display text-lg mb-2">{dict.terms.s10.heading}</h2>
             <p>
               {dict.terms.s10.before}
-              <a href="mailto:hello@artiza.studio" className="underline">
-                hello@artiza.studio
+              <a href="mailto:info@artizastudio.de" className="underline">
+                info@artizastudio.de
               </a>
               {dict.terms.s10.after}
             </p>

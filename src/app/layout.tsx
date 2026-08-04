@@ -36,20 +36,20 @@ export const metadata: Metadata = {
     template: "%s — Artiza Studio",
   },
   description:
-    "Paintable figure kits for kids, shipped with care.",
+    "Paintable figure kits, shipped with care.",
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
     title: "Artiza Studio — Paint-Your-Own Figures",
-    description: "Paintable figure kits for kids, shipped with care.",
+    description: "Paintable figure kits, shipped with care.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Artiza Studio — Paint-Your-Own Figures",
-    description: "Paintable figure kits for kids, shipped with care.",
+    description: "Paintable figure kits, shipped with care.",
     images: ["/og-image.png"],
   },
 };

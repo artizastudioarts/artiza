@@ -3,8 +3,8 @@
 create table home_content (
   id integer primary key default 1,
   headline text not null default 'Handmade with care, painted by you',
-  subheadline text not null default 'PAINT-YOUR-OWN FIGURE KITS FOR KIDS',
-  body text not null default 'We design and hand-finish every figure model before it ships to your door as a paint-it-yourself kit. Watch how each piece comes together, then browse the shop to pick one for your own little artist.',
+  subheadline text not null default 'PAINT-YOUR-OWN FIGURE KITS',
+  body text not null default 'We design and hand-finish every figure model before it ships to your door as a paint-it-yourself kit. Watch how each piece comes together, then browse the shop to pick your next project.',
   video_url text,
   constraint single_row check (id = 1)
 );

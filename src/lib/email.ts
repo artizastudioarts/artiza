@@ -27,6 +27,9 @@ export async function sendEmail({
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
+  // Where a customer's "Reply" lands — separate from the "from" address,
+  // since EMAIL_FROM (orders@...) is sending-only with no real inbox.
+  const replyTo = process.env.EMAIL_REPLY_TO || undefined;
 
   if (!apiKey || !from) {
     console.error(
@@ -42,7 +45,7 @@ export async function sendEmail({
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, reply_to: replyTo }),
     });
     if (!res.ok) {
       console.error("Resend API error:", await res.text());
