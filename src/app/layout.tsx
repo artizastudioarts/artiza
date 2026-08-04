@@ -5,6 +5,10 @@ import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { LocaleProvider } from "@/context/LocaleContext";
 import { getLocale } from "@/lib/getLocale";
+import { getDictionary } from "@/lib/dictionaries";
+import { getShippingSettings } from "@/lib/getShippingSettings";
+import { formatPrice } from "@/lib/types";
+import { interpolate } from "@/lib/i18n";
 
 const fraunces = Fraunces({
   variable: "--font-display",
@@ -56,6 +60,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const dict = getDictionary(locale);
+  const shippingSettings = await getShippingSettings();
+  const threshold = shippingSettings?.free_standard_threshold_cents;
 
   return (
     <html
@@ -63,6 +70,15 @@ export default async function RootLayout({
       className={`${fraunces.variable} ${inter.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
+        {threshold != null && (
+          <div className="bg-ink text-paper text-center py-2 px-4">
+            <p className="placard-label">
+              {interpolate(dict.shipping.freeBanner, {
+                amount: formatPrice(threshold, "eur"),
+              })}
+            </p>
+          </div>
+        )}
         <LocaleProvider initialLocale={locale}>
           <AuthProvider>
             <CartProvider>{children}</CartProvider>

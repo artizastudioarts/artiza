@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
@@ -15,6 +15,13 @@ export default function CartPage() {
   const { dict } = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [freeThreshold, setFreeThreshold] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch("/api/shipping-settings")
+      .then((r) => r.json())
+      .then((d) => setFreeThreshold(d.free_standard_threshold_cents));
+  }, []);
 
   const total = items.reduce((sum, i) => sum + i.price_cents * i.quantity, 0);
   const currency = items[0]?.currency ?? "eur";
@@ -97,6 +104,26 @@ export default function CartPage() {
                 </li>
               ))}
             </ul>
+
+            {freeThreshold != null && (
+              <div className="mb-8">
+                <p className="placard-label text-ink-soft mb-2">
+                  {total >= freeThreshold
+                    ? dict.shipping.cartUnlocked
+                    : interpolate(dict.shipping.cartProgress, {
+                        amount: formatPrice(freeThreshold - total, currency),
+                      })}
+                </p>
+                <div className="h-px bg-line relative">
+                  <div
+                    className="absolute top-0 left-0 h-px bg-brass transition-[width] duration-300 ease-out"
+                    style={{
+                      width: `${Math.min(100, (total / freeThreshold) * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center justify-between mb-8">
               <span className="placard-label text-ink-soft">{dict.cart.total}</span>

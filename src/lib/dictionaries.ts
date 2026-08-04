@@ -144,6 +144,12 @@ export type Dictionary = {
     errorAlreadyReviewed: string;
     errorGeneric: string;
   };
+  shipping: {
+    freeBanner: string; // template with {amount}
+    freeProductNote: string; // template with {amount}
+    cartProgress: string; // template with {amount}
+    cartUnlocked: string;
+  };
 };
 
 const de: Dictionary = {
@@ -332,6 +338,12 @@ const de: Dictionary = {
     errorAlreadyReviewed: "Für diese Bestellung wurde bereits eine Bewertung abgegeben.",
     errorGeneric: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
+  shipping: {
+    freeBanner: "Kostenloser Standardversand ab {amount} Bestellwert",
+    freeProductNote: "Kostenloser Standardversand ab {amount}",
+    cartProgress: "Noch {amount} bis zum kostenlosen Standardversand",
+    cartUnlocked: "Du hast kostenlosen Standardversand freigeschaltet.",
+  },
 };
 
 const en: Dictionary = {
@@ -514,6 +526,12 @@ const en: Dictionary = {
     errorOrderNotFound: "We couldn't find that order number. Please check and try again.",
     errorAlreadyReviewed: "This order has already been reviewed.",
     errorGeneric: "Something went wrong. Please try again.",
+  },
+  shipping: {
+    freeBanner: "Free Standard shipping on orders over {amount}",
+    freeProductNote: "Free Standard shipping over {amount}",
+    cartProgress: "Add {amount} more for free Standard shipping",
+    cartUnlocked: "You've unlocked free Standard shipping.",
   },
 };
 

@@ -7,6 +7,8 @@ import ProductGallery from "@/components/ProductGallery";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
+import { getShippingSettings } from "@/lib/getShippingSettings";
+import { interpolate } from "@/lib/i18n";
 import type { Metadata } from "next";
 
 export const revalidate = 0; // always fetch fresh — no stale "sold" status
@@ -64,6 +66,8 @@ export default async function ProductPage({
   const locale = await getLocale();
   const dict = getDictionary(locale);
   const display = localizeProduct(product, locale);
+  const shippingSettings = await getShippingSettings();
+  const freeThreshold = shippingSettings?.free_standard_threshold_cents;
   // The cart, checkout, and order emails should show whichever language
   // the customer was actually looking at when they added it.
   const displayProduct: Product = { ...product, ...display };
@@ -91,9 +95,18 @@ export default async function ProductPage({
           {display.dimensions && (
             <p className="text-ink-soft mb-1">{display.dimensions}</p>
           )}
-          <p className="text-2xl font-display mb-6">
-            {formatPrice(product.price_cents, product.currency)}
-          </p>
+          <div className="mb-6">
+            <p className="text-2xl font-display mb-1">
+              {formatPrice(product.price_cents, product.currency)}
+            </p>
+            {freeThreshold != null && (
+              <p className="placard-label text-ink-soft">
+                {interpolate(dict.shipping.freeProductNote, {
+                  amount: formatPrice(freeThreshold, "eur"),
+                })}
+              </p>
+            )}
+          </div>
           {display.artist_note && (
             <p className="text-ink-soft leading-relaxed mb-8">
               {display.artist_note}
