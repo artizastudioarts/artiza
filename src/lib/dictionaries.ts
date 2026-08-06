@@ -88,6 +88,8 @@ export type Dictionary = {
     statusPaid: string;
     statusShipped: string;
     statusCancelled: string;
+    downloadInvoice: string;
+    downloading: string;
   };
   success: {
     orderConfirmed: string;
@@ -262,6 +264,8 @@ const de: Dictionary = {
     statusPaid: "Bestellung eingegangen",
     statusShipped: "Versendet",
     statusCancelled: "Storniert",
+    downloadInvoice: "Rechnung herunterladen",
+    downloading: "Wird geladen…",
   },
   success: {
     orderConfirmed: "Bestellung bestätigt",
@@ -476,6 +480,8 @@ const en: Dictionary = {
     statusPaid: "Order received",
     statusShipped: "Shipped",
     statusCancelled: "Cancelled",
+    downloadInvoice: "Download invoice",
+    downloading: "Loading…",
   },
   success: {
     orderConfirmed: "Order confirmed",

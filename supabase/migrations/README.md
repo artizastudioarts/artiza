@@ -31,6 +31,7 @@ instead, which already contains the end result of all of these combined
 13. `migration-email-templates.sql` — the admin Emails tab
 14. `migration-shared-order-number.sql` — one order number per checkout instead of one per product (needs #3 first)
 15. `migration-shipping.sql` — weight-based shipping rates and free-shipping threshold
+16. `migration-invoices.sql` — sequential invoice numbers, business/tax settings, editable PDF template, and private storage for invoice PDFs
 
 ## Going forward
 

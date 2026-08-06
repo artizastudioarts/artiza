@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
+import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { formatPrice } from "@/lib/types";
 import Stripe from "stripe";
 
 // Stripe needs the raw request body to verify the webhook signature.
 export const runtime = "nodejs";
+// Generating an invoice PDF (headless Chromium) can take a few seconds,
+// especially on a cold start — give it more room than the default.
+export const maxDuration = 60;
 
 function parseCart(metadataCart: string | undefined) {
   // metadata.cart looks like "productId:qty,productId:qty"
@@ -105,6 +109,24 @@ export async function POST(req: NextRequest) {
     }
     totalCents += shippingCents;
 
+    // Generate the invoice PDF — wrapped so a PDF failure never blocks
+    // the order itself or the confirmation email going out. Admin can
+    // manually regenerate a missing invoice later from the Orders tab.
+    let invoiceAttachment: { filename: string; content: string } | undefined;
+    if (anyInserted) {
+      try {
+        const invoice = await generateInvoiceForOrder(orderNumber);
+        if (invoice) {
+          invoiceAttachment = {
+            filename: `${invoice.invoiceNumber}.pdf`,
+            content: invoice.pdfBuffer.toString("base64"),
+          };
+        }
+      } catch (err) {
+        console.error("Invoice generation failed for order", orderNumber, err);
+      }
+    }
+
     // One consolidated confirmation email per checkout, not one per item.
     const email = session.customer_details?.email;
     if (email && anyInserted) {
@@ -120,6 +142,7 @@ export async function POST(req: NextRequest) {
           to: email,
           subject: renderTemplate(template.subject, vars),
           html: renderTemplate(template.body, vars),
+          attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
         });
       }
     }

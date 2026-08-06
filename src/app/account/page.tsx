@@ -15,6 +15,21 @@ export default function AccountPage() {
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState("");
+  const [downloading, setDownloading] = useState<string | null>(null);
+
+  async function downloadInvoice(orderNumber: string) {
+    setDownloading(orderNumber);
+    try {
+      const res = await fetch(
+        `/api/account/invoices?order_number=${encodeURIComponent(orderNumber)}`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
+      const data = await res.json();
+      if (data.url) window.open(data.url, "_blank");
+    } finally {
+      setDownloading(null);
+    }
+  }
 
   const STATUS_LABELS: Record<string, string> = {
     paid: dict.account.statusPaid,
@@ -106,12 +121,23 @@ export default function AccountPage() {
                 <li key={first.order_number} className="py-4">
                   <div className="flex items-center justify-between gap-4 mb-2">
                     <p className="placard-label text-ink-soft">{first.order_number}</p>
-                    <Link
-                      href={`/reviews/write?order=${encodeURIComponent(first.order_number)}`}
-                      className="placard-label text-oxblood hover:underline"
-                    >
-                      {dict.reviews.writeReviewButton}
-                    </Link>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => downloadInvoice(first.order_number)}
+                        disabled={downloading === first.order_number}
+                        className="placard-label text-ink-soft hover:text-ink disabled:opacity-50"
+                      >
+                        {downloading === first.order_number
+                          ? dict.account.downloading
+                          : dict.account.downloadInvoice}
+                      </button>
+                      <Link
+                        href={`/reviews/write?order=${encodeURIComponent(first.order_number)}`}
+                        className="placard-label text-oxblood hover:underline"
+                      >
+                        {dict.reviews.writeReviewButton}
+                      </Link>
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     {group.map((order, i) => (

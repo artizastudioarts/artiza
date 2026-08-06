@@ -56,7 +56,14 @@ type Product = {
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<
-    "orders" | "products" | "home" | "content" | "reviews" | "emails" | "shipping"
+    | "orders"
+    | "products"
+    | "home"
+    | "content"
+    | "reviews"
+    | "emails"
+    | "shipping"
+    | "invoices"
   >("orders");
 
   return (
@@ -120,6 +127,14 @@ export default function AdminDashboard() {
           >
             Shipping
           </button>
+          <button
+            onClick={() => setTab("invoices")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "invoices" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Invoices
+          </button>
         </div>
       </div>
 
@@ -135,8 +150,10 @@ export default function AdminDashboard() {
         <ReviewsTab />
       ) : tab === "emails" ? (
         <EmailsTab />
-      ) : (
+      ) : tab === "shipping" ? (
         <ShippingTab />
+      ) : (
+        <InvoicesTab />
       )}
     </main>
   );
@@ -145,13 +162,50 @@ export default function AdminDashboard() {
 function OrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [invoicesByOrder, setInvoicesByOrder] = useState<
+    Record<string, { invoice_number: string; pdf_path: string | null }>
+  >({});
+  const [generating, setGenerating] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/orders")
       .then((r) => r.json())
       .then((d) => setOrders(d.orders ?? []))
       .finally(() => setLoading(false));
+    loadInvoices();
   }, []);
+
+  function loadInvoices() {
+    fetch("/api/admin/invoices")
+      .then((r) => r.json())
+      .then((d) => {
+        const map: Record<string, { invoice_number: string; pdf_path: string | null }> = {};
+        for (const inv of d.invoices ?? []) {
+          // Invoices are returned newest-first — keep the first (latest) per order.
+          if (!map[inv.order_number]) {
+            map[inv.order_number] = { invoice_number: inv.invoice_number, pdf_path: inv.pdf_path };
+          }
+        }
+        setInvoicesByOrder(map);
+      });
+  }
+
+  async function downloadInvoice(pdfPath: string) {
+    const res = await fetch(`/api/admin/invoices/download?path=${encodeURIComponent(pdfPath)}`);
+    const data = await res.json();
+    if (data.url) window.open(data.url, "_blank");
+  }
+
+  async function generateInvoice(orderNumber: string) {
+    setGenerating(orderNumber);
+    await fetch("/api/admin/invoices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_number: orderNumber }),
+    });
+    setGenerating(null);
+    loadInvoices();
+  }
 
   async function updateStatus(id: string, status: string) {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
@@ -190,6 +244,7 @@ function OrdersTab() {
             <th className="py-2 pr-4">Shipping</th>
             <th className="py-2 pr-4">Amount</th>
             <th className="py-2 pr-4">Status</th>
+            <th className="py-2 pr-4">Invoice</th>
           </tr>
         </thead>
         <tbody>
@@ -271,6 +326,28 @@ function OrdersTab() {
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </td>
+                {i === 0 && (
+                  <td className="py-3 pr-4" rowSpan={group.length}>
+                    {invoicesByOrder[first.order_number]?.pdf_path ? (
+                      <button
+                        onClick={() =>
+                          downloadInvoice(invoicesByOrder[first.order_number].pdf_path!)
+                        }
+                        className="placard-label text-ink-soft hover:text-ink whitespace-nowrap"
+                      >
+                        Download
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => generateInvoice(first.order_number)}
+                        disabled={generating === first.order_number}
+                        className="placard-label text-oxblood hover:underline whitespace-nowrap disabled:opacity-50"
+                      >
+                        {generating === first.order_number ? "Generating…" : "Generate"}
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
             ));
           })}
@@ -1743,6 +1820,270 @@ function TierTable({
           </tr>
         </tbody>
       </table>
+    </div>
+  );
+}
+
+type InvoiceSettingsForm = {
+  business_name: string;
+  address_line1: string;
+  postal_code: string;
+  city: string;
+  country: string;
+  tax_number: string;
+  kleinunternehmer: boolean;
+  footer_note: string;
+  bank_iban: string;
+  bank_bic: string;
+};
+
+function InvoicesTab() {
+  const [settings, setSettings] = useState<InvoiceSettingsForm | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  const [templateHtml, setTemplateHtml] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [templateSaved, setTemplateSaved] = useState(false);
+
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+
+  useEffect(() => {
+    fetch("/api/admin/invoice-settings")
+      .then((r) => r.json())
+      .then((d) => {
+        const s = d.settings ?? {};
+        setSettings({
+          business_name: s.business_name ?? "",
+          address_line1: s.address_line1 ?? "",
+          postal_code: s.postal_code ?? "",
+          city: s.city ?? "",
+          country: s.country ?? "Deutschland",
+          tax_number: s.tax_number ?? "",
+          kleinunternehmer: s.kleinunternehmer ?? true,
+          footer_note: s.footer_note ?? "",
+          bank_iban: s.bank_iban ?? "",
+          bank_bic: s.bank_bic ?? "",
+        });
+      });
+    fetch("/api/admin/invoice-template")
+      .then((r) => r.json())
+      .then((d) => setTemplateHtml(d.html ?? ""));
+  }, []);
+
+  async function saveSettings(e: React.FormEvent) {
+    e.preventDefault();
+    if (!settings) return;
+    setSavingSettings(true);
+    setSettingsSaved(false);
+    await fetch("/api/admin/invoice-settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    });
+    setSavingSettings(false);
+    setSettingsSaved(true);
+  }
+
+  async function saveTemplate(e: React.FormEvent) {
+    e.preventDefault();
+    setSavingTemplate(true);
+    setTemplateSaved(false);
+    await fetch("/api/admin/invoice-template", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ html: templateHtml }),
+    });
+    setSavingTemplate(false);
+    setTemplateSaved(true);
+  }
+
+  function exportCsv() {
+    window.open(
+      `/api/admin/invoices/export?year=${exportYear}&month=${exportMonth}`,
+      "_blank"
+    );
+  }
+
+  const monthNames = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember",
+  ];
+
+  return (
+    <div className="max-w-2xl space-y-14">
+      <div className="border border-line p-4 bg-paper-dim">
+        <p className="text-sm text-ink-soft">
+          Fill in your business details below — this appears on every invoice
+          and is legally required. As a Kleinunternehmer, invoices show a
+          total amount with a legal notice instead of a VAT breakdown.
+        </p>
+      </div>
+
+      <div>
+        <h2 className="font-display text-xl italic mb-4">Business details</h2>
+        {!settings ? (
+          <p className="text-ink-soft">Loading…</p>
+        ) : (
+          <form onSubmit={saveSettings} className="space-y-4">
+            <input
+              placeholder="Legal business name"
+              value={settings.business_name}
+              onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+            <input
+              placeholder="Street and house number"
+              value={settings.address_line1}
+              onChange={(e) => setSettings({ ...settings, address_line1: e.target.value })}
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+            <div className="flex gap-3">
+              <input
+                placeholder="Postal code"
+                value={settings.postal_code}
+                onChange={(e) => setSettings({ ...settings, postal_code: e.target.value })}
+                className="w-1/3 border border-line px-3 py-2 bg-paper"
+              />
+              <input
+                placeholder="City"
+                value={settings.city}
+                onChange={(e) => setSettings({ ...settings, city: e.target.value })}
+                className="flex-1 border border-line px-3 py-2 bg-paper"
+              />
+            </div>
+            <input
+              placeholder="Country"
+              value={settings.country}
+              onChange={(e) => setSettings({ ...settings, country: e.target.value })}
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+            <input
+              placeholder="Steuernummer (tax number)"
+              value={settings.tax_number}
+              onChange={(e) => setSettings({ ...settings, tax_number: e.target.value })}
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={settings.kleinunternehmer}
+                onChange={(e) =>
+                  setSettings({ ...settings, kleinunternehmer: e.target.checked })
+                }
+              />
+              <span className="placard-label text-ink-soft">
+                Kleinunternehmer (§19 UStG — no VAT charged)
+              </span>
+            </label>
+            <textarea
+              placeholder="Footer note (optional — e.g. return policy reference)"
+              value={settings.footer_note}
+              onChange={(e) => setSettings({ ...settings, footer_note: e.target.value })}
+              rows={2}
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+            <div className="flex gap-3">
+              <input
+                placeholder="IBAN (optional)"
+                value={settings.bank_iban}
+                onChange={(e) => setSettings({ ...settings, bank_iban: e.target.value })}
+                className="flex-1 border border-line px-3 py-2 bg-paper"
+              />
+              <input
+                placeholder="BIC (optional)"
+                value={settings.bank_bic}
+                onChange={(e) => setSettings({ ...settings, bank_bic: e.target.value })}
+                className="w-40 border border-line px-3 py-2 bg-paper"
+              />
+            </div>
+            {settingsSaved && <p className="text-sm text-ink-soft">Saved.</p>}
+            <button
+              type="submit"
+              disabled={savingSettings}
+              className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+            >
+              {savingSettings ? "Saving…" : "Save business details"}
+            </button>
+          </form>
+        )}
+      </div>
+
+      <div>
+        <h2 className="font-display text-xl italic mb-2">PDF template</h2>
+        <div className="border border-line p-3 bg-paper-dim mb-3">
+          <p className="placard-label text-ink-soft mb-2">Available placeholders:</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              "{{invoice_number}}", "{{invoice_date}}", "{{order_number}}",
+              "{{business_name}}", "{{business_address}}", "{{tax_number}}",
+              "{{customer_name}}", "{{customer_address}}", "{{items_rows}}",
+              "{{shipping_amount}}", "{{total_amount}}",
+              "{{kleinunternehmer_notice}}", "{{footer_note}}",
+            ].map((p) => (
+              <code key={p} className="bg-paper border border-line px-2 py-1 text-xs">
+                {p}
+              </code>
+            ))}
+          </div>
+        </div>
+        <form onSubmit={saveTemplate} className="space-y-3">
+          <textarea
+            value={templateHtml}
+            onChange={(e) => setTemplateHtml(e.target.value)}
+            rows={18}
+            className="w-full border border-line px-3 py-2 bg-paper font-mono text-xs"
+          />
+          <p className="text-ink-soft text-xs">
+            This is the full HTML/CSS used to generate the invoice PDF.{" "}
+            {"{{items_rows}}"} inserts a ready-made table of rows — don&apos;t
+            build the item list by hand.
+          </p>
+          {templateSaved && <p className="text-sm text-ink-soft">Saved.</p>}
+          <button
+            type="submit"
+            disabled={savingTemplate}
+            className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+          >
+            {savingTemplate ? "Saving…" : "Save template"}
+          </button>
+        </form>
+      </div>
+
+      <div>
+        <h2 className="font-display text-xl italic mb-2">Monthly export</h2>
+        <p className="text-ink-soft text-sm mb-4">
+          Download every invoice issued in a given month as a spreadsheet —
+          ready to hand to a Steuerberater or import into bookkeeping
+          software.
+        </p>
+        <div className="flex items-center gap-3">
+          <select
+            value={exportMonth}
+            onChange={(e) => setExportMonth(Number(e.target.value))}
+            className="border border-line px-3 py-2 bg-paper"
+          >
+            {monthNames.map((name, i) => (
+              <option key={i} value={i + 1}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            value={exportYear}
+            onChange={(e) => setExportYear(Number(e.target.value))}
+            className="w-24 border border-line px-3 py-2 bg-paper"
+          />
+          <button
+            onClick={exportCsv}
+            className="bg-ink text-paper px-6 py-2 placard-label"
+          >
+            Export CSV
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

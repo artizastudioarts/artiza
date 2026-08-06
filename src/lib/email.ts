@@ -20,10 +20,12 @@ export async function sendEmail({
   to,
   subject,
   html,
+  attachments,
 }: {
   to: string;
   subject: string;
   html: string;
+  attachments?: { filename: string; content: string }[]; // content = base64
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
@@ -45,7 +47,7 @@ export async function sendEmail({
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to, subject, html, reply_to: replyTo }),
+      body: JSON.stringify({ from, to, subject, html, reply_to: replyTo, attachments }),
     });
     if (!res.ok) {
       console.error("Resend API error:", await res.text());

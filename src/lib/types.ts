@@ -56,6 +56,28 @@ export type Order = {
   created_at: string;
 };
 
+export type Invoice = {
+  id: string;
+  invoice_number: string;
+  order_number: string;
+  pdf_path: string | null;
+  created_at: string;
+};
+
+export type InvoiceSettings = {
+  id: number;
+  business_name: string | null;
+  address_line1: string | null;
+  postal_code: string | null;
+  city: string | null;
+  country: string | null;
+  tax_number: string | null;
+  kleinunternehmer: boolean;
+  footer_note: string | null;
+  bank_iban: string | null;
+  bank_bic: string | null;
+};
+
 export type Review = {
   id: string;
   order_number: string;
