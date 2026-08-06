@@ -31,7 +31,7 @@ checkout have no monthly fee at this scale.
 ## 3. Set up Supabase (database + image storage)
 
 1. Create a new Supabase project (pick a region close to Germany, e.g. Frankfurt).
-2. Go to **SQL Editor** -> paste the contents of `supabase-schema.sql` -> Run.
+2. Go to **SQL Editor** -> paste the contents of `supabase/schema.sql` -> Run.
    This creates your `products` and `orders` tables.
 3. Go to **Storage** -> **New bucket** -> name it `artwork` -> make it **Public**.
    This is where your artwork photos live.
