@@ -150,6 +150,24 @@ export type Dictionary = {
     cartProgress: string; // template with {amount}
     cartUnlocked: string;
   };
+  cookies: {
+    bannerMessage: string;
+    policyLinkText: string;
+    acceptAll: string;
+    necessaryOnly: string;
+    customize: string;
+    save: string;
+    necessaryTitle: string;
+    necessaryDesc: string;
+    alwaysOn: string;
+    analyticsTitle: string;
+    analyticsDesc: string;
+    marketingTitle: string;
+    marketingDesc: string;
+    footerLink: string;
+    pageTitle: string;
+    pageEyebrow: string;
+  };
 };
 
 const de: Dictionary = {
@@ -344,6 +362,28 @@ const de: Dictionary = {
     cartProgress: "Noch {amount} bis zum kostenlosen Standardversand",
     cartUnlocked: "Du hast kostenlosen Standardversand freigeschaltet.",
   },
+  cookies: {
+    bannerMessage:
+      "Wir verwenden Cookies, die für den Betrieb der Website notwendig sind (z. B. Spracheinstellung, Anmeldung). Mit deiner Zustimmung nutzen wir außerdem optionale Cookies für Statistik und Marketing.",
+    policyLinkText: "Mehr erfahren",
+    acceptAll: "Alle akzeptieren",
+    necessaryOnly: "Nur notwendige",
+    customize: "Einstellungen",
+    save: "Auswahl speichern",
+    necessaryTitle: "Notwendig",
+    necessaryDesc:
+      "Erforderlich für grundlegende Funktionen wie Spracheinstellung, Anmeldung und Warenkorb. Kann nicht deaktiviert werden.",
+    alwaysOn: "Immer aktiv",
+    analyticsTitle: "Statistik",
+    analyticsDesc:
+      "Hilft uns zu verstehen, wie die Website genutzt wird, damit wir sie verbessern können. Wir nutzen dafür Vercel Web Analytics, das anonymisierte Nutzungsdaten erfasst, ohne Cookies zu setzen oder dich persönlich zu identifizieren.",
+    marketingTitle: "Marketing",
+    marketingDesc:
+      "Würde für personalisierte Werbung oder Newsletter-Tracking verwendet. Aktuell nutzen wir hierfür keine Dienste — diese Einstellung ist für zukünftige Nutzung vorbereitet.",
+    footerLink: "Cookie-Einstellungen",
+    pageTitle: "Cookie-Richtlinie",
+    pageEyebrow: "Rechtliches",
+  },
 };
 
 const en: Dictionary = {
@@ -532,6 +572,28 @@ const en: Dictionary = {
     freeProductNote: "Free Standard shipping over {amount}",
     cartProgress: "Add {amount} more for free Standard shipping",
     cartUnlocked: "You've unlocked free Standard shipping.",
+  },
+  cookies: {
+    bannerMessage:
+      "We use cookies that are necessary for the site to work (like your language setting and login). With your consent, we'd also use optional cookies for statistics and marketing.",
+    policyLinkText: "Learn more",
+    acceptAll: "Accept all",
+    necessaryOnly: "Necessary only",
+    customize: "Customize",
+    save: "Save choices",
+    necessaryTitle: "Necessary",
+    necessaryDesc:
+      "Required for basic functions like your language setting, login, and cart. Can't be turned off.",
+    alwaysOn: "Always on",
+    analyticsTitle: "Statistics",
+    analyticsDesc:
+      "Helps us understand how the site is used so we can improve it. We use Vercel Web Analytics for this, which collects anonymized usage data without setting cookies or identifying you personally.",
+    marketingTitle: "Marketing",
+    marketingDesc:
+      "Would be used for personalized ads or newsletter tracking. We don't currently use any service for this — this setting is ready for future use.",
+    footerLink: "Cookie Settings",
+    pageTitle: "Cookie Policy",
+    pageEyebrow: "Legal",
   },
 };
 

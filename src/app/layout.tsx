@@ -4,6 +4,9 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { LocaleProvider } from "@/context/LocaleContext";
+import { CookieConsentProvider } from "@/context/CookieConsentContext";
+import CookieConsentBanner from "@/components/CookieConsentBanner";
+import AnalyticsGate from "@/components/AnalyticsGate";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { getShippingSettings } from "@/lib/getShippingSettings";
@@ -80,9 +83,13 @@ export default async function RootLayout({
           </div>
         )}
         <LocaleProvider initialLocale={locale}>
-          <AuthProvider>
-            <CartProvider>{children}</CartProvider>
-          </AuthProvider>
+          <CookieConsentProvider>
+            <AuthProvider>
+              <CartProvider>{children}</CartProvider>
+            </AuthProvider>
+            <CookieConsentBanner />
+            <AnalyticsGate />
+          </CookieConsentProvider>
         </LocaleProvider>
       </body>
     </html>
