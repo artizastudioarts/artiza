@@ -222,10 +222,19 @@ $$;
 -- on the orders table (unchanged after creation) — this just records that
 -- an invoice was issued for a given order, its number, and where the PDF
 -- lives in storage.
+create sequence credit_note_number_seq;
+create or replace function generate_credit_note_number() returns text
+language sql
+as $$
+  select 'GS-' || to_char(now(), 'YYMM') || '-' || lpad(nextval('credit_note_number_seq')::text, 6, '0');
+$$;
+
 create table invoices (
   id uuid primary key default gen_random_uuid(),
   invoice_number text not null unique default generate_invoice_number(),
   order_number text not null,
+  type text not null default 'invoice' check (type in ('invoice', 'credit_note')),
+  related_invoice_number text,
   pdf_path text,
   created_at timestamptz not null default now()
 );
@@ -286,9 +295,10 @@ insert into invoice_template (id, html) values (1, '<!DOCTYPE html>
       <p class="muted">{{business_address}}</p>
     </div>
     <div class="meta">
-      <p><strong>Rechnung {{invoice_number}}</strong></p>
+      <p><strong>{{document_type}} {{invoice_number}}</strong></p>
       <p class="muted">Datum: {{invoice_date}}</p>
       <p class="muted">Bestellnr.: {{order_number}}</p>
+      <p class="muted">{{related_invoice_line}}</p>
     </div>
   </div>
 

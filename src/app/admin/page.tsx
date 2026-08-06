@@ -162,9 +162,9 @@ export default function AdminDashboard() {
 function OrdersTab() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [invoicesByOrder, setInvoicesByOrder] = useState<
-    Record<string, { invoice_number: string; pdf_path: string | null }>
-  >({});
+  type DocInfo = { invoice_number: string; pdf_path: string | null };
+  const [invoicesByOrder, setInvoicesByOrder] = useState<Record<string, DocInfo>>({});
+  const [creditNotesByOrder, setCreditNotesByOrder] = useState<Record<string, DocInfo>>({});
   const [generating, setGenerating] = useState<string | null>(null);
 
   useEffect(() => {
@@ -173,20 +173,27 @@ function OrdersTab() {
       .then((d) => setOrders(d.orders ?? []))
       .finally(() => setLoading(false));
     loadInvoices();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadInvoices is defined in this component and only needs to run once on mount, like the orders fetch above
   }, []);
 
   function loadInvoices() {
     fetch("/api/admin/invoices")
       .then((r) => r.json())
       .then((d) => {
-        const map: Record<string, { invoice_number: string; pdf_path: string | null }> = {};
+        const invoices: Record<string, DocInfo> = {};
+        const creditNotes: Record<string, DocInfo> = {};
         for (const inv of d.invoices ?? []) {
           // Invoices are returned newest-first — keep the first (latest) per order.
-          if (!map[inv.order_number]) {
-            map[inv.order_number] = { invoice_number: inv.invoice_number, pdf_path: inv.pdf_path };
+          const target = inv.type === "credit_note" ? creditNotes : invoices;
+          if (!target[inv.order_number]) {
+            target[inv.order_number] = {
+              invoice_number: inv.invoice_number,
+              pdf_path: inv.pdf_path,
+            };
           }
         }
-        setInvoicesByOrder(map);
+        setInvoicesByOrder(invoices);
+        setCreditNotesByOrder(creditNotes);
       });
   }
 
@@ -202,6 +209,17 @@ function OrdersTab() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ order_number: orderNumber }),
+    });
+    setGenerating(null);
+    loadInvoices();
+  }
+
+  async function generateCreditNote(orderNumber: string) {
+    setGenerating(`credit:${orderNumber}`);
+    await fetch("/api/admin/invoices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order_number: orderNumber, type: "credit_note" }),
     });
     setGenerating(null);
     loadInvoices();
@@ -328,24 +346,52 @@ function OrdersTab() {
                 </td>
                 {i === 0 && (
                   <td className="py-3 pr-4" rowSpan={group.length}>
-                    {invoicesByOrder[first.order_number]?.pdf_path ? (
-                      <button
-                        onClick={() =>
-                          downloadInvoice(invoicesByOrder[first.order_number].pdf_path!)
-                        }
-                        className="placard-label text-ink-soft hover:text-ink whitespace-nowrap"
-                      >
-                        Download
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => generateInvoice(first.order_number)}
-                        disabled={generating === first.order_number}
-                        className="placard-label text-oxblood hover:underline whitespace-nowrap disabled:opacity-50"
-                      >
-                        {generating === first.order_number ? "Generating…" : "Generate"}
-                      </button>
-                    )}
+                    <div className="space-y-1.5">
+                      <div>
+                        {invoicesByOrder[first.order_number]?.pdf_path ? (
+                          <button
+                            onClick={() =>
+                              downloadInvoice(invoicesByOrder[first.order_number].pdf_path!)
+                            }
+                            className="placard-label text-ink-soft hover:text-ink whitespace-nowrap"
+                          >
+                            Invoice ↓
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => generateInvoice(first.order_number)}
+                            disabled={generating === first.order_number}
+                            className="placard-label text-oxblood hover:underline whitespace-nowrap disabled:opacity-50"
+                          >
+                            {generating === first.order_number ? "Generating…" : "Generate invoice"}
+                          </button>
+                        )}
+                      </div>
+                      {first.status === "cancelled" && invoicesByOrder[first.order_number] && (
+                        <div>
+                          {creditNotesByOrder[first.order_number]?.pdf_path ? (
+                            <button
+                              onClick={() =>
+                                downloadInvoice(creditNotesByOrder[first.order_number].pdf_path!)
+                              }
+                              className="placard-label text-ink-soft hover:text-ink whitespace-nowrap"
+                            >
+                              Credit note ↓
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => generateCreditNote(first.order_number)}
+                              disabled={generating === `credit:${first.order_number}`}
+                              className="placard-label text-oxblood hover:underline whitespace-nowrap disabled:opacity-50"
+                            >
+                              {generating === `credit:${first.order_number}`
+                                ? "Generating…"
+                                : "Generate credit note"}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>

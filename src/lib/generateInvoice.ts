@@ -21,9 +21,11 @@ type OrderRow = {
 };
 
 export async function generateInvoiceForOrder(
-  orderNumber: string
+  orderNumber: string,
+  opts?: { type?: "invoice" | "credit_note"; relatedInvoiceNumber?: string }
 ): Promise<{ invoiceNumber: string; pdfBuffer: Buffer; pdfPath: string } | null> {
   const db = supabaseAdmin();
+  const type = opts?.type ?? "invoice";
 
   const { data: orderRows } = await db
     .from("orders")
@@ -38,21 +40,29 @@ export async function generateInvoiceForOrder(
   const templateHtml = await getInvoiceTemplateHtml();
   if (!templateHtml) return null;
 
-  const { data: invoiceNumberData } = await db.rpc("generate_invoice_number");
+  // Credit notes get their own numbering series (GS-...) so they never
+  // interleave with regular invoice numbers (RE-...).
+  const { data: invoiceNumberData } = await db.rpc(
+    type === "credit_note" ? "generate_credit_note_number" : "generate_invoice_number"
+  );
   const invoiceNumber: string = invoiceNumberData ?? "";
   if (!invoiceNumber) return null;
+
+  // A credit note reverses the original — everything shows negative to
+  // make that unambiguous on the document itself.
+  const sign = type === "credit_note" ? -1 : 1;
 
   const currency = first.currency ?? "eur";
   const itemsRows = rows
     .map(
       (o) =>
-        `<tr><td>${o.product_title}</td><td>${o.quantity}</td><td>${formatPrice(o.amount_total_cents, currency)}</td></tr>`
+        `<tr><td>${o.product_title}</td><td>${o.quantity}</td><td>${formatPrice(sign * o.amount_total_cents, currency)}</td></tr>`
     )
     .join("");
 
   const shippingCents = rows.find((o) => o.shipping_cents != null)?.shipping_cents ?? 0;
   const productsTotal = rows.reduce((sum, o) => sum + o.amount_total_cents, 0);
-  const totalCents = productsTotal + shippingCents;
+  const totalCents = sign * (productsTotal + shippingCents);
 
   const businessAddress = [
     settings?.address_line1,
@@ -82,6 +92,11 @@ export async function generateInvoiceForOrder(
     : "";
 
   const vars = {
+    document_type: type === "credit_note" ? "Rechnungskorrektur" : "Rechnung",
+    related_invoice_line:
+      type === "credit_note" && opts?.relatedInvoiceNumber
+        ? `Korrektur zu Rechnung ${opts.relatedInvoiceNumber}`
+        : "",
     invoice_number: invoiceNumber,
     invoice_date: new Date().toLocaleDateString("de-DE"),
     order_number: orderNumber,
@@ -91,7 +106,7 @@ export async function generateInvoiceForOrder(
     customer_name: first.customer_name ?? "",
     customer_address: customerAddress,
     items_rows: itemsRows,
-    shipping_amount: formatPrice(shippingCents, currency),
+    shipping_amount: formatPrice(sign * shippingCents, currency),
     total_amount: formatPrice(totalCents, currency),
     kleinunternehmer_notice: kleinunternehmerNotice,
     footer_note: settings?.footer_note ?? "",
@@ -109,6 +124,8 @@ export async function generateInvoiceForOrder(
   await db.from("invoices").insert({
     invoice_number: invoiceNumber,
     order_number: orderNumber,
+    type,
+    related_invoice_number: opts?.relatedInvoiceNumber ?? null,
     pdf_path: pdfPath,
   });
 

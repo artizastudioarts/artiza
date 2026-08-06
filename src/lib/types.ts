@@ -60,6 +60,8 @@ export type Invoice = {
   id: string;
   invoice_number: string;
   order_number: string;
+  type: "invoice" | "credit_note";
+  related_invoice_number: string | null;
   pdf_path: string | null;
   created_at: string;
 };
