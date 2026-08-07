@@ -35,6 +35,7 @@ instead, which already contains the end result of all of these combined
 17. `migration-credit-notes.sql` — Rechnungskorrektur (credit note) support for cancelled orders that already had an invoice issued (needs #16 first)
 18. `migration-impressum-and-editable-terms.sql` — adds the Impressum page's content, and moves Terms & Conditions text into the same admin-editable Content system as your homepage (needs #9 first)
 19. `migration-faq-contact.sql` — adds the FAQ and Contact pages' content (needs #9 first)
+20. `migration-privacy-policy.sql` — adds the Privacy Policy page's content (needs #9 first)
 
 ## Going forward
 

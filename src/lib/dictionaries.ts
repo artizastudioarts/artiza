@@ -201,6 +201,10 @@ export type Dictionary = {
     successMessage: string;
     errorMessage: string;
   };
+  privacy: {
+    footerLink: string;
+    lastUpdated: string; // template with {date}
+  };
 };
 
 const de: Dictionary = {
@@ -451,6 +455,10 @@ const de: Dictionary = {
     successMessage: "Danke für deine Nachricht! Wir melden uns so schnell wie möglich.",
     errorMessage: "Etwas ist schiefgelaufen. Bitte versuche es erneut oder schreib uns direkt per E-Mail.",
   },
+  privacy: {
+    footerLink: "Datenschutz",
+    lastUpdated: "Zuletzt aktualisiert: {date}",
+  },
 };
 
 const en: Dictionary = {
@@ -695,6 +703,10 @@ const en: Dictionary = {
     submitting: "Sending…",
     successMessage: "Thanks for your message! We'll get back to you as soon as we can.",
     errorMessage: "Something went wrong. Please try again or email us directly.",
+  },
+  privacy: {
+    footerLink: "Privacy Policy",
+    lastUpdated: "Last updated: {date}",
   },
 };
 

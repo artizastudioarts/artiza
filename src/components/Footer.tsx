@@ -25,6 +25,9 @@ export default function Footer() {
           <Link href="/terms" className="hover:text-ink">
             {dict.footer.terms}
           </Link>
+          <Link href="/privacy" className="hover:text-ink">
+            {dict.privacy.footerLink}
+          </Link>
           <Link href="/impressum" className="hover:text-ink">
             {dict.impressum.footerLink}
           </Link>

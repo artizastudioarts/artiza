@@ -922,6 +922,7 @@ const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "home", label: "Home page" },
   { key: "terms", label: "Terms & Conditions" },
   { key: "impressum", label: "Impressum" },
+  { key: "privacy", label: "Privacy Policy" },
   { key: "faq", label: "FAQ" },
   { key: "contact", label: "Contact page" },
 ];
