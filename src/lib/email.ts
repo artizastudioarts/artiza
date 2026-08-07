@@ -21,17 +21,19 @@ export async function sendEmail({
   subject,
   html,
   attachments,
+  replyTo: replyToOverride,
 }: {
   to: string;
   subject: string;
   html: string;
   attachments?: { filename: string; content: string }[]; // content = base64
+  replyTo?: string; // overrides the default EMAIL_REPLY_TO — e.g. a contact-form sender's own address
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   // Where a customer's "Reply" lands — separate from the "from" address,
   // since EMAIL_FROM (orders@...) is sending-only with no real inbox.
-  const replyTo = process.env.EMAIL_REPLY_TO || undefined;
+  const replyTo = replyToOverride || process.env.EMAIL_REPLY_TO || undefined;
 
   if (!apiKey || !from) {
     console.error(

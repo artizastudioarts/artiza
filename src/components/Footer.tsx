@@ -16,6 +16,12 @@ export default function Footer() {
           <Link href="/reviews" className="hover:text-ink">
             {dict.reviews.pageTitle}
           </Link>
+          <Link href="/faq" className="hover:text-ink">
+            {dict.faq.navLabel}
+          </Link>
+          <Link href="/contact" className="hover:text-ink">
+            {dict.contact.navLabel}
+          </Link>
           <Link href="/terms" className="hover:text-ink">
             {dict.footer.terms}
           </Link>

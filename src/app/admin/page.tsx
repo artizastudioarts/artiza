@@ -64,6 +64,7 @@ export default function AdminDashboard() {
     | "emails"
     | "shipping"
     | "invoices"
+    | "discounts"
   >("orders");
 
   return (
@@ -135,6 +136,14 @@ export default function AdminDashboard() {
           >
             Invoices
           </button>
+          <button
+            onClick={() => setTab("discounts")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "discounts" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Discounts
+          </button>
         </div>
       </div>
 
@@ -152,8 +161,10 @@ export default function AdminDashboard() {
         <EmailsTab />
       ) : tab === "shipping" ? (
         <ShippingTab />
-      ) : (
+      ) : tab === "invoices" ? (
         <InvoicesTab />
+      ) : (
+        <DiscountsTab />
       )}
     </main>
   );
@@ -911,6 +922,8 @@ const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "home", label: "Home page" },
   { key: "terms", label: "Terms & Conditions" },
   { key: "impressum", label: "Impressum" },
+  { key: "faq", label: "FAQ" },
+  { key: "contact", label: "Contact page" },
 ];
 
 type ContentField = {
@@ -2132,6 +2145,189 @@ function InvoicesTab() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+type PromotionCode = {
+  id: string;
+  code: string;
+  active: boolean;
+  times_redeemed: number;
+  max_redemptions: number | null;
+  expires_at: number | null;
+  promotion: {
+    coupon: {
+      percent_off: number | null;
+      amount_off: number | null;
+      currency: string | null;
+    } | null;
+  };
+};
+
+function DiscountsTab() {
+  const [codes, setCodes] = useState<PromotionCode[] | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    code: "",
+    type: "percent" as "percent" | "fixed",
+    value: "",
+    expiresAt: "",
+    maxRedemptions: "",
+  });
+
+  function load() {
+    fetch("/api/admin/discounts")
+      .then((r) => r.json())
+      .then((d) => setCodes(d.codes ?? []));
+  }
+
+  useEffect(load, []);
+
+  async function handleCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setCreating(true);
+    const res = await fetch("/api/admin/discounts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    setCreating(false);
+    if (!res.ok) {
+      setError(data.error ?? "Could not create discount code");
+      return;
+    }
+    setForm({ code: "", type: "percent", value: "", expiresAt: "", maxRedemptions: "" });
+    load();
+  }
+
+  async function toggleActive(id: string, active: boolean) {
+    setCodes((prev) => prev?.map((c) => (c.id === id ? { ...c, active } : c)) ?? null);
+    await fetch(`/api/admin/discounts/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active }),
+    });
+  }
+
+  function describeCoupon(coupon: PromotionCode["promotion"]["coupon"]) {
+    if (!coupon) return "—";
+    if (coupon.percent_off) return `${coupon.percent_off}% off`;
+    if (coupon.amount_off) return formatPrice(coupon.amount_off, coupon.currency ?? "eur");
+    return "—";
+  }
+
+  return (
+    <div className="max-w-3xl space-y-10">
+      <p className="text-ink-soft text-sm">
+        Codes created here show up automatically as an &quot;Add promotion
+        code&quot; field on Stripe&apos;s checkout page — nothing else to
+        wire up.
+      </p>
+
+      <form onSubmit={handleCreate} className="border border-line p-4 space-y-3">
+        <div className="flex gap-3 flex-wrap">
+          <input
+            placeholder="CODE (e.g. WELCOME10)"
+            value={form.code}
+            onChange={(e) => setForm({ ...form, code: e.target.value })}
+            required
+            className="border border-line px-3 py-2 bg-paper flex-1 min-w-[140px]"
+          />
+          <select
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value as "percent" | "fixed" })}
+            className="border border-line px-3 py-2 bg-paper"
+          >
+            <option value="percent">% off</option>
+            <option value="fixed">€ off</option>
+          </select>
+          <input
+            type="number"
+            step={form.type === "percent" ? "1" : "0.01"}
+            placeholder={form.type === "percent" ? "10" : "5.00"}
+            value={form.value}
+            onChange={(e) => setForm({ ...form, value: e.target.value })}
+            required
+            className="w-28 border border-line px-3 py-2 bg-paper"
+          />
+        </div>
+        <div className="flex gap-3 flex-wrap items-center">
+          <label className="text-sm text-ink-soft">
+            Expires (optional)
+            <input
+              type="date"
+              value={form.expiresAt}
+              onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
+              className="ml-2 border border-line px-3 py-2 bg-paper"
+            />
+          </label>
+          <label className="text-sm text-ink-soft">
+            Max uses (optional)
+            <input
+              type="number"
+              min={1}
+              value={form.maxRedemptions}
+              onChange={(e) => setForm({ ...form, maxRedemptions: e.target.value })}
+              className="ml-2 w-24 border border-line px-3 py-2 bg-paper"
+            />
+          </label>
+        </div>
+        {error && <p className="text-oxblood text-sm">{error}</p>}
+        <button
+          type="submit"
+          disabled={creating}
+          className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
+        >
+          {creating ? "Creating…" : "Create code"}
+        </button>
+      </form>
+
+      {codes === null ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : codes.length === 0 ? (
+        <p className="text-ink-soft">No discount codes yet.</p>
+      ) : (
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="text-left border-b border-line placard-label text-ink-soft">
+              <th className="py-2 pr-4">Code</th>
+              <th className="py-2 pr-4">Discount</th>
+              <th className="py-2 pr-4">Used</th>
+              <th className="py-2 pr-4">Expires</th>
+              <th className="py-2 pr-4">Status</th>
+              <th className="py-2 pr-4"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {codes.map((c) => (
+              <tr key={c.id} className="border-b border-line">
+                <td className="py-3 pr-4 font-mono">{c.code}</td>
+                <td className="py-3 pr-4">{describeCoupon(c.promotion.coupon)}</td>
+                <td className="py-3 pr-4">
+                  {c.times_redeemed}
+                  {c.max_redemptions ? ` / ${c.max_redemptions}` : ""}
+                </td>
+                <td className="py-3 pr-4">
+                  {c.expires_at ? new Date(c.expires_at * 1000).toLocaleDateString("de-DE") : "—"}
+                </td>
+                <td className="py-3 pr-4">{c.active ? "Active" : "Disabled"}</td>
+                <td className="py-3 pr-4">
+                  <button
+                    onClick={() => toggleActive(c.id, !c.active)}
+                    className="placard-label text-oxblood hover:underline"
+                  >
+                    {c.active ? "Disable" : "Enable"}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

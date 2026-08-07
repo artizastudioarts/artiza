@@ -34,6 +34,10 @@ export type Dictionary = {
     heading: string;
     body: string;
     empty: string;
+    sortNewest: string;
+    sortPriceAsc: string;
+    sortPriceDesc: string;
+    sortNameAsc: string;
   };
   productCard: {
     badges: {
@@ -184,6 +188,19 @@ export type Dictionary = {
     disputeResolutionHeading: string;
     missingDetailsNote: string; // shown only if admin hasn't filled in business details yet
   };
+  faq: {
+    navLabel: string;
+  };
+  contact: {
+    navLabel: string;
+    nameLabel: string;
+    emailLabel: string;
+    messageLabel: string;
+    submitButton: string;
+    submitting: string;
+    successMessage: string;
+    errorMessage: string;
+  };
 };
 
 const de: Dictionary = {
@@ -222,6 +239,10 @@ const de: Dictionary = {
     heading: "Modell wählen, loslegen.",
     body: "Stöbere unten durch die aktuelle Kollektion und wähle dein Lieblingsstück.",
     empty: "Es sind noch keine Stücke gelistet. Füge welche im Admin-Bereich hinzu.",
+    sortNewest: "Neueste zuerst",
+    sortPriceAsc: "Preis: aufsteigend",
+    sortPriceDesc: "Preis: absteigend",
+    sortNameAsc: "Name: A–Z",
   },
   productCard: {
     badges: {
@@ -417,6 +438,19 @@ const de: Dictionary = {
     missingDetailsNote:
       "Diese Angaben werden noch vervollständigt. Bitte trage deine Geschäftsdaten unter Admin → Rechnungen und Admin → Content ein.",
   },
+  faq: {
+    navLabel: "FAQ",
+  },
+  contact: {
+    navLabel: "Kontakt",
+    nameLabel: "Name",
+    emailLabel: "E-Mail",
+    messageLabel: "Nachricht",
+    submitButton: "Nachricht senden",
+    submitting: "Wird gesendet…",
+    successMessage: "Danke für deine Nachricht! Wir melden uns so schnell wie möglich.",
+    errorMessage: "Etwas ist schiefgelaufen. Bitte versuche es erneut oder schreib uns direkt per E-Mail.",
+  },
 };
 
 const en: Dictionary = {
@@ -455,6 +489,10 @@ const en: Dictionary = {
     heading: "Pick a model, get painting.",
     body: "Browse the current collection below and choose your favorite.",
     empty: "No pieces are listed yet. Add some in the admin dashboard.",
+    sortNewest: "Newest first",
+    sortPriceAsc: "Price: Low to High",
+    sortPriceDesc: "Price: High to Low",
+    sortNameAsc: "Name: A–Z",
   },
   productCard: {
     badges: {
@@ -644,6 +682,19 @@ const en: Dictionary = {
     disputeResolutionHeading: "Consumer dispute resolution",
     missingDetailsNote:
       "These details are still being completed. Business information can be added under Admin → Invoices and Admin → Content.",
+  },
+  faq: {
+    navLabel: "FAQ",
+  },
+  contact: {
+    navLabel: "Contact",
+    nameLabel: "Name",
+    emailLabel: "Email",
+    messageLabel: "Message",
+    submitButton: "Send message",
+    submitting: "Sending…",
+    successMessage: "Thanks for your message! We'll get back to you as soon as we can.",
+    errorMessage: "Something went wrong. Please try again or email us directly.",
   },
 };
 

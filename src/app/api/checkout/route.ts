@@ -112,6 +112,9 @@ export async function POST(req: NextRequest) {
           },
         };
       }),
+      // Shows a native "Add promotion code" field on Stripe's own
+      // checkout page — codes themselves are managed in Admin -> Discounts.
+      allow_promotion_codes: true,
       shipping_address_collection: {
         // Germany only for now — expand this list once shipping rates
         // for other countries are set up.
