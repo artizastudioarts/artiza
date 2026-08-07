@@ -19,6 +19,9 @@ export default function Footer() {
           <Link href="/terms" className="hover:text-ink">
             {dict.footer.terms}
           </Link>
+          <Link href="/impressum" className="hover:text-ink">
+            {dict.impressum.footerLink}
+          </Link>
           <button onClick={reopenBanner} className="hover:text-ink">
             {dict.cookies.footerLink}
           </button>

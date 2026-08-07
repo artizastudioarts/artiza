@@ -172,6 +172,18 @@ export type Dictionary = {
     pageTitle: string;
     pageEyebrow: string;
   };
+  impressum: {
+    pageEyebrow: string;
+    pageTitle: string;
+    footerLink: string;
+    sectionHeading: string; // "Angaben gemäß § 5 DDG"
+    contactHeading: string;
+    phoneLabel: string;
+    emailLabel: string;
+    vatIdLabel: string;
+    disputeResolutionHeading: string;
+    missingDetailsNote: string; // shown only if admin hasn't filled in business details yet
+  };
 };
 
 const de: Dictionary = {
@@ -392,6 +404,19 @@ const de: Dictionary = {
     pageTitle: "Cookie-Richtlinie",
     pageEyebrow: "Rechtliches",
   },
+  impressum: {
+    pageEyebrow: "Rechtliches",
+    pageTitle: "Impressum",
+    footerLink: "Impressum",
+    sectionHeading: "Angaben gemäß § 5 DDG",
+    contactHeading: "Kontakt",
+    phoneLabel: "Telefon",
+    emailLabel: "E-Mail",
+    vatIdLabel: "Umsatzsteuer-ID",
+    disputeResolutionHeading: "Verbraucherstreitbeilegung",
+    missingDetailsNote:
+      "Diese Angaben werden noch vervollständigt. Bitte trage deine Geschäftsdaten unter Admin → Rechnungen und Admin → Content ein.",
+  },
 };
 
 const en: Dictionary = {
@@ -606,6 +631,19 @@ const en: Dictionary = {
     footerLink: "Cookie Settings",
     pageTitle: "Cookie Policy",
     pageEyebrow: "Legal",
+  },
+  impressum: {
+    pageEyebrow: "Legal",
+    pageTitle: "Legal Notice",
+    footerLink: "Legal Notice",
+    sectionHeading: "Information according to § 5 DDG",
+    contactHeading: "Contact",
+    phoneLabel: "Phone",
+    emailLabel: "Email",
+    vatIdLabel: "VAT ID",
+    disputeResolutionHeading: "Consumer dispute resolution",
+    missingDetailsNote:
+      "These details are still being completed. Business information can be added under Admin → Invoices and Admin → Content.",
   },
 };
 

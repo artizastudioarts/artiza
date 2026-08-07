@@ -909,6 +909,8 @@ function HomeTab() {
 // of this tab is fully generic and needs no other changes.
 const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "home", label: "Home page" },
+  { key: "terms", label: "Terms & Conditions" },
+  { key: "impressum", label: "Impressum" },
 ];
 
 type ContentField = {
