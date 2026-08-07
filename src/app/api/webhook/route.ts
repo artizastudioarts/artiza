@@ -44,21 +44,6 @@ export async function POST(req: NextRequest) {
     const db = supabaseAdmin();
     const cartEntries = parseCart(session.metadata?.cart);
 
-    // Stripe's address form has no separate house-number field, so we
-    // collect it via a required custom field instead and merge it into
-    // the street line here — every place that reads shipping_address.line1
-    // (admin table, invoice PDFs, etc.) then just works, unchanged.
-    const houseNumber = session.custom_fields?.find(
-      (f) => f.key === "house_number"
-    )?.text?.value;
-    const rawAddress = session.customer_details?.address ?? null;
-    const shippingAddress = rawAddress
-      ? {
-          ...rawAddress,
-          line1: houseNumber ? `${rawAddress.line1 ?? ""} ${houseNumber}`.trim() : rawAddress.line1,
-        }
-      : null;
-
     // One order number for the whole checkout, even if it contains
     // several different products — not one per product.
     const { data: orderNumberData } = await db.rpc("generate_order_number");
@@ -93,7 +78,7 @@ export async function POST(req: NextRequest) {
           customer_email: session.customer_details?.email,
           customer_name: session.customer_details?.name,
           phone: session.customer_details?.phone,
-          shipping_address: shippingAddress,
+          shipping_address: session.customer_details?.address ?? null,
           product_id: productId,
           product_title: product.title,
           quantity,

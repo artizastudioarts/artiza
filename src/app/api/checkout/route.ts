@@ -117,23 +117,17 @@ export async function POST(req: NextRequest) {
         // for other countries are set up.
         allowed_countries: ["DE"],
       },
-      // Stripe's own address form has no separate house-number field —
-      // like most European address forms, it's one combined street line.
-      // This adds a dedicated, required field just for it (German house
-      // numbers can include a letter, e.g. "12a", so a plain text field
-      // is correct — no numeric-only restriction).
-      custom_fields: [
-        {
-          key: "house_number",
-          label: {
-            type: "custom",
-            custom: locale === "de" ? "Hausnummer" : "House number",
-          },
-          type: "text",
-          text: { minimum_length: 1, maximum_length: 10 },
-          optional: false,
+      // A simple reminder shown right next to the address fields — no
+      // separate mandatory field, just a nudge to include the house
+      // number in the same line as the street.
+      custom_text: {
+        shipping_address: {
+          message:
+            locale === "de"
+              ? "Bitte gib Straße und Hausnummer gemeinsam an (z. B. Musterstraße 12a)."
+              : "Please include the house number with the street (e.g. Musterstraße 12a).",
         },
-      ],
+      },
       shipping_options: [
         {
           shipping_rate_data: {
