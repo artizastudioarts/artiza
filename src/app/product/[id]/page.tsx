@@ -1,9 +1,11 @@
 import { supabasePublic } from "@/lib/supabase";
 import { Product, formatPrice } from "@/lib/types";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductGallery from "@/components/ProductGallery";
+import ProductCard from "@/components/ProductCard";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
@@ -79,6 +81,29 @@ export default async function ProductPage({
         ? [product.image_url]
         : [];
 
+  // Prefer other products sharing the same category/medium, then fill any
+  // remaining slots with the most recently added other products.
+  const related: Product[] = [];
+  if (product.medium) {
+    const { data: sameMedium } = await supabasePublic
+      .from("products")
+      .select("*")
+      .eq("medium", product.medium)
+      .neq("id", product.id)
+      .limit(4);
+    related.push(...((sameMedium as Product[]) ?? []));
+  }
+  if (related.length < 4) {
+    const excludeIds = [product.id, ...related.map((p) => p.id)];
+    const { data: others } = await supabasePublic
+      .from("products")
+      .select("*")
+      .not("id", "in", `(${excludeIds.join(",")})`)
+      .order("created_at", { ascending: false })
+      .limit(4 - related.length);
+    related.push(...((others as Product[]) ?? []));
+  }
+
   return (
     <>
       <Header />
@@ -116,6 +141,21 @@ export default async function ProductPage({
           <AddToCartButton product={displayProduct} dict={dict} />
         </div>
       </main>
+
+      {related.length > 0 && (
+        <section className="max-w-6xl mx-auto px-6 pb-20">
+          <h2 className="font-display text-2xl italic mb-6">
+            {dict.product.relatedHeading}
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} dict={dict} locale={locale} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <Footer />
     </>
   );
 }

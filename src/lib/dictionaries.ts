@@ -49,6 +49,8 @@ export type Dictionary = {
     qty: string; // template with {n}
     addToCart: string;
     viewCart: string;
+    continueShopping: string;
+    relatedHeading: string;
     showPhoto: string; // template with {n} and {total}
   };
   cart: {
@@ -223,6 +225,8 @@ const de: Dictionary = {
     qty: "Menge {n}",
     addToCart: "In den Warenkorb",
     viewCart: "Warenkorb ansehen",
+    continueShopping: "Weiter einkaufen",
+    relatedHeading: "Das könnte dir auch gefallen",
     showPhoto: "Foto {n} von {total} anzeigen",
   },
   cart: {
@@ -441,6 +445,8 @@ const en: Dictionary = {
     qty: "Qty {n}",
     addToCart: "Add to cart",
     viewCart: "View cart",
+    continueShopping: "Continue shopping",
+    relatedHeading: "You might also like",
     showPhoto: "Show photo {n} of {total}",
   },
   cart: {

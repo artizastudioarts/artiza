@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { Product, MAX_CART_QTY } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
@@ -35,12 +36,20 @@ export default function AddToCartButton({
 
   if (added) {
     return (
-      <button
-        onClick={() => router.push("/cart")}
-        className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
-      >
-        {dict.product.viewCart}
-      </button>
+      <div className="flex items-center gap-3 flex-wrap">
+        <button
+          onClick={() => router.push("/cart")}
+          className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
+        >
+          {dict.product.viewCart}
+        </button>
+        <Link
+          href="/shop"
+          className="border border-line px-6 py-3 placard-label hover:bg-paper-dim transition-colors"
+        >
+          {dict.product.continueShopping}
+        </Link>
+      </div>
     );
   }
 
