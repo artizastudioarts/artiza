@@ -20,37 +20,37 @@ export default function MadeInGermanyBadge({
       <circle cx="100" cy="100" r="95" fill="none" stroke="var(--ink)" strokeWidth="1.5" />
       <circle cx="100" cy="100" r="86" fill="none" stroke="var(--brass)" strokeWidth="1" />
 
-      {/* A quiet nod to the German flag, in the site's own palette rather than bright flag colors */}
-      <rect x="74" y="46" width="52" height="4" fill="var(--ink)" />
-      <rect x="74" y="52" width="52" height="4" fill="var(--oxblood)" />
-      <rect x="74" y="58" width="52" height="4" fill="var(--brass)" />
+      {/* True German flag colors — this is the one place authenticity beats palette-matching */}
+      <rect x="72" y="44" width="56" height="5" fill="#000000" />
+      <rect x="72" y="51" width="56" height="5" fill="#DD0000" />
+      <rect x="72" y="58" width="56" height="5" fill="#FFCE00" />
 
       <text
         x="100"
-        y="106"
+        y="112"
         textAnchor="middle"
         fill="var(--ink)"
         style={{
           fontFamily: "var(--font-body), Arial, sans-serif",
-          fontSize: "15px",
+          fontSize: "18px",
           fontWeight: 700,
-          letterSpacing: "0.06em",
+          letterSpacing: "0.03em",
         }}
       >
         {mainText}
       </text>
 
-      <line x1="80" y1="118" x2="120" y2="118" stroke="var(--brass)" strokeWidth="1" />
+      <line x1="78" y1="124" x2="122" y2="124" stroke="var(--brass)" strokeWidth="1" />
 
       <text
         x="100"
-        y="134"
+        y="142"
         textAnchor="middle"
         fill="var(--ink-soft)"
         style={{
           fontFamily: "var(--font-body), Arial, sans-serif",
-          fontSize: "10.5px",
-          letterSpacing: "0.1em",
+          fontSize: "13px",
+          letterSpacing: "0.08em",
         }}
       >
         {subText}
