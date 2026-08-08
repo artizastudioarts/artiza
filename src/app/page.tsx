@@ -8,6 +8,7 @@ import { getDictionary } from "@/lib/dictionaries";
 import { getPageContent } from "@/lib/getPageContent";
 import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
 import ReviewCard from "@/components/ReviewCard";
+import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import type { Review } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -89,6 +90,9 @@ export default async function Home() {
           >
             {dict.home.shopButton}
           </Link>
+          <div className="mt-10 flex justify-center">
+            <MadeInGermanyBadge locale={locale} className="w-24 h-24" />
+          </div>
         </section>
 
         <section className="max-w-4xl mx-auto px-6 pb-20">

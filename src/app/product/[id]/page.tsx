@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import AddToCartButton from "@/components/AddToCartButton";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCard from "@/components/ProductCard";
+import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
@@ -139,6 +140,10 @@ export default async function ProductPage({
           )}
 
           <AddToCartButton product={displayProduct} dict={dict} />
+
+          <div className="mt-8">
+            <MadeInGermanyBadge locale={locale} className="w-20 h-20" />
+          </div>
         </div>
       </main>
 
