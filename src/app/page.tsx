@@ -96,7 +96,7 @@ export default async function Home() {
         </section>
 
         <section className="max-w-4xl mx-auto px-6 pb-20">
-          <div className="relative aspect-video bg-paper-dim overflow-hidden">
+          <div className="relative aspect-video bg-paper-dim overflow-hidden rounded-xl">
             {content?.video_url ? (
               <video
                 src={content.video_url}
