@@ -88,16 +88,16 @@ create table site_content (
   sort_order integer not null default 0,
   unique (page_key, field_key)
 );
-insert into site_content (page_key, field_key, label, field_type, sort_order) values
-  ('home', 'subheadline', 'Small label above the headline', 'text', 1),
-  ('home', 'headline', 'Headline', 'text', 2),
-  ('home', 'body', 'Body text', 'textarea', 3),
-  ('home', 'storyEyebrow', 'Story section — small label above the heading', 'text', 4),
-  ('home', 'storyHeading', 'Story section — heading', 'text', 5),
-  ('home', 'storyBody', 'Story section — paragraph', 'textarea', 6),
-  ('home', 'carouselEyebrow', 'Gallery section — small label above the photos', 'text', 7),
-  ('home', 'reviewsEyebrow', 'Reviews section — small label above the heading', 'text', 8),
-  ('home', 'reviewsHeading', 'Reviews section — heading', 'text', 9),
+insert into site_content (page_key, field_key, label, field_type, value_de, value_en, sort_order) values
+  ('home', 'subheadline', 'Small label above the headline', 'text', null, null, 1),
+  ('home', 'headline', 'Headline', 'text', null, null, 2),
+  ('home', 'body', 'Body text', 'textarea', null, null, 3),
+  ('home', 'storyEyebrow', 'Story section — small label above the heading', 'text', null, null, 4),
+  ('home', 'storyHeading', 'Story section — heading', 'text', null, null, 5),
+  ('home', 'storyBody', 'Story section — paragraph', 'textarea', null, null, 6),
+  ('home', 'carouselEyebrow', 'Gallery section — small label above the photos', 'text', null, null, 7),
+  ('home', 'reviewsEyebrow', 'Reviews section — small label above the heading', 'text', null, null, 8),
+  ('home', 'reviewsHeading', 'Reviews section — heading', 'text', null, null, 9),
   ('impressum', 'ownerName', 'Legal owner name (the real person behind the business)', 'text', null, null, 1),
   ('impressum', 'phone', 'Contact phone number', 'text', null, null, 2),
   ('impressum', 'email', 'Contact email', 'text', 'info@artizastudio.de', 'info@artizastudio.de', 3),
