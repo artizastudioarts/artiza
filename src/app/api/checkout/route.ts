@@ -7,11 +7,6 @@ import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
-    // TEMPORARY DIAGNOSTIC — safe, only logs the first 12 characters
-    // (enough to see "sk_live_" vs "sk_test_", not the actual secret).
-    // Will be removed right after we confirm what's actually running.
-    console.log("[diagnostic] STRIPE_SECRET_KEY prefix:", process.env.STRIPE_SECRET_KEY?.slice(0, 12));
-
     const { items, accessToken } = (await req.json()) as {
       items: { id: string; quantity: number }[];
       accessToken?: string | null;
@@ -100,7 +95,10 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      payment_method_types: ["card", "paypal"],
+      // PayPal removed for now — requires a verified PayPal Business
+      // account linked in Stripe's live settings first. Add "paypal"
+      // back to this array once that's set up.
+      payment_method_types: ["card"],
       customer_email: userEmail,
       phone_number_collection: { enabled: true },
       line_items: items.map((item) => {
