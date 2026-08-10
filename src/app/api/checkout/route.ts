@@ -7,6 +7,11 @@ import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
+    // TEMPORARY DIAGNOSTIC — safe, only logs the first 12 characters
+    // (enough to see "sk_live_" vs "sk_test_", not the actual secret).
+    // Will be removed right after we confirm what's actually running.
+    console.log("[diagnostic] STRIPE_SECRET_KEY prefix:", process.env.STRIPE_SECRET_KEY?.slice(0, 12));
+
     const { items, accessToken } = (await req.json()) as {
       items: { id: string; quantity: number }[];
       accessToken?: string | null;
