@@ -65,6 +65,7 @@ export default function AdminDashboard() {
     | "shipping"
     | "invoices"
     | "discounts"
+    | "newsletter"
   >("orders");
 
   return (
@@ -144,6 +145,14 @@ export default function AdminDashboard() {
           >
             Discounts
           </button>
+          <button
+            onClick={() => setTab("newsletter")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "newsletter" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Newsletter
+          </button>
         </div>
       </div>
 
@@ -163,8 +172,10 @@ export default function AdminDashboard() {
         <ShippingTab />
       ) : tab === "invoices" ? (
         <InvoicesTab />
-      ) : (
+      ) : tab === "discounts" ? (
         <DiscountsTab />
+      ) : (
+        <NewsletterTab />
       )}
     </main>
   );
@@ -2323,6 +2334,69 @@ function DiscountsTab() {
                   >
                     {c.active ? "Disable" : "Enable"}
                   </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
+type NewsletterSubscriber = {
+  id: string;
+  email: string;
+  locale: string;
+  subscribed_at: string;
+};
+
+function NewsletterTab() {
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[] | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/newsletter")
+      .then((r) => r.json())
+      .then((d) => setSubscribers(d.subscribers ?? []));
+  }, []);
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-ink-soft text-sm">
+          Anyone who signs up on the homepage newsletter section shows up
+          here, along with the welcome code they were sent (set under
+          Admin → Content → Home page, field &quot;newsletterCode&quot; —
+          make sure it matches a real code created in the Discounts tab).
+        </p>
+        <a
+          href="/api/admin/newsletter/export"
+          className="bg-ink text-paper px-4 py-2 placard-label whitespace-nowrap ml-4"
+        >
+          Export CSV
+        </a>
+      </div>
+
+      {subscribers === null ? (
+        <p className="text-ink-soft">Loading…</p>
+      ) : subscribers.length === 0 ? (
+        <p className="text-ink-soft">No subscribers yet.</p>
+      ) : (
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="text-left border-b border-line placard-label text-ink-soft">
+              <th className="py-2 pr-4">Email</th>
+              <th className="py-2 pr-4">Language</th>
+              <th className="py-2 pr-4">Signed up</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subscribers.map((s) => (
+              <tr key={s.id} className="border-b border-line">
+                <td className="py-3 pr-4">{s.email}</td>
+                <td className="py-3 pr-4">{s.locale.toUpperCase()}</td>
+                <td className="py-3 pr-4">
+                  {new Date(s.subscribed_at).toLocaleDateString("de-DE")}
                 </td>
               </tr>
             ))}

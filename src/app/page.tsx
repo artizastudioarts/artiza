@@ -9,6 +9,7 @@ import { getPageContent } from "@/lib/getPageContent";
 import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
 import ReviewCard from "@/components/ReviewCard";
 import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
+import NewsletterSignup from "@/components/NewsletterSignup";
 import type { Review } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -182,6 +183,18 @@ export default async function Home() {
             </div>
           </section>
         )}
+
+        <section className="border-t border-line">
+          <div className="max-w-6xl mx-auto px-6 py-16 text-center">
+            <h2 className="font-display text-2xl md:text-3xl italic mb-3">
+              {pageContent.newsletterHeading ?? dict.home.defaultNewsletterHeading}
+            </h2>
+            <p className="text-ink-soft mb-8 max-w-md mx-auto">
+              {pageContent.newsletterBody ?? dict.home.defaultNewsletterBody}
+            </p>
+            <NewsletterSignup />
+          </div>
+        </section>
 
         <section className="border-t border-line">
           <div className="max-w-6xl mx-auto px-6 py-14 text-center">

@@ -28,6 +28,8 @@ export type Dictionary = {
     carouselRegionLabel: string;
     defaultReviewsEyebrow: string;
     defaultReviewsHeading: string;
+    defaultNewsletterHeading: string;
+    defaultNewsletterBody: string;
   };
   shop: {
     eyebrow: string;
@@ -205,6 +207,13 @@ export type Dictionary = {
     footerLink: string;
     lastUpdated: string; // template with {date}
   };
+  newsletter: {
+    emailPlaceholder: string;
+    submitButton: string;
+    submitting: string;
+    successMessage: string;
+    errorMessage: string;
+  };
 };
 
 const de: Dictionary = {
@@ -237,6 +246,9 @@ const de: Dictionary = {
     carouselRegionLabel: "Bildergalerie, mit der Maus oder durch Wischen durchsuchbar",
     defaultReviewsEyebrow: "WAS UNSERE KUNDEN SAGEN",
     defaultReviewsHeading: "Echte Bewertungen von echten Käufern",
+    defaultNewsletterHeading: "Bleib auf dem Laufenden",
+    defaultNewsletterBody:
+      "Melde dich für unseren Newsletter an und erhalte 10 % Rabatt auf deine erste Bestellung.",
   },
   shop: {
     eyebrow: "Bemalbare Figuren",
@@ -459,6 +471,13 @@ const de: Dictionary = {
     footerLink: "Datenschutz",
     lastUpdated: "Zuletzt aktualisiert: {date}",
   },
+  newsletter: {
+    emailPlaceholder: "Deine E-Mail-Adresse",
+    submitButton: "Anmelden",
+    submitting: "Wird gesendet…",
+    successMessage: "Danke! Dein Rabattcode für die erste Bestellung:",
+    errorMessage: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+  },
 };
 
 const en: Dictionary = {
@@ -491,6 +510,8 @@ const en: Dictionary = {
     carouselRegionLabel: "Photo gallery, scrollable with mouse or swipe",
     defaultReviewsEyebrow: "WHAT OUR CUSTOMERS SAY",
     defaultReviewsHeading: "Real reviews from real buyers",
+    defaultNewsletterHeading: "Stay in the loop",
+    defaultNewsletterBody: "Sign up for our newsletter and get 10% off your first order.",
   },
   shop: {
     eyebrow: "Paintable figures",
@@ -707,6 +728,13 @@ const en: Dictionary = {
   privacy: {
     footerLink: "Privacy Policy",
     lastUpdated: "Last updated: {date}",
+  },
+  newsletter: {
+    emailPlaceholder: "Your email address",
+    submitButton: "Sign up",
+    submitting: "Sending…",
+    successMessage: "Thanks! Your discount code for your first order:",
+    errorMessage: "Something went wrong. Please try again.",
   },
 };
 

@@ -405,3 +405,21 @@ insert into invoice_template (id, html) values (1, '<!DOCTYPE html>
 insert into storage.buckets (id, name, public)
 values ('invoices', 'invoices', false)
 on conflict (id) do nothing;
+
+-- Newsletter subscribers
+create table newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  locale text not null default 'de',
+  subscribed_at timestamptz not null default now()
+);
+alter table newsletter_subscribers enable row level security;
+
+insert into site_content (page_key, field_key, label, field_type, value_de, value_en, sort_order) values
+  ('home', 'newsletterHeading', 'Newsletter section — heading', 'text',
+    'Bleib auf dem Laufenden', 'Stay in the loop', 10),
+  ('home', 'newsletterBody', 'Newsletter section — body', 'textarea',
+    'Melde dich für unseren Newsletter an und erhalte 10 % Rabatt auf deine erste Bestellung.',
+    'Sign up for our newsletter and get 10% off your first order.', 11),
+  ('home', 'newsletterCode', 'Welcome discount code shown/emailed to new subscribers — must match a real code created in Admin -> Discounts', 'text',
+    'WILLKOMMEN10', 'WILLKOMMEN10', 12);
