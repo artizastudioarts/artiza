@@ -8,7 +8,6 @@ export default function NewsletterSignup() {
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
-  const [code, setCode] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,9 +18,7 @@ export default function NewsletterSignup() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, locale, website }),
       });
-      const data = await res.json();
       if (!res.ok) throw new Error();
-      setCode(data.code ?? "");
       setStatus("success");
     } catch {
       setStatus("error");
@@ -31,12 +28,7 @@ export default function NewsletterSignup() {
   if (status === "success") {
     return (
       <div className="text-center">
-        <p className="text-ink-soft mb-2">{dict.newsletter.successMessage}</p>
-        {code && (
-          <p className="font-display text-2xl italic">
-            {code}
-          </p>
-        )}
+        <p className="text-ink-soft">{dict.newsletter.successMessage}</p>
       </div>
     );
   }

@@ -475,7 +475,7 @@ const de: Dictionary = {
     emailPlaceholder: "Deine E-Mail-Adresse",
     submitButton: "Anmelden",
     submitting: "Wird gesendet…",
-    successMessage: "Danke! Dein Rabattcode für die erste Bestellung:",
+    successMessage: "Danke! Wir haben dir deinen Rabattcode per E-Mail geschickt.",
     errorMessage: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
 };
@@ -733,7 +733,7 @@ const en: Dictionary = {
     emailPlaceholder: "Your email address",
     submitButton: "Sign up",
     submitting: "Sending…",
-    successMessage: "Thanks! Your discount code for your first order:",
+    successMessage: "Thanks! We've sent your discount code to your email.",
     errorMessage: "Something went wrong. Please try again.",
   },
 };

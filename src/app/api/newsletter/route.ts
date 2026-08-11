@@ -55,5 +55,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ ok: true, code });
+  return NextResponse.json({ ok: true });
 }
