@@ -21,26 +21,39 @@ export async function POST(req: NextRequest) {
   }
 
   const resolvedLocale: Locale = locale === "en" ? "en" : "de";
+  const cleanEmail = email.trim().toLowerCase();
   const db = supabaseAdmin();
 
-  const { error } = await db.from("newsletter_subscribers").insert({
-    email: email.trim().toLowerCase(),
-    locale: resolvedLocale,
-  });
+  const { data: inserted, error } = await db
+    .from("newsletter_subscribers")
+    .insert({ email: cleanEmail, locale: resolvedLocale })
+    .select("id")
+    .single();
+
+  let subscriberId = inserted?.id as string | undefined;
 
   // A duplicate email isn't really an error from the visitor's
   // perspective — they're already subscribed, so still show success and
-  // still remind them of the code below.
-  if (error && !error.message.includes("duplicate")) {
-    console.error("Newsletter signup failed", error);
-    return NextResponse.json({ error: "Could not sign up" }, { status: 500 });
+  // still send the reminder below. Just need their existing id instead.
+  if (error) {
+    if (!error.message.includes("duplicate")) {
+      console.error("Newsletter signup failed", error);
+      return NextResponse.json({ error: "Could not sign up" }, { status: 500 });
+    }
+    const { data: existing } = await db
+      .from("newsletter_subscribers")
+      .select("id")
+      .eq("email", cleanEmail)
+      .single();
+    subscriberId = existing?.id;
   }
 
   const content = await getPageContent("home", resolvedLocale);
   const code = content.newsletterCode ?? "";
 
-  if (code) {
+  if (code && subscriberId) {
     const isDe = resolvedLocale === "de";
+    const unsubscribeUrl = `${process.env.SITE_URL}/api/newsletter/unsubscribe?id=${subscriberId}`;
     await sendEmail({
       to: email,
       subject: isDe ? "Willkommen bei Artiza Studio" : "Welcome to Artiza Studio",
@@ -51,6 +64,13 @@ export async function POST(req: NextRequest) {
             ? `Nutze den Code <strong>${code}</strong> für 10&nbsp;% Rabatt auf deine erste Bestellung.`
             : `Use the code <strong>${code}</strong> for 10% off your first order.`
         }</p>
+        <p style="font-size:12px;color:#888;margin-top:24px;">
+          ${
+            isDe
+              ? `Du möchtest keine weiteren E-Mails erhalten? <a href="${unsubscribeUrl}">Hier abmelden</a>.`
+              : `Don't want to receive more emails? <a href="${unsubscribeUrl}">Unsubscribe here</a>.`
+          }
+        </p>
       `,
     });
   }

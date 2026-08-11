@@ -22,7 +22,7 @@ export default async function PrivacyPage() {
     { day: "numeric", month: "long", year: "numeric" }
   );
 
-  const sections = Array.from({ length: 12 }, (_, i) => {
+  const sections = Array.from({ length: 13 }, (_, i) => {
     const n = i + 1;
     return {
       heading: content[`s${n}_heading`] ?? "",

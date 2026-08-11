@@ -37,6 +37,7 @@ instead, which already contains the end result of all of these combined
 19. `migration-faq-contact.sql` — adds the FAQ and Contact pages' content (needs #9 first)
 20. `migration-privacy-policy.sql` — adds the Privacy Policy page's content (needs #9 first)
 21. `migration-newsletter.sql` — newsletter subscribers table and the homepage signup section content (needs #9 first)
+22. `migration-newsletter-legal-updates.sql` — adds a Newsletter section to the Privacy Policy and corrects the outdated Terms section about promotional emails (needs #20 and #18 first)
 
 ## Going forward
 
