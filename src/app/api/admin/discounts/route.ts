@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { code, type, value, expiresAt, maxRedemptions } = await req.json();
+  const { code, type, value, expiresAt, maxRedemptions, firstTimeOnly } = await req.json();
 
   if (!code || !type || !value) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -34,6 +34,10 @@ export async function POST(req: NextRequest) {
       code: String(code).toUpperCase().trim(),
       expires_at: expiresAt ? Math.floor(new Date(expiresAt).getTime() / 1000) : undefined,
       max_redemptions: maxRedemptions ? Number(maxRedemptions) : undefined,
+      // Blocks anyone who has ever completed a payment before — the
+      // customer's very first order only, regardless of which
+      // first-time-only code they try.
+      restrictions: firstTimeOnly ? { first_time_transaction: true } : undefined,
     });
 
     return NextResponse.json({ promotionCode });

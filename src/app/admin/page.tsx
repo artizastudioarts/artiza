@@ -2168,6 +2168,9 @@ type PromotionCode = {
   times_redeemed: number;
   max_redemptions: number | null;
   expires_at: number | null;
+  restrictions: {
+    first_time_transaction: boolean;
+  };
   promotion: {
     coupon: {
       percent_off: number | null;
@@ -2187,6 +2190,7 @@ function DiscountsTab() {
     value: "",
     expiresAt: "",
     maxRedemptions: "",
+    firstTimeOnly: false,
   });
 
   function load() {
@@ -2212,7 +2216,7 @@ function DiscountsTab() {
       setError(data.error ?? "Could not create discount code");
       return;
     }
-    setForm({ code: "", type: "percent", value: "", expiresAt: "", maxRedemptions: "" });
+    setForm({ code: "", type: "percent", value: "", expiresAt: "", maxRedemptions: "", firstTimeOnly: false });
     load();
   }
 
@@ -2288,6 +2292,17 @@ function DiscountsTab() {
             />
           </label>
         </div>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={form.firstTimeOnly}
+            onChange={(e) => setForm({ ...form, firstTimeOnly: e.target.checked })}
+          />
+          <span className="text-sm text-ink-soft">
+            First-time customers only — blocks anyone who&apos;s already completed an
+            order, including with a different first-time-only code
+          </span>
+        </label>
         {error && <p className="text-oxblood text-sm">{error}</p>}
         <button
           type="submit"
@@ -2309,6 +2324,7 @@ function DiscountsTab() {
               <th className="py-2 pr-4">Code</th>
               <th className="py-2 pr-4">Discount</th>
               <th className="py-2 pr-4">Used</th>
+              <th className="py-2 pr-4">Restriction</th>
               <th className="py-2 pr-4">Expires</th>
               <th className="py-2 pr-4">Status</th>
               <th className="py-2 pr-4"></th>
@@ -2322,6 +2338,9 @@ function DiscountsTab() {
                 <td className="py-3 pr-4">
                   {c.times_redeemed}
                   {c.max_redemptions ? ` / ${c.max_redemptions}` : ""}
+                </td>
+                <td className="py-3 pr-4 text-ink-soft">
+                  {c.restrictions?.first_time_transaction ? "First order only" : "—"}
                 </td>
                 <td className="py-3 pr-4">
                   {c.expires_at ? new Date(c.expires_at * 1000).toLocaleDateString("de-DE") : "—"}
