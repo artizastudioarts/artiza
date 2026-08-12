@@ -4,9 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { Product, MAX_CART_QTY } from "@/lib/types";
+import { Product, MAX_CART_QTY, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
+import {
+  countBillableChars,
+  sanitizeCustomText,
+  calcPerCharacterPriceCents,
+} from "@/lib/customTextPricing";
 
 export default function AddToCartButton({
   product,
@@ -23,12 +28,23 @@ export default function AddToCartButton({
   const router = useRouter();
 
   const requiresCustomText = product.custom_text_enabled;
+  const isPerCharacter = product.custom_text_pricing_mode === "per_character";
   const maxLength = product.custom_text_max_length ?? 30;
+  const minLength = product.custom_text_min_length ?? 1;
+  const pricePerCharCents = product.custom_text_price_per_char_cents ?? 0;
   // product is already the locale-resolved display version (same pattern
   // as title/artist_note) — no need to re-check locale here.
   const label = product.custom_text_label || dict.product.customTextDefaultLabel;
+
   const trimmedCustomText = customText.trim();
-  const canAdd = !requiresCustomText || trimmedCustomText.length > 0;
+  const billableChars = countBillableChars(trimmedCustomText);
+  const computedPriceCents = isPerCharacter
+    ? calcPerCharacterPriceCents(trimmedCustomText, pricePerCharCents)
+    : product.price_cents;
+
+  const meetsLength =
+    trimmedCustomText.length > 0 && billableChars >= minLength;
+  const canAdd = !requiresCustomText || meetsLength;
 
   function handleAdd() {
     if (!canAdd) return;
@@ -36,7 +52,7 @@ export default function AddToCartButton({
       {
         id: product.id,
         title: product.title,
-        price_cents: product.price_cents,
+        price_cents: computedPriceCents,
         currency: product.currency,
         image_url: product.image_url,
         customText: requiresCustomText ? trimmedCustomText : undefined,
@@ -75,13 +91,36 @@ export default function AddToCartButton({
           <input
             required
             value={customText}
-            onChange={(e) => setCustomText(e.target.value.slice(0, maxLength))}
+            onChange={(e) =>
+              setCustomText(sanitizeCustomText(e.target.value).slice(0, maxLength))
+            }
             maxLength={maxLength}
             className="w-full max-w-xs border border-line px-3 py-2 bg-paper"
           />
           <p className="text-xs text-ink-soft mt-1">
-            {customText.length}/{maxLength}
+            {isPerCharacter
+              ? interpolate(dict.product.customTextCharCountPerChar, {
+                  n: billableChars,
+                  min: minLength,
+                  max: maxLength,
+                })
+              : `${customText.length}/${maxLength}`}
           </p>
+          {isPerCharacter && (
+            <p className="placard-label mt-2">
+              {interpolate(dict.product.customTextPriceRate, {
+                rate: formatPrice(pricePerCharCents, product.currency),
+              })}
+              {billableChars > 0 && (
+                <>
+                  {" — "}
+                  {interpolate(dict.product.customTextComputedTotal, {
+                    total: formatPrice(computedPriceCents, product.currency),
+                  })}
+                </>
+              )}
+            </p>
+          )}
         </div>
       )}
       <div className="flex items-center gap-3">

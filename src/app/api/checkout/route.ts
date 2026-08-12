@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase";
 import { calcShippingCents, DEFAULT_PRODUCT_WEIGHT_G } from "@/lib/shipping";
 import { getLocale } from "@/lib/getLocale";
+import { countBillableChars, calcPerCharacterPriceCents, isValidCustomText } from "@/lib/customTextPricing";
 import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -45,8 +46,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Never trust the client alone — re-check required custom text and
-    // its length limit against what's actually configured on the product.
+    // Never trust the client alone — re-check required custom text, its
+    // length limits, and (for per-character priced products) recompute
+    // the actual price server-side from the product's real settings.
+    // This same function is reused below wherever a price is needed, so
+    // there's exactly one place that decides what something costs.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- products comes from a raw Supabase query with no generated types
+    function unitPriceCents(product: any, customText?: string) {
+      if (
+        product.custom_text_pricing_mode === "per_character" &&
+        product.custom_text_price_per_char_cents != null
+      ) {
+        return calcPerCharacterPriceCents(
+          customText?.trim() ?? "",
+          product.custom_text_price_per_char_cents
+        );
+      }
+      return product.price_cents;
+    }
+
     for (const item of items) {
       const product = products.find((p) => p.id === item.id);
       if (!product) continue;
@@ -58,10 +76,23 @@ export async function POST(req: NextRequest) {
             { status: 400 }
           );
         }
+        if (!isValidCustomText(text)) {
+          return NextResponse.json(
+            { error: "Personalization text can only contain English letters, numbers, and spaces" },
+            { status: 400 }
+          );
+        }
         const maxLength = product.custom_text_max_length ?? 30;
         if (text.length > maxLength) {
           return NextResponse.json(
             { error: "Personalization text is too long" },
+            { status: 400 }
+          );
+        }
+        const minLength = product.custom_text_min_length ?? 1;
+        if (countBillableChars(text) < minLength) {
+          return NextResponse.json(
+            { error: "Personalization text is too short" },
             { status: 400 }
           );
         }
@@ -81,7 +112,8 @@ export async function POST(req: NextRequest) {
 
     const subtotalCents = items.reduce((sum, item) => {
       const product = products.find((p) => p.id === item.id);
-      return sum + (product?.price_cents ?? 0) * item.quantity;
+      if (!product) return sum;
+      return sum + unitPriceCents(product, item.customText) * item.quantity;
     }, 0);
 
     const [{ data: rates }, { data: shippingSettings }] = await Promise.all([
@@ -155,7 +187,7 @@ export async function POST(req: NextRequest) {
           quantity: item.quantity,
           price_data: {
             currency: product.currency,
-            unit_amount: product.price_cents,
+            unit_amount: unitPriceCents(product, item.customText),
             product_data: {
               name: product.title,
               description: text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : undefined,

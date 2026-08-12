@@ -56,6 +56,9 @@ export type Dictionary = {
     addToCart: string;
     viewCart: string;
     customTextDefaultLabel: string;
+    customTextCharCountPerChar: string; // template with {n}, {min}, {max}
+    customTextPriceRate: string; // template with {rate}
+    customTextComputedTotal: string; // template with {total}
     continueShopping: string;
     relatedHeading: string;
     showPhoto: string; // template with {n} and {total}
@@ -278,6 +281,9 @@ const de: Dictionary = {
     addToCart: "In den Warenkorb",
     viewCart: "Warenkorb ansehen",
     customTextDefaultLabel: "Welchen Namen oder welches Wort möchtest du?",
+    customTextCharCountPerChar: "{n} Zeichen (mind. {min}, max. {max})",
+    customTextPriceRate: "{rate} pro Zeichen",
+    customTextComputedTotal: "Gesamt: {total}",
     continueShopping: "Weiter einkaufen",
     relatedHeading: "Das könnte dir auch gefallen",
     showPhoto: "Foto {n} von {total} anzeigen",
@@ -544,6 +550,9 @@ const en: Dictionary = {
     addToCart: "Add to cart",
     viewCart: "View cart",
     customTextDefaultLabel: "What name or word would you like?",
+    customTextCharCountPerChar: "{n} characters (min {min}, max {max})",
+    customTextPriceRate: "{rate} per character",
+    customTextComputedTotal: "Total: {total}",
     continueShopping: "Continue shopping",
     relatedHeading: "You might also like",
     showPhoto: "Show photo {n} of {total}",

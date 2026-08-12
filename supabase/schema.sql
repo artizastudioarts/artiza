@@ -440,3 +440,9 @@ create table pending_checkouts (
   created_at timestamptz not null default now()
 );
 alter table pending_checkouts enable row level security;
+
+-- Per-character pricing mode for personalized products
+alter table products add column custom_text_pricing_mode text not null default 'fixed'
+  check (custom_text_pricing_mode in ('fixed', 'per_character'));
+alter table products add column custom_text_price_per_char_cents integer;
+alter table products add column custom_text_min_length integer;

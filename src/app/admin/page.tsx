@@ -57,6 +57,9 @@ type Product = {
   custom_text_max_length: number | null;
   custom_text_label: string | null;
   custom_text_label_en: string | null;
+  custom_text_pricing_mode: "fixed" | "per_character";
+  custom_text_price_per_char_cents: number | null;
+  custom_text_min_length: number | null;
 };
 
 export default function AdminDashboard() {
@@ -600,6 +603,15 @@ function ProductForm({
         : "30",
     custom_text_label: product?.custom_text_label ?? "",
     custom_text_label_en: product?.custom_text_label_en ?? "",
+    custom_text_pricing_mode: product?.custom_text_pricing_mode ?? "fixed",
+    custom_text_price_per_char_cents:
+      product?.custom_text_price_per_char_cents != null
+        ? (product.custom_text_price_per_char_cents / 100).toString()
+        : "",
+    custom_text_min_length:
+      product?.custom_text_min_length != null
+        ? product.custom_text_min_length.toString()
+        : "1",
   });
   const [formLocale, setFormLocale] = useState<"de" | "en">("de");
   const [files, setFiles] = useState<File[]>([]);
@@ -639,14 +651,40 @@ function ProductForm({
       const custom_text_max_length = form.custom_text_max_length
         ? Math.max(1, Math.round(Number(form.custom_text_max_length)))
         : 30;
+      const custom_text_min_length = form.custom_text_min_length
+        ? Math.max(1, Math.round(Number(form.custom_text_min_length)))
+        : 1;
+      const custom_text_price_per_char_cents =
+        form.custom_text_pricing_mode === "per_character" && form.custom_text_price_per_char_cents
+          ? Math.round(Number(form.custom_text_price_per_char_cents) * 100)
+          : null;
 
       const res = await fetch("/api/admin/products", {
         method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           product
-            ? { id: product.id, ...form, badge, weight_grams, custom_text_max_length, image_url, image_urls }
-            : { ...form, badge, weight_grams, custom_text_max_length, image_url, image_urls }
+            ? {
+                id: product.id,
+                ...form,
+                badge,
+                weight_grams,
+                custom_text_max_length,
+                custom_text_min_length,
+                custom_text_price_per_char_cents,
+                image_url,
+                image_urls,
+              }
+            : {
+                ...form,
+                badge,
+                weight_grams,
+                custom_text_max_length,
+                custom_text_min_length,
+                custom_text_price_per_char_cents,
+                image_url,
+                image_urls,
+              }
         ),
       });
       const data = await res.json();
@@ -800,19 +838,35 @@ function ProductForm({
         </label>
         {form.custom_text_enabled && (
           <>
-            <div>
-              <label className="placard-label text-ink-soft block mb-1">
-                Character limit — keeps this field from being abused for spam
-              </label>
-              <input
-                type="number"
-                min={1}
-                value={form.custom_text_max_length}
-                onChange={(e) =>
-                  setForm({ ...form, custom_text_max_length: e.target.value })
-                }
-                className="w-24 border border-line px-3 py-2 bg-paper"
-              />
+            <div className="flex gap-4">
+              <div>
+                <label className="placard-label text-ink-soft block mb-1">
+                  Min. characters
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.custom_text_min_length}
+                  onChange={(e) =>
+                    setForm({ ...form, custom_text_min_length: e.target.value })
+                  }
+                  className="w-24 border border-line px-3 py-2 bg-paper"
+                />
+              </div>
+              <div>
+                <label className="placard-label text-ink-soft block mb-1">
+                  Max. characters — keeps this field from being abused for spam
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.custom_text_max_length}
+                  onChange={(e) =>
+                    setForm({ ...form, custom_text_max_length: e.target.value })
+                  }
+                  className="w-24 border border-line px-3 py-2 bg-paper"
+                />
+              </div>
             </div>
             <input
               placeholder="Prompt shown to customer (German) — e.g. 'Welcher Name?'"
@@ -828,6 +882,41 @@ function ProductForm({
               }
               className="w-full border border-line px-3 py-2 bg-paper"
             />
+            <div>
+              <label className="placard-label text-ink-soft block mb-1">
+                Pricing
+              </label>
+              <select
+                value={form.custom_text_pricing_mode}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    custom_text_pricing_mode: e.target.value as "fixed" | "per_character",
+                  })
+                }
+                className="border border-line px-3 py-2 bg-paper placard-label"
+              >
+                <option value="fixed">Fixed price (set above)</option>
+                <option value="per_character">Price per character</option>
+              </select>
+            </div>
+            {form.custom_text_pricing_mode === "per_character" && (
+              <div>
+                <label className="placard-label text-ink-soft block mb-1">
+                  Price per character (€) — e.g. 0.75. Spaces aren&apos;t charged.
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={form.custom_text_price_per_char_cents}
+                  onChange={(e) =>
+                    setForm({ ...form, custom_text_price_per_char_cents: e.target.value })
+                  }
+                  className="w-32 border border-line px-3 py-2 bg-paper"
+                />
+              </div>
+            )}
           </>
         )}
       </div>

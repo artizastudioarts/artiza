@@ -33,6 +33,9 @@ export async function POST(req: NextRequest) {
     custom_text_max_length: body.custom_text_max_length ?? 30,
     custom_text_label: body.custom_text_label || null,
     custom_text_label_en: body.custom_text_label_en || null,
+    custom_text_pricing_mode: body.custom_text_pricing_mode === "per_character" ? "per_character" : "fixed",
+    custom_text_price_per_char_cents: body.custom_text_price_per_char_cents ?? null,
+    custom_text_min_length: body.custom_text_min_length ?? 1,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

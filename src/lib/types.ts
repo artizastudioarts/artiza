@@ -24,6 +24,9 @@ export type Product = {
   custom_text_max_length: number | null;
   custom_text_label: string | null;
   custom_text_label_en: string | null;
+  custom_text_pricing_mode: "fixed" | "per_character";
+  custom_text_price_per_char_cents: number | null;
+  custom_text_min_length: number | null;
   weight_grams: number | null;
   created_at: string;
 };

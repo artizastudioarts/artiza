@@ -123,7 +123,12 @@ export default async function ProductPage({
           )}
           <div className="mb-6">
             <p className="text-2xl font-display mb-1">
-              {formatPrice(product.price_cents, product.currency)}
+              {product.custom_text_pricing_mode === "per_character" &&
+              product.custom_text_price_per_char_cents != null
+                ? interpolate(dict.product.customTextPriceRate, {
+                    rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
+                  })
+                : formatPrice(product.price_cents, product.currency)}
             </p>
             {freeThreshold != null && (
               <p className="placard-label text-ink-soft">

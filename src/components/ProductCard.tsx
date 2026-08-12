@@ -4,6 +4,7 @@ import { Product, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import type { Locale } from "@/lib/i18n";
 import { localizeProduct } from "@/lib/localizeProduct";
+import { interpolate } from "@/lib/i18n";
 import ProductBadgeRibbon from "@/components/ProductBadgeRibbon";
 
 export default function ProductCard({
@@ -51,7 +52,12 @@ export default function ProductCard({
         <h3 className="font-display text-lg leading-snug">{display.title}</h3>
         <p className="placard-label text-ink-soft">{display.medium}</p>
         <p className="text-sm text-ink-soft">
-          {formatPrice(product.price_cents, product.currency)}
+          {product.custom_text_pricing_mode === "per_character" &&
+          product.custom_text_price_per_char_cents != null
+            ? interpolate(dict.product.customTextPriceRate, {
+                rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
+              })
+            : formatPrice(product.price_cents, product.currency)}
         </p>
       </div>
     </Link>

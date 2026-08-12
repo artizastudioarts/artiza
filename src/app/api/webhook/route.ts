@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { generateInvoiceForOrder } from "@/lib/generateInvoice";
+import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { formatPrice } from "@/lib/types";
 import Stripe from "stripe";
 
@@ -77,7 +78,12 @@ export async function POST(req: NextRequest) {
 
       if (!product) continue;
 
-      const lineTotal = product.price_cents * quantity;
+      const unitPrice =
+        product.custom_text_pricing_mode === "per_character" &&
+        product.custom_text_price_per_char_cents != null
+          ? calcPerCharacterPriceCents(customText ?? "", product.custom_text_price_per_char_cents)
+          : product.price_cents;
+      const lineTotal = unitPrice * quantity;
 
       const { data: inserted } = await db
         .from("orders")
