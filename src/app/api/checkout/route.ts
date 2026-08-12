@@ -8,7 +8,7 @@ import type { ShippingRate, ShippingSettings } from "@/lib/types";
 export async function POST(req: NextRequest) {
   try {
     const { items, accessToken } = (await req.json()) as {
-      items: { id: string; quantity: number }[];
+      items: { id: string; quantity: number; customText?: string }[];
       accessToken?: string | null;
     };
 
@@ -43,6 +43,29 @@ export async function POST(req: NextRequest) {
         { error: "Could not load items" },
         { status: 400 }
       );
+    }
+
+    // Never trust the client alone — re-check required custom text and
+    // its length limit against what's actually configured on the product.
+    for (const item of items) {
+      const product = products.find((p) => p.id === item.id);
+      if (!product) continue;
+      const text = item.customText?.trim() ?? "";
+      if (product.custom_text_enabled) {
+        if (!text) {
+          return NextResponse.json(
+            { error: "Missing required personalization text" },
+            { status: 400 }
+          );
+        }
+        const maxLength = product.custom_text_max_length ?? 30;
+        if (text.length > maxLength) {
+          return NextResponse.json(
+            { error: "Personalization text is too long" },
+            { status: 400 }
+          );
+        }
+      }
     }
 
     const origin = req.headers.get("origin") ?? process.env.SITE_URL!;
@@ -93,6 +116,30 @@ export async function POST(req: NextRequest) {
           : "Standard shipping";
     const expressLabel = locale === "de" ? "Expressversand" : "Express shipping";
 
+    // Custom personalization text can't safely travel through Stripe's
+    // metadata (500-character cap per value, easily exceeded once you
+    // add customer-typed text across multiple items) — stage the real
+    // cart contents here instead, and only pass a short reference id.
+    const { data: pending, error: pendingError } = await db
+      .from("pending_checkouts")
+      .insert({
+        cart_items: items.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+          customText: item.customText?.trim() || null,
+        })),
+      })
+      .select("id")
+      .single();
+
+    if (pendingError || !pending) {
+      console.error("Failed to stage checkout", pendingError);
+      return NextResponse.json(
+        { error: "Checkout could not be started" },
+        { status: 500 }
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       // PayPal removed for now — requires a verified PayPal Business
@@ -103,6 +150,7 @@ export async function POST(req: NextRequest) {
       phone_number_collection: { enabled: true },
       line_items: items.map((item) => {
         const product = products.find((p) => p.id === item.id)!;
+        const text = item.customText?.trim();
         return {
           quantity: item.quantity,
           price_data: {
@@ -110,6 +158,7 @@ export async function POST(req: NextRequest) {
             unit_amount: product.price_cents,
             product_data: {
               name: product.title,
+              description: text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : undefined,
               images: product.image_url ? [product.image_url] : undefined,
             },
           },
@@ -159,8 +208,7 @@ export async function POST(req: NextRequest) {
         },
       ],
       metadata: {
-        // productId:quantity pairs, e.g. "abc123:2,def456:1"
-        cart: items.map((i) => `${i.id}:${i.quantity}`).join(","),
+        pendingCheckoutId: pending.id,
         // Empty string for guest checkouts — Stripe metadata values can't be null
         user_id: userId ?? "",
       },

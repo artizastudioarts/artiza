@@ -145,6 +145,11 @@ export default function AccountPage() {
                         <p className="font-display text-lg">
                           {order.product_title}
                           {order.quantity > 1 ? ` × ${order.quantity}` : ""}
+                          {order.custom_text && (
+                            <span className="block text-sm text-ink-soft font-sans italic">
+                              {dict.account.personalizationLabel}: {order.custom_text}
+                            </span>
+                          )}
                         </p>
                         <span className="placard-label text-ink-soft shrink-0">
                           {STATUS_LABELS[order.status] ?? order.status}

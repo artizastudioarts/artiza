@@ -10,26 +10,35 @@ import {
 import { MAX_CART_QTY } from "@/lib/types";
 
 export type CartItem = {
-  id: string;
+  id: string; // product id
+  cartItemId: string; // unique per cart line — same product with different custom text gets its own line
   title: string;
   price_cents: number;
   currency: string;
   image_url: string | null;
   quantity: number;
+  customText?: string;
 };
+
+function buildCartItemId(productId: string, customText?: string) {
+  return `${productId}::${customText ?? ""}`;
+}
 
 type CartContextType = {
   items: CartItem[];
   loaded: boolean;
-  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  setQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
+  addItem: (
+    item: Omit<CartItem, "quantity" | "cartItemId">,
+    quantity?: number
+  ) => void;
+  setQuantity: (cartItemId: string, quantity: number) => void;
+  removeItem: (cartItemId: string) => void;
   clear: () => void;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
 
-const STORAGE_KEY = "artshop_cart_v2";
+const STORAGE_KEY = "artshop_cart_v3";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -51,25 +60,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, loaded]);
 
-  function addItem(item: Omit<CartItem, "quantity">, quantity = 1) {
+  function addItem(
+    item: Omit<CartItem, "quantity" | "cartItemId">,
+    quantity = 1
+  ) {
+    const cartItemId = buildCartItemId(item.id, item.customText);
     setItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
+      const existing = prev.find((i) => i.cartItemId === cartItemId);
       if (existing) {
         const next = Math.min(existing.quantity + quantity, MAX_CART_QTY);
         return prev.map((i) =>
-          i.id === item.id ? { ...i, quantity: next } : i
+          i.cartItemId === cartItemId ? { ...i, quantity: next } : i
         );
       }
       const capped = Math.max(1, Math.min(quantity, MAX_CART_QTY));
-      return [...prev, { ...item, quantity: capped }];
+      return [...prev, { ...item, cartItemId, quantity: capped }];
     });
   }
 
-  function setQuantity(id: string, quantity: number) {
+  function setQuantity(cartItemId: string, quantity: number) {
     setItems((prev) =>
       prev
         .map((i) =>
-          i.id === id
+          i.cartItemId === cartItemId
             ? { ...i, quantity: Math.max(1, Math.min(quantity, MAX_CART_QTY)) }
             : i
         )
@@ -77,8 +90,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  function removeItem(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  function removeItem(cartItemId: string) {
+    setItems((prev) => prev.filter((i) => i.cartItemId !== cartItemId));
   }
 
   function clear() {

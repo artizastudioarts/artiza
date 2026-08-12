@@ -12,15 +12,23 @@ export const runtime = "nodejs";
 // especially on a cold start — give it more room than the default.
 export const maxDuration = 60;
 
-function parseCart(metadataCart: string | undefined) {
-  // metadata.cart looks like "productId:qty,productId:qty"
-  return (metadataCart ?? "")
-    .split(",")
-    .filter(Boolean)
-    .map((entry) => {
-      const [productId, qty] = entry.split(":");
-      return { productId, quantity: Number(qty) || 1 };
-    });
+type PendingCartItem = {
+  productId: string;
+  quantity: number;
+  customText: string | null;
+};
+
+async function getCartFromPending(
+  db: ReturnType<typeof supabaseAdmin>,
+  pendingCheckoutId: string | undefined
+): Promise<PendingCartItem[]> {
+  if (!pendingCheckoutId) return [];
+  const { data } = await db
+    .from("pending_checkouts")
+    .select("cart_items")
+    .eq("id", pendingCheckoutId)
+    .single();
+  return (data?.cart_items as PendingCartItem[] | undefined) ?? [];
 }
 
 export async function POST(req: NextRequest) {
@@ -42,7 +50,8 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const db = supabaseAdmin();
-    const cartEntries = parseCart(session.metadata?.cart);
+    const pendingCheckoutId = session.metadata?.pendingCheckoutId;
+    const cartEntries = await getCartFromPending(db, pendingCheckoutId);
 
     // One order number for the whole checkout, even if it contains
     // several different products — not one per product.
@@ -59,7 +68,7 @@ export async function POST(req: NextRequest) {
     let anyInserted = false;
     let isFirstRow = true;
 
-    for (const { productId, quantity } of cartEntries) {
+    for (const { productId, quantity, customText } of cartEntries) {
       const { data: product } = await db
         .from("products")
         .select("*")
@@ -82,6 +91,7 @@ export async function POST(req: NextRequest) {
           product_id: productId,
           product_title: product.title,
           quantity,
+          custom_text: customText,
           amount_total_cents: lineTotal,
           shipping_cents: isFirstRow ? shippingCents : null,
           currency: session.currency,
@@ -96,8 +106,11 @@ export async function POST(req: NextRequest) {
         anyInserted = true;
         isFirstRow = false;
         totalCents += lineTotal;
+        const personalization = customText
+          ? ` — Personalisierung: ${customText}`
+          : "";
         itemLines.push(
-          `<li>${product.title} × ${quantity} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
+          `<li>${product.title} × ${quantity}${personalization} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
         );
       }
     }
@@ -146,6 +159,11 @@ export async function POST(req: NextRequest) {
         });
       }
     }
+
+    // The staged cart has served its purpose — clean it up.
+    if (pendingCheckoutId) {
+      await db.from("pending_checkouts").delete().eq("id", pendingCheckoutId);
+    }
   }
 
   // The customer reached Stripe's checkout page (so we know their email)
@@ -153,10 +171,11 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.expired") {
     const session = event.data.object as Stripe.Checkout.Session;
     const email = session.customer_details?.email;
+    const db = supabaseAdmin();
+    const pendingCheckoutId = session.metadata?.pendingCheckoutId;
 
     if (email) {
-      const db = supabaseAdmin();
-      const cartEntries = parseCart(session.metadata?.cart);
+      const cartEntries = await getCartFromPending(db, pendingCheckoutId);
       const siteUrl = process.env.SITE_URL || "";
       const itemLines: string[] = [];
 
@@ -183,6 +202,12 @@ export async function POST(req: NextRequest) {
           });
         }
       }
+    }
+
+    // Genuinely abandoned — nothing more will ever reference this staged
+    // cart, so clean it up.
+    if (pendingCheckoutId) {
+      await db.from("pending_checkouts").delete().eq("id", pendingCheckoutId);
     }
   }
 

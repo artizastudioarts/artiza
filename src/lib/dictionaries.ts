@@ -55,6 +55,7 @@ export type Dictionary = {
     qty: string; // template with {n}
     addToCart: string;
     viewCart: string;
+    customTextDefaultLabel: string;
     continueShopping: string;
     relatedHeading: string;
     showPhoto: string; // template with {n} and {total}
@@ -72,6 +73,7 @@ export type Dictionary = {
     continueGuest: string;
     loginTrack: string;
     paymentNote: string;
+    customTextLabel: string;
   };
   auth: {
     loginTitle: string;
@@ -98,6 +100,7 @@ export type Dictionary = {
     statusCancelled: string;
     downloadInvoice: string;
     downloading: string;
+    personalizationLabel: string;
   };
   success: {
     orderConfirmed: string;
@@ -274,6 +277,7 @@ const de: Dictionary = {
     qty: "Menge {n}",
     addToCart: "In den Warenkorb",
     viewCart: "Warenkorb ansehen",
+    customTextDefaultLabel: "Welchen Namen oder welches Wort möchtest du?",
     continueShopping: "Weiter einkaufen",
     relatedHeading: "Das könnte dir auch gefallen",
     showPhoto: "Foto {n} von {total} anzeigen",
@@ -290,7 +294,8 @@ const de: Dictionary = {
     redirecting: "Weiterleitung zur Kasse…",
     continueGuest: "Als Gast fortfahren",
     loginTrack: "Anmelden / Registrieren, um diese Bestellung zu verfolgen",
-    paymentNote: "Karte & PayPal akzeptiert über Stripe",
+    paymentNote: "Kartenzahlung über Stripe",
+    customTextLabel: "Personalisierung",
   },
   auth: {
     loginTitle: "Anmelden",
@@ -319,6 +324,7 @@ const de: Dictionary = {
     statusCancelled: "Storniert",
     downloadInvoice: "Rechnung herunterladen",
     downloading: "Wird geladen…",
+    personalizationLabel: "Personalisierung",
   },
   success: {
     orderConfirmed: "Bestellung bestätigt",
@@ -537,6 +543,7 @@ const en: Dictionary = {
     qty: "Qty {n}",
     addToCart: "Add to cart",
     viewCart: "View cart",
+    customTextDefaultLabel: "What name or word would you like?",
     continueShopping: "Continue shopping",
     relatedHeading: "You might also like",
     showPhoto: "Show photo {n} of {total}",
@@ -553,7 +560,8 @@ const en: Dictionary = {
     redirecting: "Redirecting to checkout…",
     continueGuest: "Continue as guest",
     loginTrack: "Log in / Sign up to track this order",
-    paymentNote: "Card & PayPal accepted via Stripe",
+    paymentNote: "Card payment via Stripe",
+    customTextLabel: "Personalization",
   },
   auth: {
     loginTitle: "Log in",
@@ -580,6 +588,7 @@ const en: Dictionary = {
     statusCancelled: "Cancelled",
     downloadInvoice: "Download invoice",
     downloading: "Loading…",
+    personalizationLabel: "Personalization",
   },
   success: {
     orderConfirmed: "Order confirmed",

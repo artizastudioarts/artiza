@@ -20,6 +20,10 @@ export type Product = {
   image_url: string | null;
   image_urls: string[];
   badge: ProductBadge | null;
+  custom_text_enabled: boolean;
+  custom_text_max_length: number | null;
+  custom_text_label: string | null;
+  custom_text_label_en: string | null;
   weight_grams: number | null;
   created_at: string;
 };
@@ -54,6 +58,7 @@ export type Order = {
   currency: string;
   status: string;
   created_at: string;
+  custom_text?: string | null;
 };
 
 export type Invoice = {

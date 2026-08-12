@@ -12,6 +12,7 @@ type OrderSummary = {
   order_number: string;
   product_title: string;
   quantity: number;
+  custom_text: string | null;
   shipping_cents: number | null;
   currency: string;
 };
@@ -68,6 +69,11 @@ function SuccessContent() {
             <p key={i} className="mb-1 last:mb-0">
               {o.product_title}
               {o.quantity > 1 ? ` × ${o.quantity}` : ""}
+              {o.custom_text && (
+                <span className="block text-sm text-ink-soft italic">
+                  {locale === "de" ? "Personalisierung" : "Personalization"}: {o.custom_text}
+                </span>
+              )}
             </p>
           ))}
           {(() => {

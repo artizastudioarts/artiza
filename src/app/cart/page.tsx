@@ -34,7 +34,11 @@ export default function CartPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+          items: items.map((i) => ({
+            id: i.id,
+            quantity: i.quantity,
+            customText: i.customText,
+          })),
           // Only sent when logged in — lets the order be linked to the
           // account so it shows up under "Your orders".
           accessToken: session?.access_token ?? null,
@@ -68,11 +72,16 @@ export default function CartPage() {
             <ul className="divide-y divide-line border-y border-line mb-8">
               {items.map((item) => (
                 <li
-                  key={item.id}
+                  key={item.cartItemId}
                   className="py-4 flex items-center justify-between gap-4"
                 >
                   <div>
                     <p className="font-display text-lg">{item.title}</p>
+                    {item.customText && (
+                      <p className="text-sm text-ink-soft italic">
+                        {dict.cart.customTextLabel}: {item.customText}
+                      </p>
+                    )}
                     <p className="text-sm text-ink-soft">
                       {formatPrice(item.price_cents, item.currency)} {dict.cart.each}
                     </p>
@@ -81,7 +90,7 @@ export default function CartPage() {
                     <select
                       value={item.quantity}
                       onChange={(e) =>
-                        setQuantity(item.id, Number(e.target.value))
+                        setQuantity(item.cartItemId, Number(e.target.value))
                       }
                       className="border border-line px-2 py-2 bg-paper placard-label text-ink-soft"
                     >
@@ -95,7 +104,7 @@ export default function CartPage() {
                       ))}
                     </select>
                     <button
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item.cartItemId)}
                       className="placard-label text-ink-soft hover:text-oxblood"
                     >
                       {dict.cart.remove}

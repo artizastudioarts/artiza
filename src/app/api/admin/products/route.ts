@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
     image_urls: Array.isArray(body.image_urls) ? body.image_urls : [],
     badge: body.badge || null,
     weight_grams: body.weight_grams ?? null,
+    custom_text_enabled: !!body.custom_text_enabled,
+    custom_text_max_length: body.custom_text_max_length ?? 30,
+    custom_text_label: body.custom_text_label || null,
+    custom_text_label_en: body.custom_text_label_en || null,
   });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

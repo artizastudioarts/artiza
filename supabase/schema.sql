@@ -425,3 +425,18 @@ insert into site_content (page_key, field_key, label, field_type, value_de, valu
     'Sign up for our newsletter and get 10% off your first order.', 11),
   ('home', 'newsletterCode', 'Welcome discount code shown/emailed to new subscribers — must match a real code created in Admin -> Discounts', 'text',
     'WILLKOMMEN10', 'WILLKOMMEN10', 12);
+
+-- Per-product custom text field at checkout (e.g. letter-mold names)
+alter table products add column custom_text_enabled boolean not null default false;
+alter table products add column custom_text_max_length integer default 30;
+alter table products add column custom_text_label text;
+alter table products add column custom_text_label_en text;
+
+alter table orders add column custom_text text;
+
+create table pending_checkouts (
+  id uuid primary key default gen_random_uuid(),
+  cart_items jsonb not null,
+  created_at timestamptz not null default now()
+);
+alter table pending_checkouts enable row level security;

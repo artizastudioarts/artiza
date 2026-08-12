@@ -13,6 +13,7 @@ type Order = {
   shipping_address: Record<string, string> | null;
   product_title: string | null;
   quantity: number;
+  custom_text: string | null;
   amount_total_cents: number | null;
   shipping_cents: number | null;
   currency: string | null;
@@ -52,6 +53,10 @@ type Product = {
   image_urls: string[];
   badge: ProductBadge | null;
   weight_grams: number | null;
+  custom_text_enabled: boolean;
+  custom_text_max_length: number | null;
+  custom_text_label: string | null;
+  custom_text_label_en: string | null;
 };
 
 export default function AdminDashboard() {
@@ -310,7 +315,17 @@ function OrdersTab() {
                     </td>
                   </>
                 )}
-                <td className="py-3 pr-4">{o.product_title}</td>
+                <td className="py-3 pr-4">
+                  {o.product_title}
+                  {o.custom_text && (
+                    <>
+                      <br />
+                      <span className="text-xs text-oxblood">
+                        Personalisierung: {o.custom_text}
+                      </span>
+                    </>
+                  )}
+                </td>
                 <td className="py-3 pr-4">{o.quantity}</td>
                 {i === 0 && (
                   <td className="py-3 pr-4" rowSpan={group.length}>
@@ -578,6 +593,13 @@ function ProductForm({
     medium_en: product?.medium_en ?? "",
     dimensions_en: product?.dimensions_en ?? "",
     artist_note_en: product?.artist_note_en ?? "",
+    custom_text_enabled: product?.custom_text_enabled ?? false,
+    custom_text_max_length:
+      product?.custom_text_max_length != null
+        ? product.custom_text_max_length.toString()
+        : "30",
+    custom_text_label: product?.custom_text_label ?? "",
+    custom_text_label_en: product?.custom_text_label_en ?? "",
   });
   const [formLocale, setFormLocale] = useState<"de" | "en">("de");
   const [files, setFiles] = useState<File[]>([]);
@@ -614,14 +636,17 @@ function ProductForm({
       const image_url = image_urls[0] ?? "";
       const badge = form.badge || null;
       const weight_grams = form.weight_grams ? Math.max(0, Math.round(Number(form.weight_grams))) : null;
+      const custom_text_max_length = form.custom_text_max_length
+        ? Math.max(1, Math.round(Number(form.custom_text_max_length)))
+        : 30;
 
       const res = await fetch("/api/admin/products", {
         method: product ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           product
-            ? { id: product.id, ...form, badge, weight_grams, image_url, image_urls }
-            : { ...form, badge, weight_grams, image_url, image_urls }
+            ? { id: product.id, ...form, badge, weight_grams, custom_text_max_length, image_url, image_urls }
+            : { ...form, badge, weight_grams, custom_text_max_length, image_url, image_urls }
         ),
       });
       const data = await res.json();
@@ -759,6 +784,52 @@ function ProductForm({
           onChange={(e) => setForm({ ...form, weight_grams: e.target.value })}
           className="w-full border border-line px-3 py-2 bg-paper"
         />
+      </div>
+      <div className="border border-line p-3 space-y-3">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={form.custom_text_enabled}
+            onChange={(e) =>
+              setForm({ ...form, custom_text_enabled: e.target.checked })
+            }
+          />
+          <span className="placard-label text-ink-soft">
+            Requires personalization (e.g. name/word for letter molds)
+          </span>
+        </label>
+        {form.custom_text_enabled && (
+          <>
+            <div>
+              <label className="placard-label text-ink-soft block mb-1">
+                Character limit — keeps this field from being abused for spam
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={form.custom_text_max_length}
+                onChange={(e) =>
+                  setForm({ ...form, custom_text_max_length: e.target.value })
+                }
+                className="w-24 border border-line px-3 py-2 bg-paper"
+              />
+            </div>
+            <input
+              placeholder="Prompt shown to customer (German) — e.g. 'Welcher Name?'"
+              value={form.custom_text_label}
+              onChange={(e) => setForm({ ...form, custom_text_label: e.target.value })}
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+            <input
+              placeholder="Prompt shown to customer (English) — optional, falls back to German"
+              value={form.custom_text_label_en}
+              onChange={(e) =>
+                setForm({ ...form, custom_text_label_en: e.target.value })
+              }
+              className="w-full border border-line px-3 py-2 bg-paper"
+            />
+          </>
+        )}
       </div>
       <div>
         {product?.image_urls?.length && files.length === 0 ? (

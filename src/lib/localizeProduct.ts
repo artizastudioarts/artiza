@@ -13,6 +13,7 @@ export function localizeProduct(product: Product, locale: Locale) {
       medium: product.medium_en || product.medium,
       dimensions: product.dimensions_en || product.dimensions,
       artist_note: product.artist_note_en || product.artist_note,
+      custom_text_label: product.custom_text_label_en || product.custom_text_label,
     };
   }
   return {
@@ -20,5 +21,6 @@ export function localizeProduct(product: Product, locale: Locale) {
     medium: product.medium,
     dimensions: product.dimensions,
     artist_note: product.artist_note,
+    custom_text_label: product.custom_text_label,
   };
 }
