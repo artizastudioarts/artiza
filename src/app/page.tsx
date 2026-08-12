@@ -1,6 +1,7 @@
 import { supabasePublic } from "@/lib/supabase";
 import { HomeContent } from "@/lib/types";
 import Header from "@/components/Header";
+import NewsletterBar from "@/components/NewsletterBar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { getLocale } from "@/lib/getLocale";
@@ -73,6 +74,9 @@ export default async function Home() {
 
   return (
     <>
+      <NewsletterBar
+        text={pageContent.newsletterBarText ?? dict.home.defaultNewsletterBarText}
+      />
       <Header />
       <main className="flex-1 w-full">
         <section className="max-w-6xl mx-auto px-6 pt-16 pb-10 text-center">
@@ -184,7 +188,7 @@ export default async function Home() {
           </section>
         )}
 
-        <section className="border-t border-line">
+        <section id="newsletter" className="border-t border-line">
           <div className="max-w-6xl mx-auto px-6 py-16 text-center">
             <h2 className="font-display text-2xl md:text-3xl italic mb-3">
               {pageContent.newsletterHeading ?? dict.home.defaultNewsletterHeading}

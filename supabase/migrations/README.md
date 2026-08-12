@@ -40,6 +40,7 @@ instead, which already contains the end result of all of these combined
 22. `migration-newsletter-legal-updates.sql` — adds a Newsletter section to the Privacy Policy and corrects the outdated Terms section about promotional emails (needs #20 and #18 first)
 23. `migration-custom-text.sql` — per-product custom text field at checkout (e.g. letter-mold names), plus the checkout staging table this depends on
 24. `migration-per-character-pricing.sql` — per-character pricing mode for personalized products (needs #23 first)
+25. `migration-newsletter-bar.sql` — short message text for the homepage newsletter announcement bar (needs #21 first)
 
 ## Going forward
 
