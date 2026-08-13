@@ -23,11 +23,11 @@ function wrapEmailHtml(bodyHtml: string): string {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
-  <body style="margin:0; padding:0; background-color:#e3e2dc; font-family: Arial, Helvetica, sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#e3e2dc; padding: 32px 16px;">
+  <body style="margin:0; padding:0; background-color:#ffffff; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff; padding: 32px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#eeeeea;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background-color:#ffffff;">
             <tr>
               <td align="center" style="padding: 32px 24px 20px;">
                 <img src="${logoUrl}" alt="Artiza Studio" height="52" style="display:block; height:52px; width:auto;" />
