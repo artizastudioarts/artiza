@@ -9,6 +9,14 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Email clients (Gmail, Outlook, etc.) fetch this directly from their
+  // own servers to display the logo in received emails — same reasoning
+  // as the webhook exemption above. Gated, this shows as a broken image
+  // in every email sent while the site is password-protected.
+  if (pathname === "/email-logo.png") {
+    return NextResponse.next();
+  }
+
   if (pathname === "/admin/login" || pathname === "/api/admin/login") {
     return NextResponse.next();
   }
