@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
+import FormMessage from "@/components/FormMessage";
 
 export default function ContactForm() {
   const { dict } = useLocale();
@@ -31,7 +32,7 @@ export default function ContactForm() {
   }
 
   if (status === "success") {
-    return <p className="text-ink-soft">{dict.contact.successMessage}</p>;
+    return <FormMessage type="success">{dict.contact.successMessage}</FormMessage>;
   }
 
   return (
@@ -82,9 +83,7 @@ export default function ContactForm() {
         />
       </div>
 
-      {status === "error" && (
-        <p className="text-oxblood text-sm">{dict.contact.errorMessage}</p>
-      )}
+      {status === "error" && <FormMessage type="error">{dict.contact.errorMessage}</FormMessage>}
 
       <button
         type="submit"

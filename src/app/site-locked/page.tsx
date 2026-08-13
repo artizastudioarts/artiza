@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import FormMessage from "@/components/FormMessage";
 
 function SiteLockedForm() {
   const [password, setPassword] = useState("");
@@ -41,7 +42,7 @@ function SiteLockedForm() {
           className="w-full border border-line px-4 py-3 bg-paper"
           autoFocus
         />
-        {error && <p className="text-oxblood text-sm">{error}</p>}
+        {error && <FormMessage type="error">{error}</FormMessage>}
         <button
           type="submit"
           className="w-full bg-ink text-paper px-6 py-3 placard-label"

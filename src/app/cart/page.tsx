@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
 import { interpolate } from "@/lib/i18n";
 import { formatPrice, MAX_CART_QTY } from "@/lib/types";
+import FormMessage from "@/components/FormMessage";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCart();
@@ -141,7 +142,7 @@ export default function CartPage() {
               </span>
             </div>
 
-            {error && <p className="text-oxblood text-sm mb-4">{error}</p>}
+            {error && <div className="mb-4"><FormMessage type="error">{error}</FormMessage></div>}
 
             {user ? (
               <button

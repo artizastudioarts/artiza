@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import FormMessage from "@/components/FormMessage";
 import { useLocale } from "@/context/LocaleContext";
 
 function StarPicker({
@@ -162,7 +163,7 @@ function WriteReviewForm() {
           />
         </div>
 
-        {error && <p className="text-oxblood text-sm">{error}</p>}
+        {error && <FormMessage type="error">{error}</FormMessage>}
 
         <button
           type="submit"

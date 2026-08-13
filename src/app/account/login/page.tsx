@@ -1,18 +1,21 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
+import FormMessage from "@/components/FormMessage";
+
+const SIGNUP_REDIRECT_DELAY_MS = 2500;
 
 function LoginForm() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signupComplete, setSignupComplete] = useState(false);
 
   const { signIn, signUp } = useAuth();
   const { dict } = useLocale();
@@ -20,10 +23,20 @@ function LoginForm() {
   const params = useSearchParams();
   const redirectTo = params.get("redirect") || "/account";
 
+  // After signup, the message needs a moment to actually be read before
+  // we take the person away from it.
+  useEffect(() => {
+    if (!signupComplete) return;
+    const timer = setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, SIGNUP_REDIRECT_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [signupComplete, router]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setInfo("");
     setLoading(true);
 
     const result = mode === "login" ? await signIn(email, password) : await signUp(email, password);
@@ -36,14 +49,22 @@ function LoginForm() {
     }
 
     if (mode === "signup") {
-      // If Supabase has "confirm email" turned on, there's no session yet.
-      setInfo(dict.auth.confirmEmailInfo);
-      setMode("login");
+      // If Supabase has "confirm email" turned on, there's no session yet
+      // — send them off to browse rather than leaving them stranded here.
+      setSignupComplete(true);
       return;
     }
 
     router.push(redirectTo);
     router.refresh();
+  }
+
+  if (signupComplete) {
+    return (
+      <main className="max-w-sm mx-auto px-6 py-24 flex-1 w-full">
+        <FormMessage type="success">{dict.auth.confirmEmailInfo}</FormMessage>
+      </main>
+    );
   }
 
   return (
@@ -74,8 +95,7 @@ function LoginForm() {
           minLength={6}
           className="w-full border border-line px-4 py-3 bg-paper"
         />
-        {error && <p className="text-oxblood text-sm">{error}</p>}
-        {info && <p className="text-sm text-ink-soft">{info}</p>}
+        {error && <FormMessage type="error">{error}</FormMessage>}
         <button
           type="submit"
           disabled={loading}
@@ -93,7 +113,6 @@ function LoginForm() {
         onClick={() => {
           setMode(mode === "login" ? "signup" : "login");
           setError("");
-          setInfo("");
         }}
         className="placard-label text-ink-soft hover:text-ink mt-6"
       >

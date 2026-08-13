@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
+import FormMessage from "@/components/FormMessage";
 
 export default function NewsletterSignup({ stacked = false }: { stacked?: boolean }) {
   const { locale, dict } = useLocale();
@@ -28,7 +29,7 @@ export default function NewsletterSignup({ stacked = false }: { stacked?: boolea
   if (status === "success") {
     return (
       <div className="text-center">
-        <p className="text-ink-soft">{dict.newsletter.successMessage}</p>
+        <FormMessage type="success">{dict.newsletter.successMessage}</FormMessage>
       </div>
     );
   }
@@ -64,7 +65,9 @@ export default function NewsletterSignup({ stacked = false }: { stacked?: boolea
         </button>
       </form>
       {status === "error" && (
-        <p className="text-oxblood text-sm mt-3 text-center">{dict.newsletter.errorMessage}</p>
+        <div className="mt-3">
+          <FormMessage type="error">{dict.newsletter.errorMessage}</FormMessage>
+        </div>
       )}
     </div>
   );

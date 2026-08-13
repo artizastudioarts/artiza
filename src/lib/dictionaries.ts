@@ -220,6 +220,9 @@ export type Dictionary = {
     successMessage: string;
     errorMessage: string;
   };
+  widerruf: {
+    footerLink: string;
+  };
 };
 
 const de: Dictionary = {
@@ -316,7 +319,7 @@ const de: Dictionary = {
     noAccount: "Noch kein Konto? Jetzt erstellen",
     haveAccount: "Bereits ein Konto? Anmelden",
     confirmEmailInfo:
-      "Konto erstellt. Bitte bestätige deine E-Mail-Adresse und melde dich anschließend an.",
+      "Konto erstellt! Bitte bestätige deine E-Mail-Adresse. Wir bringen dich gleich zurück zur Startseite …",
   },
   account: {
     yourAccount: "Dein Konto",
@@ -490,6 +493,9 @@ const de: Dictionary = {
     successMessage: "Danke! Wir haben dir deinen Rabattcode per E-Mail geschickt.",
     errorMessage: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
   },
+  widerruf: {
+    footerLink: "Widerrufsrecht",
+  },
 };
 
 const en: Dictionary = {
@@ -584,7 +590,7 @@ const en: Dictionary = {
     signupButton: "Sign up",
     noAccount: "No account yet? Create one",
     haveAccount: "Already have an account? Log in",
-    confirmEmailInfo: "Account created. Check your email to confirm, then log in.",
+    confirmEmailInfo: "Account created! Check your email to confirm. Taking you back to the homepage …",
   },
   account: {
     yourAccount: "Your account",
@@ -753,6 +759,9 @@ const en: Dictionary = {
     submitting: "Sending…",
     successMessage: "Thanks! We've sent your discount code to your email.",
     errorMessage: "Something went wrong. Please try again.",
+  },
+  widerruf: {
+    footerLink: "Right of Withdrawal",
   },
 };
 

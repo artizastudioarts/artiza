@@ -7,6 +7,7 @@ import Header from "@/components/Header";
 import { useAuth } from "@/context/AuthContext";
 import { useLocale } from "@/context/LocaleContext";
 import { formatPrice, type Order } from "@/lib/types";
+import FormMessage from "@/components/FormMessage";
 
 export default function AccountPage() {
   const { user, session, loaded, signOut } = useAuth();
@@ -100,7 +101,7 @@ export default function AccountPage() {
 
         <h2 className="placard-label text-ink-soft mb-4">{dict.account.yourOrders}</h2>
 
-        {error && <p className="text-oxblood text-sm">{error}</p>}
+        {error && <FormMessage type="error">{error}</FormMessage>}
 
         {!error && orders === null && (
           <p className="text-ink-soft text-sm">{dict.account.loading}</p>
