@@ -244,6 +244,13 @@ insert into email_templates (key, subject, body) values
 {{items}}
 <p>Falls du noch Fragen hast, antworte einfach auf diese E-Mail — wir helfen gerne weiter.</p>
 <p>Herzliche Grüße,<br>Artiza Studio</p>'
+),
+(
+  'newsletter_welcome',
+  'Willkommen bei Artiza Studio',
+  '<p>Danke für deine Anmeldung!</p>
+<p>Nutze den Code <strong>{{code}}</strong> für 10&nbsp;% Rabatt auf deine erste Bestellung.</p>
+<p style="font-size:12px;color:#888;margin-top:24px;">Du möchtest keine weiteren E-Mails erhalten? <a href="{{unsubscribe_url}}">Hier abmelden</a>.</p>'
 );
 
 -- Optional weight per product, used to calculate shipping automatically

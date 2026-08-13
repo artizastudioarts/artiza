@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { getPageContent } from "@/lib/getPageContent";
 import type { Locale } from "@/lib/i18n";
 
@@ -52,27 +52,16 @@ export async function POST(req: NextRequest) {
   const code = content.newsletterCode ?? "";
 
   if (code && subscriberId) {
-    const isDe = resolvedLocale === "de";
     const unsubscribeUrl = `${process.env.SITE_URL}/api/newsletter/unsubscribe?id=${subscriberId}`;
-    await sendEmail({
-      to: email,
-      subject: isDe ? "Willkommen bei Artiza Studio" : "Welcome to Artiza Studio",
-      html: `
-        <p>${isDe ? "Danke für deine Anmeldung!" : "Thanks for signing up!"}</p>
-        <p>${
-          isDe
-            ? `Nutze den Code <strong>${code}</strong> für 10&nbsp;% Rabatt auf deine erste Bestellung.`
-            : `Use the code <strong>${code}</strong> for 10% off your first order.`
-        }</p>
-        <p style="font-size:12px;color:#888;margin-top:24px;">
-          ${
-            isDe
-              ? `Du möchtest keine weiteren E-Mails erhalten? <a href="${unsubscribeUrl}">Hier abmelden</a>.`
-              : `Don't want to receive more emails? <a href="${unsubscribeUrl}">Unsubscribe here</a>.`
-          }
-        </p>
-      `,
-    });
+    const template = await getEmailTemplate("newsletter_welcome");
+    if (template) {
+      const vars = { code, unsubscribe_url: unsubscribeUrl };
+      await sendEmail({
+        to: email,
+        subject: renderTemplate(template.subject, vars),
+        html: renderTemplate(template.body, vars),
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });

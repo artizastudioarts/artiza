@@ -1600,7 +1600,11 @@ function ReviewsTab() {
   );
 }
 
-type EmailTemplateKey = "order_confirmation" | "order_status_changed" | "abandoned_cart";
+type EmailTemplateKey =
+  | "order_confirmation"
+  | "order_status_changed"
+  | "abandoned_cart"
+  | "newsletter_welcome";
 
 type EmailTemplateRow = {
   key: EmailTemplateKey;
@@ -1628,12 +1632,19 @@ const EMAIL_TEMPLATE_META: Record<
       "Sent automatically if a customer reaches Stripe checkout, enters their email, but doesn't finish paying within an hour.",
     placeholders: ["{{items}}"],
   },
+  newsletter_welcome: {
+    label: "Newsletter welcome",
+    description:
+      "Sent right after someone signs up for the newsletter on the homepage — includes their welcome discount code.",
+    placeholders: ["{{code}}", "{{unsubscribe_url}}"],
+  },
 };
 
 const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
   "order_confirmation",
   "order_status_changed",
   "abandoned_cart",
+  "newsletter_welcome",
 ];
 
 function EmailsTab() {

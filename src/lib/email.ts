@@ -3,7 +3,8 @@ import { supabaseAdmin } from "./supabase";
 export type EmailTemplateKey =
   | "order_confirmation"
   | "order_status_changed"
-  | "abandoned_cart";
+  | "abandoned_cart"
+  | "newsletter_welcome";
 
 export type EmailTemplate = {
   key: EmailTemplateKey;
