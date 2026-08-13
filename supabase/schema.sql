@@ -424,11 +424,7 @@ insert into site_content (page_key, field_key, label, field_type, value_de, valu
     'Melde dich für unseren Newsletter an und erhalte 10 % Rabatt auf deine erste Bestellung.',
     'Sign up for our newsletter and get 10% off your first order.', 11),
   ('home', 'newsletterCode', 'Welcome discount code shown/emailed to new subscribers — must match a real code created in Admin -> Discounts', 'text',
-    'WILLKOMMEN10', 'WILLKOMMEN10', 12),
-  ('home', 'newsletterBarText', 'Newsletter announcement bar — short message', 'text',
-    '10 % Rabatt auf deine erste Bestellung — jetzt für den Newsletter anmelden',
-    '10% off your first order — sign up for our newsletter',
-    13);
+    'WILLKOMMEN10', 'WILLKOMMEN10', 12);
 
 -- Per-product custom text field at checkout (e.g. letter-mold names)
 alter table products add column custom_text_enabled boolean not null default false;

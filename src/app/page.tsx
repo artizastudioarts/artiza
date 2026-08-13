@@ -1,7 +1,6 @@
 import { supabasePublic } from "@/lib/supabase";
 import { HomeContent } from "@/lib/types";
 import Header from "@/components/Header";
-import NewsletterBar from "@/components/NewsletterBar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import { getLocale } from "@/lib/getLocale";
@@ -11,6 +10,7 @@ import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
 import ReviewCard from "@/components/ReviewCard";
 import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import NewsletterPopup from "@/components/NewsletterPopup";
 import type { Review } from "@/lib/types";
 import type { Metadata } from "next";
 
@@ -74,8 +74,9 @@ export default async function Home() {
 
   return (
     <>
-      <NewsletterBar
-        text={pageContent.newsletterBarText ?? dict.home.defaultNewsletterBarText}
+      <NewsletterPopup
+        heading={pageContent.newsletterHeading ?? dict.home.defaultNewsletterHeading}
+        body={pageContent.newsletterBody ?? dict.home.defaultNewsletterBody}
       />
       <Header />
       <main className="flex-1 w-full">

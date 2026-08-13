@@ -30,7 +30,6 @@ export type Dictionary = {
     defaultReviewsHeading: string;
     defaultNewsletterHeading: string;
     defaultNewsletterBody: string;
-    defaultNewsletterBarText: string;
   };
   shop: {
     eyebrow: string;
@@ -256,8 +255,6 @@ const de: Dictionary = {
     defaultNewsletterHeading: "Bleib auf dem Laufenden",
     defaultNewsletterBody:
       "Melde dich für unseren Newsletter an und erhalte 10 % Rabatt auf deine erste Bestellung.",
-    defaultNewsletterBarText:
-      "10 % Rabatt auf deine erste Bestellung — jetzt für den Newsletter anmelden",
   },
   shop: {
     eyebrow: "Bemalbare Figuren",
@@ -527,7 +524,6 @@ const en: Dictionary = {
     defaultReviewsHeading: "Real reviews from real buyers",
     defaultNewsletterHeading: "Stay in the loop",
     defaultNewsletterBody: "Sign up for our newsletter and get 10% off your first order.",
-    defaultNewsletterBarText: "10% off your first order — sign up for our newsletter",
   },
   shop: {
     eyebrow: "Paintable figures",

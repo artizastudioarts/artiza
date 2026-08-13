@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
 
-export default function NewsletterSignup() {
+export default function NewsletterSignup({ stacked = false }: { stacked?: boolean }) {
   const { locale, dict } = useLocale();
   const [email, setEmail] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
@@ -35,7 +35,10 @@ export default function NewsletterSignup() {
 
   return (
     <div className="max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+      <form
+        onSubmit={handleSubmit}
+        className={`flex gap-3 ${stacked ? "flex-col" : "flex-col sm:flex-row"}`}
+      >
         <input
           type="text"
           value={website}
