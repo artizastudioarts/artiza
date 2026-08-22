@@ -11,17 +11,19 @@ import { MAX_CART_QTY } from "@/lib/types";
 
 export type CartItem = {
   id: string; // product id
-  cartItemId: string; // unique per cart line — same product with different custom text gets its own line
+  cartItemId: string; // unique per cart line — same product with different custom text/variation gets its own line
   title: string;
   price_cents: number;
   currency: string;
   image_url: string | null;
   quantity: number;
   customText?: string;
+  variationId?: string;
+  variationLabel?: string;
 };
 
-function buildCartItemId(productId: string, customText?: string) {
-  return `${productId}::${customText ?? ""}`;
+function buildCartItemId(productId: string, customText?: string, variationId?: string) {
+  return `${productId}::${customText ?? ""}::${variationId ?? ""}`;
 }
 
 type CartContextType = {
@@ -64,7 +66,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     item: Omit<CartItem, "quantity" | "cartItemId">,
     quantity = 1
   ) {
-    const cartItemId = buildCartItemId(item.id, item.customText);
+    const cartItemId = buildCartItemId(item.id, item.customText, item.variationId);
     setItems((prev) => {
       const existing = prev.find((i) => i.cartItemId === cartItemId);
       if (existing) {

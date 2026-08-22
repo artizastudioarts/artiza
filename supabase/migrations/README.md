@@ -42,6 +42,7 @@ instead, which already contains the end result of all of these combined
 24. `migration-per-character-pricing.sql` — per-character pricing mode for personalized products (needs #23 first)
 25. `migration-newsletter-email-template.sql` — moves the newsletter welcome email into the admin-editable template system (needs #13 first, the email_templates table)
 26. `migration-widerrufsbelehrung.sql` — the EU right-of-withdrawal legal page (needs #9 first)
+27. `migration-product-variations.sql` — optional priced dropdown options per product (e.g. "Mom + Dad" vs "Full Family of 5")
 
 ## Going forward
 

@@ -28,7 +28,17 @@ export type Product = {
   custom_text_price_per_char_cents: number | null;
   custom_text_min_length: number | null;
   weight_grams: number | null;
+  variations_enabled: boolean;
   created_at: string;
+};
+
+export type ProductVariation = {
+  id: string;
+  product_id: string;
+  label: string;
+  label_en: string | null;
+  price_cents: number;
+  sort_order: number;
 };
 
 export type ShippingMethod = "standard" | "express";
@@ -62,6 +72,7 @@ export type Order = {
   status: string;
   created_at: string;
   custom_text?: string | null;
+  variation_label?: string | null;
 };
 
 export type Invoice = {

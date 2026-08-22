@@ -487,3 +487,25 @@ insert into site_content (page_key, field_key, label, field_type, value_de, valu
 6)
 
 on conflict (page_key, field_key) do nothing;
+
+-- Product variations: an optional dropdown of named options on a
+-- product (e.g. "Mom + Dad", "Full Family of 5"), each with its own
+-- price. Toggled per product in Admin -> Artwork.
+alter table products add column variations_enabled boolean not null default false;
+
+create table product_variations (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references products(id) on delete cascade,
+  label text not null,
+  label_en text,
+  price_cents integer not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index product_variations_product_id_idx on product_variations (product_id);
+
+alter table product_variations enable row level security;
+create policy "Public can view product variations" on product_variations
+  for select using (true);
+
+alter table orders add column variation_label text;

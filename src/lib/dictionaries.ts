@@ -59,6 +59,9 @@ export type Dictionary = {
     customTextCharCountPerChar: string; // template with {n}, {min}, {max}
     customTextPriceRate: string; // template with {rate}
     customTextComputedTotal: string; // template with {total}
+    chooseVariation: string;
+    selectVariationPlaceholder: string;
+    priceFrom: string; // template with {amount}
     continueShopping: string;
     relatedHeading: string;
     showPhoto: string; // template with {n} and {total}
@@ -287,6 +290,9 @@ const de: Dictionary = {
     customTextCharCountPerChar: "{n} Zeichen (mind. {min}, max. {max})",
     customTextPriceRate: "{rate} pro Zeichen",
     customTextComputedTotal: "Gesamt: {total}",
+    chooseVariation: "Wähle eine Option",
+    selectVariationPlaceholder: "Bitte auswählen",
+    priceFrom: "ab {amount}",
     continueShopping: "Weiter einkaufen",
     relatedHeading: "Das könnte dir auch gefallen",
     showPhoto: "Foto {n} von {total} anzeigen",
@@ -559,6 +565,9 @@ const en: Dictionary = {
     customTextCharCountPerChar: "{n} characters (min {min}, max {max})",
     customTextPriceRate: "{rate} per character",
     customTextComputedTotal: "Total: {total}",
+    chooseVariation: "Choose an option",
+    selectVariationPlaceholder: "Please select",
+    priceFrom: "from {amount}",
     continueShopping: "Continue shopping",
     relatedHeading: "You might also like",
     showPhoto: "Show photo {n} of {total}",

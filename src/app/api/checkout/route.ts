@@ -9,7 +9,7 @@ import type { ShippingRate, ShippingSettings } from "@/lib/types";
 export async function POST(req: NextRequest) {
   try {
     const { items, accessToken } = (await req.json()) as {
-      items: { id: string; quantity: number; customText?: string }[];
+      items: { id: string; quantity: number; customText?: string; variationId?: string }[];
       accessToken?: string | null;
     };
 
@@ -46,13 +46,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Variations belong to a product and always carry their own price —
+    // fetched fresh here (never trust a price the client sends) alongside
+    // the products themselves.
+    const variationIds = items.map((i) => i.variationId).filter(Boolean) as string[];
+    const { data: variationRows } =
+      variationIds.length > 0
+        ? await db.from("product_variations").select("*").in("id", variationIds)
+        : { data: [] as { id: string; product_id: string; label: string; price_cents: number }[] };
+    const variationsById = new Map(
+      (variationRows ?? []).map((v) => [v.id as string, v])
+    );
+
     // Never trust the client alone — re-check required custom text, its
     // length limits, and (for per-character priced products) recompute
     // the actual price server-side from the product's real settings.
     // This same function is reused below wherever a price is needed, so
     // there's exactly one place that decides what something costs.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- products comes from a raw Supabase query with no generated types
-    function unitPriceCents(product: any, customText?: string) {
+    function unitPriceCents(product: any, customText?: string, variationId?: string) {
+      const baseCents = product.variations_enabled
+        ? (variationsById.get(variationId ?? "")?.price_cents ?? 0)
+        : product.price_cents;
       if (
         product.custom_text_pricing_mode === "per_character" &&
         product.custom_text_price_per_char_cents != null
@@ -62,12 +77,27 @@ export async function POST(req: NextRequest) {
           product.custom_text_price_per_char_cents
         );
       }
-      return product.price_cents;
+      return baseCents;
     }
 
     for (const item of items) {
       const product = products.find((p) => p.id === item.id);
       if (!product) continue;
+      if (product.variations_enabled) {
+        const variation = variationsById.get(item.variationId ?? "");
+        if (!variation) {
+          return NextResponse.json(
+            { error: "Please choose an option for this item" },
+            { status: 400 }
+          );
+        }
+        if (variation.product_id !== product.id) {
+          return NextResponse.json(
+            { error: "Invalid selection for this item" },
+            { status: 400 }
+          );
+        }
+      }
       const text = item.customText?.trim() ?? "";
       if (product.custom_text_enabled) {
         if (!text) {
@@ -113,7 +143,7 @@ export async function POST(req: NextRequest) {
     const subtotalCents = items.reduce((sum, item) => {
       const product = products.find((p) => p.id === item.id);
       if (!product) return sum;
-      return sum + unitPriceCents(product, item.customText) * item.quantity;
+      return sum + unitPriceCents(product, item.customText, item.variationId) * item.quantity;
     }, 0);
 
     const [{ data: rates }, { data: shippingSettings }] = await Promise.all([
@@ -159,6 +189,7 @@ export async function POST(req: NextRequest) {
           productId: item.id,
           quantity: item.quantity,
           customText: item.customText?.trim() || null,
+          variationId: item.variationId || null,
         })),
       })
       .select("id")
@@ -183,13 +214,15 @@ export async function POST(req: NextRequest) {
       line_items: items.map((item) => {
         const product = products.find((p) => p.id === item.id)!;
         const text = item.customText?.trim();
+        const variation = variationsById.get(item.variationId ?? "");
+        const nameParts = [product.title, variation?.label].filter(Boolean);
         return {
           quantity: item.quantity,
           price_data: {
             currency: product.currency,
-            unit_amount: unitPriceCents(product, item.customText),
+            unit_amount: unitPriceCents(product, item.customText, item.variationId),
             product_data: {
-              name: product.title,
+              name: nameParts.join(" — "),
               description: text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : undefined,
               images: product.image_url ? [product.image_url] : undefined,
             },

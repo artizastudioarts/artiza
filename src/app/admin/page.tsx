@@ -14,6 +14,7 @@ type Order = {
   product_title: string | null;
   quantity: number;
   custom_text: string | null;
+  variation_label: string | null;
   amount_total_cents: number | null;
   shipping_cents: number | null;
   currency: string | null;
@@ -60,6 +61,14 @@ type Product = {
   custom_text_pricing_mode: "fixed" | "per_character";
   custom_text_price_per_char_cents: number | null;
   custom_text_min_length: number | null;
+  variations_enabled: boolean;
+};
+
+type ProductVariation = {
+  id?: string;
+  label: string;
+  label_en: string;
+  price: string; // euros, as text, mirrors how `price` is handled in ProductForm
 };
 
 export default function AdminDashboard() {
@@ -320,6 +329,14 @@ function OrdersTab() {
                 )}
                 <td className="py-3 pr-4">
                   {o.product_title}
+                  {o.variation_label && (
+                    <>
+                      <br />
+                      <span className="text-xs text-ink-soft">
+                        Variante: {o.variation_label}
+                      </span>
+                    </>
+                  )}
                   {o.custom_text && (
                     <>
                       <br />
@@ -612,17 +629,73 @@ function ProductForm({
       product?.custom_text_min_length != null
         ? product.custom_text_min_length.toString()
         : "1",
+    variations_enabled: product?.variations_enabled ?? false,
   });
+  const [variations, setVariations] = useState<ProductVariation[]>([]);
+  const [variationsLoaded, setVariationsLoaded] = useState(!product);
   const [formLocale, setFormLocale] = useState<"de" | "en">("de");
   const [files, setFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!product) return;
+    fetch(`/api/admin/product-variations?product_id=${product.id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const loaded = (
+          d.variations as {
+            id: string;
+            label: string;
+            label_en: string | null;
+            price_cents: number;
+          }[]
+        )?.map((v) => ({
+          id: v.id,
+          label: v.label,
+          label_en: v.label_en ?? "",
+          price: (v.price_cents / 100).toString(),
+        }));
+        setVariations(loaded ?? []);
+      })
+      .finally(() => setVariationsLoaded(true));
+  }, [product]);
+
+  function addVariationRow() {
+    setVariations((prev) => [...prev, { label: "", label_en: "", price: "" }]);
+  }
+
+  function updateVariationRow(
+    index: number,
+    field: "label" | "label_en" | "price",
+    value: string
+  ) {
+    setVariations((prev) =>
+      prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
+    );
+  }
+
+  function removeVariationRow(index: number) {
+    setVariations((prev) => prev.filter((_, i) => i !== index));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError("");
     try {
+      if (form.variations_enabled) {
+        if (variations.length === 0) {
+          throw new Error("Add at least one variation option, or turn variations off.");
+        }
+        for (const v of variations) {
+          if (!v.label.trim()) throw new Error("Every variation option needs a label.");
+          if (!v.price || Number.isNaN(Number(v.price)) || Number(v.price) < 0) {
+            throw new Error(`"${v.label}" needs a valid price.`);
+          }
+        }
+      }
+
       // Keep the existing photos unless the admin chose new ones.
       let image_urls = product?.image_urls?.length
         ? product.image_urls
@@ -689,6 +762,24 @@ function ProductForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+
+      // Save variation options against the (now definitely known)
+      // product id — empty array clears any existing options, so
+      // unchecking "offer variations" also removes stale rows.
+      const productId = product ? product.id : data.product?.id;
+      if (productId) {
+        const variationsRes = await fetch("/api/admin/product-variations", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            product_id: productId,
+            variations: form.variations_enabled ? variations : [],
+          }),
+        });
+        const variationsData = await variationsRes.json();
+        if (!variationsRes.ok) throw new Error(variationsData.error);
+      }
+
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -920,6 +1011,69 @@ function ProductForm({
           </>
         )}
       </div>
+      <div className="border border-line p-3 space-y-3">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={form.variations_enabled}
+            onChange={(e) =>
+              setForm({ ...form, variations_enabled: e.target.checked })
+            }
+          />
+          <span className="placard-label text-ink-soft">
+            Offer variations (customer picks from a dropdown, each option has its own price)
+          </span>
+        </label>
+        {form.variations_enabled && (
+          <div className="space-y-3">
+            {variations.map((v, i) => (
+              <div key={i} className="flex gap-2 items-start">
+                <input
+                  placeholder="Option label (German) — e.g. Mama + Papa"
+                  value={v.label}
+                  onChange={(e) => updateVariationRow(i, "label", e.target.value)}
+                  className="flex-1 border border-line px-3 py-2 bg-paper text-sm"
+                />
+                <input
+                  placeholder="Label (English, optional)"
+                  value={v.label_en}
+                  onChange={(e) => updateVariationRow(i, "label_en", e.target.value)}
+                  className="flex-1 border border-line px-3 py-2 bg-paper text-sm"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="Price (€)"
+                  value={v.price}
+                  onChange={(e) => updateVariationRow(i, "price", e.target.value)}
+                  className="w-24 border border-line px-3 py-2 bg-paper text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeVariationRow(i)}
+                  className="text-oxblood text-sm px-2 py-2"
+                  aria-label="Remove option"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addVariationRow}
+              className="border border-line px-3 py-1.5 placard-label text-sm"
+            >
+              + Add option
+            </button>
+            <p className="text-ink-soft text-xs">
+              Add as many options as you like. The customer sees a dropdown on
+              the product page and the price shown updates to whatever
+              they pick.
+            </p>
+          </div>
+        )}
+      </div>
       <div>
         {product?.image_urls?.length && files.length === 0 ? (
           <div className="flex gap-2 mb-2 flex-wrap">
@@ -950,10 +1104,16 @@ function ProductForm({
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || !variationsLoaded}
           className="bg-ink text-paper px-6 py-2 placard-label disabled:opacity-50"
         >
-          {submitting ? "Saving…" : product ? "Save changes" : "Save piece"}
+          {submitting
+            ? "Saving…"
+            : !variationsLoaded
+              ? "Loading…"
+              : product
+                ? "Save changes"
+                : "Save piece"}
         </button>
         {product && (
           <button

@@ -8,6 +8,7 @@ type OrderRow = {
   order_number: string;
   product_title: string;
   quantity: number;
+  variation_label: string | null;
   amount_total_cents: number;
   shipping_cents: number | null;
   currency: string | null;
@@ -56,7 +57,7 @@ export async function generateInvoiceForOrder(
   const itemsRows = rows
     .map(
       (o) =>
-        `<tr><td>${o.product_title}</td><td>${o.quantity}</td><td>${formatPrice(sign * o.amount_total_cents, currency)}</td></tr>`
+        `<tr><td>${o.product_title}${o.variation_label ? ` — ${o.variation_label}` : ""}</td><td>${o.quantity}</td><td>${formatPrice(sign * o.amount_total_cents, currency)}</td></tr>`
     )
     .join("");
 

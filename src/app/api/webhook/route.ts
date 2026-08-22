@@ -17,6 +17,7 @@ type PendingCartItem = {
   productId: string;
   quantity: number;
   customText: string | null;
+  variationId: string | null;
 };
 
 async function getCartFromPending(
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
     let anyInserted = false;
     let isFirstRow = true;
 
-    for (const { productId, quantity, customText } of cartEntries) {
+    for (const { productId, quantity, customText, variationId } of cartEntries) {
       const { data: product } = await db
         .from("products")
         .select("*")
@@ -78,11 +79,25 @@ export async function POST(req: NextRequest) {
 
       if (!product) continue;
 
+      let variationLabel: string | null = null;
+      let baseCents = product.price_cents;
+      if (product.variations_enabled && variationId) {
+        const { data: variation } = await db
+          .from("product_variations")
+          .select("*")
+          .eq("id", variationId)
+          .single();
+        if (variation) {
+          variationLabel = variation.label;
+          baseCents = variation.price_cents;
+        }
+      }
+
       const unitPrice =
         product.custom_text_pricing_mode === "per_character" &&
         product.custom_text_price_per_char_cents != null
           ? calcPerCharacterPriceCents(customText ?? "", product.custom_text_price_per_char_cents)
-          : product.price_cents;
+          : baseCents;
       const lineTotal = unitPrice * quantity;
 
       const { data: inserted } = await db
@@ -98,6 +113,7 @@ export async function POST(req: NextRequest) {
           product_title: product.title,
           quantity,
           custom_text: customText,
+          variation_label: variationLabel,
           amount_total_cents: lineTotal,
           shipping_cents: isFirstRow ? shippingCents : null,
           currency: session.currency,
@@ -115,8 +131,9 @@ export async function POST(req: NextRequest) {
         const personalization = customText
           ? ` — Personalisierung: ${customText}`
           : "";
+        const variationPart = variationLabel ? ` (${variationLabel})` : "";
         itemLines.push(
-          `<li>${product.title} × ${quantity}${personalization} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
+          `<li>${product.title}${variationPart} × ${quantity}${personalization} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
         );
       }
     }

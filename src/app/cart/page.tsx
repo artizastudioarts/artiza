@@ -39,6 +39,7 @@ export default function CartPage() {
             id: i.id,
             quantity: i.quantity,
             customText: i.customText,
+            variationId: i.variationId,
           })),
           // Only sent when logged in — lets the order be linked to the
           // account so it shows up under "Your orders".
@@ -78,6 +79,11 @@ export default function CartPage() {
                 >
                   <div>
                     <p className="font-display text-lg">{item.title}</p>
+                    {item.variationLabel && (
+                      <p className="text-sm text-ink-soft italic">
+                        {item.variationLabel}
+                      </p>
+                    )}
                     {item.customText && (
                       <p className="text-sm text-ink-soft italic">
                         {dict.cart.customTextLabel}: {item.customText}

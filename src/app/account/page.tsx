@@ -146,6 +146,11 @@ export default function AccountPage() {
                         <p className="font-display text-lg">
                           {order.product_title}
                           {order.quantity > 1 ? ` × ${order.quantity}` : ""}
+                          {order.variation_label && (
+                            <span className="block text-sm text-ink-soft font-sans italic">
+                              {order.variation_label}
+                            </span>
+                          )}
                           {order.custom_text && (
                             <span className="block text-sm text-ink-soft font-sans italic">
                               {dict.account.personalizationLabel}: {order.custom_text}

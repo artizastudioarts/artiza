@@ -1,5 +1,5 @@
 import { supabasePublic } from "@/lib/supabase";
-import { Product, formatPrice } from "@/lib/types";
+import { Product, ProductVariation, formatPrice } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
@@ -69,6 +69,20 @@ export default async function ProductPage({
   const locale = await getLocale();
   const dict = getDictionary(locale);
   const display = localizeProduct(product, locale);
+
+  let variations: ProductVariation[] = [];
+  if (product.variations_enabled) {
+    const { data: variationRows } = await supabasePublic
+      .from("product_variations")
+      .select("*")
+      .eq("product_id", product.id)
+      .order("sort_order", { ascending: true });
+    variations = ((variationRows as ProductVariation[]) ?? []).map((v) => ({
+      ...v,
+      label: locale === "en" ? v.label_en || v.label : v.label,
+    }));
+  }
+
   const shippingSettings = await getShippingSettings();
   const freeThreshold = shippingSettings?.free_standard_threshold_cents;
   // The cart, checkout, and order emails should show whichever language
@@ -123,12 +137,19 @@ export default async function ProductPage({
           )}
           <div className="mb-6">
             <p className="text-2xl font-display mb-1">
-              {product.custom_text_pricing_mode === "per_character" &&
-              product.custom_text_price_per_char_cents != null
-                ? interpolate(dict.product.customTextPriceRate, {
-                    rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
+              {product.variations_enabled && variations.length > 0
+                ? interpolate(dict.product.priceFrom, {
+                    amount: formatPrice(
+                      Math.min(...variations.map((v) => v.price_cents)),
+                      product.currency
+                    ),
                   })
-                : formatPrice(product.price_cents, product.currency)}
+                : product.custom_text_pricing_mode === "per_character" &&
+                    product.custom_text_price_per_char_cents != null
+                  ? interpolate(dict.product.customTextPriceRate, {
+                      rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
+                    })
+                  : formatPrice(product.price_cents, product.currency)}
             </p>
             {freeThreshold != null && (
               <p className="placard-label text-ink-soft">
@@ -144,7 +165,7 @@ export default async function ProductPage({
             </p>
           )}
 
-          <AddToCartButton product={displayProduct} dict={dict} />
+          <AddToCartButton product={displayProduct} variations={variations} dict={dict} />
 
           <div className="mt-8">
             <MadeInGermanyBadge locale={locale} className="w-20 h-20" />

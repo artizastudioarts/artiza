@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { Product, MAX_CART_QTY, formatPrice } from "@/lib/types";
+import { Product, ProductVariation, MAX_CART_QTY, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
 import {
@@ -15,15 +15,21 @@ import {
 
 export default function AddToCartButton({
   product,
+  variations = [],
   dict,
 }: {
   product: Product;
+  variations?: ProductVariation[];
   dict: Dictionary;
 }) {
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
   const [customText, setCustomText] = useState("");
+  const [variationId, setVariationId] = useState("");
   const [added, setAdded] = useState(false);
+
+  const hasVariations = product.variations_enabled && variations.length > 0;
+  const selectedVariation = variations.find((v) => v.id === variationId);
 
   const router = useRouter();
 
@@ -38,13 +44,21 @@ export default function AddToCartButton({
 
   const trimmedCustomText = customText.trim();
   const billableChars = countBillableChars(trimmedCustomText);
+  // The variation's own price stands in for the base product price
+  // wherever that base would otherwise be used — per-character text
+  // pricing (when also enabled) still fully overrides it, same as it
+  // already does for products with no variations.
+  const baseCents = hasVariations
+    ? (selectedVariation?.price_cents ?? 0)
+    : product.price_cents;
   const computedPriceCents = isPerCharacter
     ? calcPerCharacterPriceCents(trimmedCustomText, pricePerCharCents)
-    : product.price_cents;
+    : baseCents;
 
   const meetsLength =
     trimmedCustomText.length > 0 && billableChars >= minLength;
-  const canAdd = !requiresCustomText || meetsLength;
+  const canAdd =
+    (!requiresCustomText || meetsLength) && (!hasVariations || !!selectedVariation);
 
   function handleAdd() {
     if (!canAdd) return;
@@ -56,6 +70,8 @@ export default function AddToCartButton({
         currency: product.currency,
         image_url: product.image_url,
         customText: requiresCustomText ? trimmedCustomText : undefined,
+        variationId: hasVariations ? selectedVariation?.id : undefined,
+        variationLabel: hasVariations ? selectedVariation?.label : undefined,
       },
       qty
     );
@@ -83,6 +99,28 @@ export default function AddToCartButton({
 
   return (
     <div className="space-y-3">
+      {hasVariations && (
+        <div>
+          <label className="placard-label text-ink-soft block mb-1">
+            {dict.product.chooseVariation}
+          </label>
+          <select
+            required
+            value={variationId}
+            onChange={(e) => setVariationId(e.target.value)}
+            className="w-full max-w-xs border border-line px-3 py-2 bg-paper"
+          >
+            <option value="" disabled>
+              {dict.product.selectVariationPlaceholder}
+            </option>
+            {variations.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.label} — {formatPrice(v.price_cents, product.currency)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {requiresCustomText && (
         <div>
           <label className="placard-label text-ink-soft block mb-1">
