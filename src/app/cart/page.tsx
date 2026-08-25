@@ -25,6 +25,9 @@ export default function CartPage() {
   }, []);
 
   const total = items.reduce((sum, i) => sum + i.price_cents * i.quantity, 0);
+  const productTotal = items
+    .filter((i) => !i.isCustomBox)
+    .reduce((sum, i) => sum + i.price_cents * i.quantity, 0);
   const currency = items[0]?.currency ?? "eur";
 
   async function handleCheckout() {
@@ -35,12 +38,21 @@ export default function CartPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items.map((i) => ({
-            id: i.id,
-            quantity: i.quantity,
-            customText: i.customText,
-            variationId: i.variationId,
-          })),
+          items: items
+            .filter((i) => !i.isCustomBox)
+            .map((i) => ({
+              id: i.id,
+              quantity: i.quantity,
+              customText: i.customText,
+              variationId: i.variationId,
+            })),
+          customBoxes: items
+            .filter((i) => i.isCustomBox)
+            .map((i) => ({
+              articles: i.customBoxArticles ?? [],
+              notes: i.customBoxNotes,
+              quantity: i.quantity,
+            })),
           // Only sent when logged in — lets the order be linked to the
           // account so it shows up under "Your orders".
           accessToken: session?.access_token ?? null,
@@ -89,6 +101,20 @@ export default function CartPage() {
                         {dict.cart.customTextLabel}: {item.customText}
                       </p>
                     )}
+                    {item.isCustomBox && item.customBoxSummary && (
+                      <ul className="text-sm text-ink-soft">
+                        {item.customBoxSummary.map((a, i) => (
+                          <li key={i}>
+                            {a.categoryLabel}: {a.articleLabel} × {a.quantity}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {item.isCustomBox && item.customBoxNotes && (
+                      <p className="text-sm text-ink-soft italic">
+                        {dict.cart.customBoxNotesLabel}: {item.customBoxNotes}
+                      </p>
+                    )}
                     <p className="text-sm text-ink-soft">
                       {formatPrice(item.price_cents, item.currency)} {dict.cart.each}
                     </p>
@@ -121,20 +147,20 @@ export default function CartPage() {
               ))}
             </ul>
 
-            {freeThreshold != null && (
+            {freeThreshold != null && productTotal > 0 && (
               <div className="mb-8">
                 <p className="placard-label text-ink-soft mb-2">
-                  {total >= freeThreshold
+                  {productTotal >= freeThreshold
                     ? dict.shipping.cartUnlocked
                     : interpolate(dict.shipping.cartProgress, {
-                        amount: formatPrice(freeThreshold - total, currency),
+                        amount: formatPrice(freeThreshold - productTotal, currency),
                       })}
                 </p>
                 <div className="h-px bg-line relative">
                   <div
                     className="absolute top-0 left-0 h-px bg-brass transition-[width] duration-300 ease-out"
                     style={{
-                      width: `${Math.min(100, (total / freeThreshold) * 100)}%`,
+                      width: `${Math.min(100, (productTotal / freeThreshold) * 100)}%`,
                     }}
                   />
                 </div>

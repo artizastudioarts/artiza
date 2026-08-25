@@ -8,12 +8,19 @@ import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, accessToken } = (await req.json()) as {
+    const { items, customBoxes, accessToken } = (await req.json()) as {
       items: { id: string; quantity: number; customText?: string; variationId?: string }[];
+      customBoxes?: {
+        articles: { articleId: string; quantity: number }[];
+        notes?: string;
+        quantity?: number;
+      }[];
       accessToken?: string | null;
     };
 
-    if (!Array.isArray(items) || items.length === 0) {
+    const boxes = customBoxes ?? [];
+
+    if ((!Array.isArray(items) || items.length === 0) && boxes.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
@@ -31,19 +38,23 @@ export async function POST(req: NextRequest) {
         userEmail = userData.user.email;
       }
     }
-    const { data: products, error } = await db
-      .from("products")
-      .select("*")
-      .in(
-        "id",
-        items.map((i) => i.id)
-      );
-
-    if (error || !products || products.length === 0) {
-      return NextResponse.json(
-        { error: "Could not load items" },
-        { status: 400 }
-      );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- no generated types for a raw Supabase query
+    let products: any[] = [];
+    if (items.length > 0) {
+      const { data, error } = await db
+        .from("products")
+        .select("*")
+        .in(
+          "id",
+          items.map((i) => i.id)
+        );
+      if (error || !data || data.length === 0) {
+        return NextResponse.json(
+          { error: "Could not load items" },
+          { status: 400 }
+        );
+      }
+      products = data;
     }
 
     // Variations belong to a product and always carry their own price —
@@ -146,27 +157,82 @@ export async function POST(req: NextRequest) {
       return sum + unitPriceCents(product, item.customText, item.variationId) * item.quantity;
     }, 0);
 
-    const [{ data: rates }, { data: shippingSettings }] = await Promise.all([
+    const [{ data: rates }, { data: shippingSettingsRow }] = await Promise.all([
       db.from("shipping_rates").select("*"),
       db.from("shipping_settings").select("*").eq("id", 1).single(),
     ]);
+    const settings = shippingSettingsRow as ShippingSettings | null;
 
-    const settings = shippingSettings as ShippingSettings | null;
+    // Custom box articles are looked up fresh here too (never trust a
+    // client-sent price) — one query covering every article referenced
+    // across all boxes in the cart, plus their categories for labels.
+    const allArticleIds = [...new Set(boxes.flatMap((b) => b.articles.map((a) => a.articleId)))];
+    const [{ data: articleRows }, { data: categoryRows }] = await Promise.all([
+      allArticleIds.length > 0
+        ? db.from("custom_box_articles").select("*").in("id", allArticleIds)
+        : Promise.resolve({ data: [] as { id: string; category_id: string; label: string; price_cents: number }[] }),
+      db.from("custom_box_categories").select("*"),
+    ]);
+    const articlesById = new Map((articleRows ?? []).map((a) => [a.id as string, a]));
+    const categoriesById = new Map((categoryRows ?? []).map((c) => [c.id as string, c]));
+    const minOrderCents = settings?.custom_box_min_order_cents ?? 0;
+    const boxShippingCents = settings?.custom_box_shipping_cents ?? 0;
+
+    type ResolvedBoxItem = { categoryLabel: string; articleLabel: string; priceCents: number; quantity: number };
+    type ResolvedBox = { items: ResolvedBoxItem[]; subtotalCents: number; notes: string | null; quantity: number };
+
+    const resolvedBoxes: ResolvedBox[] = [];
+    for (const box of boxes) {
+      const items: ResolvedBoxItem[] = [];
+      for (const a of box.articles) {
+        if (!a.quantity || a.quantity <= 0) continue;
+        const article = articlesById.get(a.articleId);
+        if (!article) continue;
+        const category = categoriesById.get(article.category_id);
+        items.push({
+          categoryLabel: category?.name ?? "",
+          articleLabel: article.label,
+          priceCents: article.price_cents,
+          quantity: a.quantity,
+        });
+      }
+      const subtotalCents = items.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
+      if (items.length === 0 || subtotalCents < minOrderCents) {
+        return NextResponse.json(
+          { error: "Custom box does not meet the minimum order value" },
+          { status: 400 }
+        );
+      }
+      resolvedBoxes.push({
+        items,
+        subtotalCents,
+        notes: box.notes?.trim() || null,
+        quantity: Math.max(1, box.quantity ?? 1),
+      });
+    }
+
     const freeThreshold = settings?.free_standard_threshold_cents ?? null;
+    const productSubtotalCents = subtotalCents;
 
     let standardCents = calcShippingCents(
       totalWeightG,
       "standard",
       (rates as ShippingRate[]) ?? []
     );
-    if (freeThreshold != null && subtotalCents >= freeThreshold) {
+    // The free-shipping threshold only ever applies to weight-based
+    // product shipping — a custom box's flat fee is charged regardless,
+    // added on afterward so it's never zeroed out by the threshold.
+    if (freeThreshold != null && productSubtotalCents >= freeThreshold) {
       standardCents = 0;
     }
-    const expressCents = calcShippingCents(
+    const boxCount = resolvedBoxes.reduce((sum, b) => sum + b.quantity, 0);
+    standardCents += boxCount * boxShippingCents;
+    let expressCents = calcShippingCents(
       totalWeightG,
       "express",
       (rates as ShippingRate[]) ?? []
     );
+    expressCents += boxCount * boxShippingCents;
 
     const standardLabel =
       locale === "de"
@@ -185,12 +251,21 @@ export async function POST(req: NextRequest) {
     const { data: pending, error: pendingError } = await db
       .from("pending_checkouts")
       .insert({
-        cart_items: items.map((item) => ({
-          productId: item.id,
-          quantity: item.quantity,
-          customText: item.customText?.trim() || null,
-          variationId: item.variationId || null,
-        })),
+        cart_items: [
+          ...items.map((item) => ({
+            type: "product",
+            productId: item.id,
+            quantity: item.quantity,
+            customText: item.customText?.trim() || null,
+            variationId: item.variationId || null,
+          })),
+          ...boxes.map((box) => ({
+            type: "custom_box",
+            quantity: Math.max(1, box.quantity ?? 1),
+            articles: box.articles.filter((a) => a.quantity > 0),
+            notes: box.notes?.trim() || null,
+          })),
+        ],
       })
       .select("id")
       .single();
@@ -211,24 +286,40 @@ export async function POST(req: NextRequest) {
       payment_method_types: ["card"],
       customer_email: userEmail,
       phone_number_collection: { enabled: true },
-      line_items: items.map((item) => {
-        const product = products.find((p) => p.id === item.id)!;
-        const text = item.customText?.trim();
-        const variation = variationsById.get(item.variationId ?? "");
-        const nameParts = [product.title, variation?.label].filter(Boolean);
-        return {
-          quantity: item.quantity,
-          price_data: {
-            currency: product.currency,
-            unit_amount: unitPriceCents(product, item.customText, item.variationId),
-            product_data: {
-              name: nameParts.join(" — "),
-              description: text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : undefined,
-              images: product.image_url ? [product.image_url] : undefined,
+      line_items: [
+        ...items.map((item) => {
+          const product = products.find((p) => p.id === item.id)!;
+          const text = item.customText?.trim();
+          const variation = variationsById.get(item.variationId ?? "");
+          const nameParts = [product.title, variation?.label].filter(Boolean);
+          return {
+            quantity: item.quantity,
+            price_data: {
+              currency: product.currency,
+              unit_amount: unitPriceCents(product, item.customText, item.variationId),
+              product_data: {
+                name: nameParts.join(" — "),
+                description: text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : undefined,
+                images: product.image_url ? [product.image_url] : undefined,
+              },
             },
-          },
-        };
-      }),
+          };
+        }),
+        ...resolvedBoxes.map((box) => {
+          const summary = box.items.map((i) => `${i.articleLabel} ×${i.quantity}`).join(", ").slice(0, 400);
+          return {
+            quantity: box.quantity,
+            price_data: {
+              currency: "eur",
+              unit_amount: box.subtotalCents,
+              product_data: {
+                name: locale === "de" ? "Eigene Box" : "Custom Box",
+                description: summary || undefined,
+              },
+            },
+          };
+        }),
+      ],
       // Shows a native "Add promotion code" field on Stripe's own
       // checkout page — codes themselves are managed in Admin -> Discounts.
       allow_promotion_codes: true,

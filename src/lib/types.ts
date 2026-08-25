@@ -55,6 +55,34 @@ export type ShippingRate = {
 export type ShippingSettings = {
   id: number;
   free_standard_threshold_cents: number | null;
+  custom_box_shipping_cents: number;
+  custom_box_min_order_cents: number;
+};
+
+export type CustomBoxCategory = {
+  id: string;
+  name: string;
+  name_en: string | null;
+  image_url: string | null;
+  sort_order: number;
+};
+
+export type CustomBoxArticle = {
+  id: string;
+  category_id: string;
+  label: string;
+  label_en: string | null;
+  price_cents: number;
+  sort_order: number;
+};
+
+// What actually ended up in a customer's box, frozen onto the order at
+// checkout time.
+export type CustomBoxOrderItem = {
+  categoryLabel: string;
+  articleLabel: string;
+  priceCents: number;
+  quantity: number;
 };
 
 // No stock tracking — quantity is simply whatever the customer chooses,
@@ -73,6 +101,9 @@ export type Order = {
   created_at: string;
   custom_text?: string | null;
   variation_label?: string | null;
+  order_type?: "standard" | "custom_box";
+  custom_box_items?: CustomBoxOrderItem[] | null;
+  custom_box_notes?: string | null;
 };
 
 export type Invoice = {

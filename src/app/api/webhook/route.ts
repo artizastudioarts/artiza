@@ -13,12 +13,22 @@ export const runtime = "nodejs";
 // especially on a cold start — give it more room than the default.
 export const maxDuration = 60;
 
-type PendingCartItem = {
+type PendingProductItem = {
+  type?: "product";
   productId: string;
   quantity: number;
   customText: string | null;
   variationId: string | null;
 };
+
+type PendingCustomBoxItem = {
+  type: "custom_box";
+  quantity: number;
+  articles: { articleId: string; quantity: number }[];
+  notes: string | null;
+};
+
+type PendingCartItem = PendingProductItem | PendingCustomBoxItem;
 
 async function getCartFromPending(
   db: ReturnType<typeof supabaseAdmin>,
@@ -70,7 +80,75 @@ export async function POST(req: NextRequest) {
     let anyInserted = false;
     let isFirstRow = true;
 
-    for (const { productId, quantity, customText, variationId } of cartEntries) {
+    for (const entry of cartEntries) {
+      if (entry.type === "custom_box") {
+        const articleIds = entry.articles.map((a) => a.articleId);
+        const { data: articleRows } =
+          articleIds.length > 0
+            ? await db.from("custom_box_articles").select("*").in("id", articleIds)
+            : { data: [] as { id: string; category_id: string; label: string; price_cents: number }[] };
+        const articlesById = new Map((articleRows ?? []).map((a) => [a.id as string, a]));
+        const categoryIds = [...new Set((articleRows ?? []).map((a) => a.category_id as string))];
+        const { data: categoryRows } =
+          categoryIds.length > 0
+            ? await db.from("custom_box_categories").select("*").in("id", categoryIds)
+            : { data: [] as { id: string; name: string }[] };
+        const categoriesById = new Map((categoryRows ?? []).map((c) => [c.id as string, c]));
+
+        const resolvedItems = entry.articles
+          .filter((a) => a.quantity > 0 && articlesById.has(a.articleId))
+          .map((a) => {
+            const article = articlesById.get(a.articleId)!;
+            const category = categoriesById.get(article.category_id);
+            return {
+              categoryLabel: category?.name ?? "",
+              articleLabel: article.label,
+              priceCents: article.price_cents,
+              quantity: a.quantity,
+            };
+          });
+        if (resolvedItems.length === 0) continue;
+
+        const boxSubtotal = resolvedItems.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
+        const lineTotal = boxSubtotal * entry.quantity;
+
+        const { data: inserted } = await db
+          .from("orders")
+          .insert({
+            stripe_session_id: `${session.id}:custom_box:${crypto.randomUUID()}`,
+            order_number: orderNumber,
+            customer_email: session.customer_details?.email,
+            customer_name: session.customer_details?.name,
+            phone: session.customer_details?.phone,
+            shipping_address: session.customer_details?.address ?? null,
+            product_id: null,
+            product_title: "Custom Box",
+            quantity: entry.quantity,
+            order_type: "custom_box",
+            custom_box_items: resolvedItems,
+            custom_box_notes: entry.notes,
+            amount_total_cents: lineTotal,
+            shipping_cents: isFirstRow ? shippingCents : null,
+            currency: session.currency,
+            status: "paid",
+            user_id: session.metadata?.user_id || null,
+          })
+          .select()
+          .single();
+
+        if (inserted) {
+          anyInserted = true;
+          isFirstRow = false;
+          totalCents += lineTotal;
+          const notesPart = entry.notes ? ` — Hinweis: ${entry.notes}` : "";
+          itemLines.push(
+            `<li>Eigene Box × ${entry.quantity}${notesPart} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
+          );
+        }
+        continue;
+      }
+
+      const { productId, quantity, customText, variationId } = entry;
       const { data: product } = await db
         .from("products")
         .select("*")
@@ -202,7 +280,12 @@ export async function POST(req: NextRequest) {
       const siteUrl = process.env.SITE_URL || "";
       const itemLines: string[] = [];
 
-      for (const { productId, quantity } of cartEntries) {
+      for (const entry of cartEntries) {
+        if (entry.type === "custom_box") {
+          itemLines.push(`<li>Eigene Box × ${entry.quantity}</li>`);
+          continue;
+        }
+        const { productId, quantity } = entry;
         const { data: product } = await db
           .from("products")
           .select("title")

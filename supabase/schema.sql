@@ -509,3 +509,42 @@ create policy "Public can view product variations" on product_variations
   for select using (true);
 
 alter table orders add column variation_label text;
+
+-- "Build Your Own Box": admin-managed categories of priced articles the
+-- customer assembles into a custom box on its own page.
+create table custom_box_categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  name_en text,
+  image_url text,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table custom_box_articles (
+  id uuid primary key default gen_random_uuid(),
+  category_id uuid not null references custom_box_categories(id) on delete cascade,
+  label text not null,
+  label_en text,
+  price_cents integer not null,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index custom_box_articles_category_id_idx on custom_box_articles (category_id);
+
+alter table custom_box_categories enable row level security;
+create policy "Public can view custom box categories" on custom_box_categories
+  for select using (true);
+
+alter table custom_box_articles enable row level security;
+create policy "Public can view custom box articles" on custom_box_articles
+  for select using (true);
+
+alter table shipping_settings add column custom_box_shipping_cents integer not null default 500;
+alter table shipping_settings add column custom_box_min_order_cents integer not null default 2000;
+
+alter table orders add column order_type text not null default 'standard';
+alter table orders add constraint orders_order_type_check
+  check (order_type in ('standard', 'custom_box'));
+alter table orders add column custom_box_items jsonb;
+alter table orders add column custom_box_notes text;

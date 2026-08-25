@@ -9,6 +9,8 @@ type OrderRow = {
   product_title: string;
   quantity: number;
   variation_label: string | null;
+  order_type: string | null;
+  custom_box_items: { categoryLabel: string; articleLabel: string; priceCents: number; quantity: number }[] | null;
   amount_total_cents: number;
   shipping_cents: number | null;
   currency: string | null;
@@ -55,10 +57,15 @@ export async function generateInvoiceForOrder(
 
   const currency = first.currency ?? "eur";
   const itemsRows = rows
-    .map(
-      (o) =>
-        `<tr><td>${o.product_title}${o.variation_label ? ` — ${o.variation_label}` : ""}</td><td>${o.quantity}</td><td>${formatPrice(sign * o.amount_total_cents, currency)}</td></tr>`
-    )
+    .map((o) => {
+      if (o.order_type === "custom_box" && o.custom_box_items) {
+        const contents = o.custom_box_items
+          .map((i) => `${i.articleLabel} ×${i.quantity}`)
+          .join(", ");
+        return `<tr><td>Eigene Box — ${contents}</td><td>${o.quantity}</td><td>${formatPrice(sign * o.amount_total_cents, currency)}</td></tr>`;
+      }
+      return `<tr><td>${o.product_title}${o.variation_label ? ` — ${o.variation_label}` : ""}</td><td>${o.quantity}</td><td>${formatPrice(sign * o.amount_total_cents, currency)}</td></tr>`;
+    })
     .join("");
 
   const shippingCents = rows.find((o) => o.shipping_cents != null)?.shipping_cents ?? 0;

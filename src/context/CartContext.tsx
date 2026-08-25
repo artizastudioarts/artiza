@@ -7,10 +7,10 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { MAX_CART_QTY } from "@/lib/types";
+import { MAX_CART_QTY, CustomBoxOrderItem } from "@/lib/types";
 
 export type CartItem = {
-  id: string; // product id
+  id: string; // product id, or a generated id for a custom box
   cartItemId: string; // unique per cart line — same product with different custom text/variation gets its own line
   title: string;
   price_cents: number;
@@ -20,6 +20,12 @@ export type CartItem = {
   customText?: string;
   variationId?: string;
   variationLabel?: string;
+  isCustomBox?: boolean;
+  customBoxArticles?: { articleId: string; quantity: number }[];
+  customBoxNotes?: string;
+  // Only used for cart-page display — the checkout request re-resolves
+  // real labels/prices server-side, same as everything else.
+  customBoxSummary?: CustomBoxOrderItem[];
 };
 
 function buildCartItemId(productId: string, customText?: string, variationId?: string) {

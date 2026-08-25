@@ -58,6 +58,17 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  // Updating the flat custom-box shipping fee or its minimum order value
+  if (body.setting === "custom_box_shipping_cents" || body.setting === "custom_box_min_order_cents") {
+    const db = supabaseAdmin();
+    const { error } = await db
+      .from("shipping_settings")
+      .update({ [body.setting]: body.value })
+      .eq("id", 1);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: true });
+  }
+
   // Updating a single rate tier
   const { id, ...fields } = body;
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });

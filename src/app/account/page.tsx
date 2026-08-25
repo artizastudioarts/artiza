@@ -144,7 +144,7 @@ export default function AccountPage() {
                     {group.map((order, i) => (
                       <div key={i} className="flex items-center justify-between gap-4">
                         <p className="font-display text-lg">
-                          {order.product_title}
+                          {order.order_type === "custom_box" ? dict.customBox.cartTitle : order.product_title}
                           {order.quantity > 1 ? ` × ${order.quantity}` : ""}
                           {order.variation_label && (
                             <span className="block text-sm text-ink-soft font-sans italic">
@@ -154,6 +154,18 @@ export default function AccountPage() {
                           {order.custom_text && (
                             <span className="block text-sm text-ink-soft font-sans italic">
                               {dict.account.personalizationLabel}: {order.custom_text}
+                            </span>
+                          )}
+                          {order.order_type === "custom_box" && order.custom_box_items && (
+                            <span className="block text-sm text-ink-soft font-sans">
+                              {order.custom_box_items
+                                .map((i) => `${i.articleLabel} ×${i.quantity}`)
+                                .join(", ")}
+                            </span>
+                          )}
+                          {order.order_type === "custom_box" && order.custom_box_notes && (
+                            <span className="block text-sm text-ink-soft font-sans italic">
+                              {dict.cart.customBoxNotesLabel}: {order.custom_box_notes}
                             </span>
                           )}
                         </p>

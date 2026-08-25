@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { formatPrice } from "@/lib/types";
 import { supabasePublic } from "@/lib/supabase";
 
@@ -20,6 +21,7 @@ type Order = {
   currency: string | null;
   status: string;
   created_at: string;
+  order_type: "standard" | "custom_box";
 };
 
 type ProductBadge =
@@ -80,6 +82,7 @@ export default function AdminDashboard() {
     | "reviews"
     | "emails"
     | "shipping"
+    | "customBox"
     | "invoices"
     | "discounts"
     | "newsletter"
@@ -147,6 +150,14 @@ export default function AdminDashboard() {
             Shipping
           </button>
           <button
+            onClick={() => setTab("customBox")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "customBox" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Custom Box
+          </button>
+          <button
             onClick={() => setTab("invoices")}
             className={`placard-label px-4 py-2 border border-line ${
               tab === "invoices" ? "bg-ink text-paper" : ""
@@ -187,6 +198,8 @@ export default function AdminDashboard() {
         <EmailsTab />
       ) : tab === "shipping" ? (
         <ShippingTab />
+      ) : tab === "customBox" ? (
+        <CustomBoxTab />
       ) : tab === "invoices" ? (
         <InvoicesTab />
       ) : tab === "discounts" ? (
@@ -328,7 +341,21 @@ function OrdersTab() {
                   </>
                 )}
                 <td className="py-3 pr-4">
-                  {o.product_title}
+                  {o.order_type === "custom_box" ? (
+                    <>
+                      <span className="placard-label text-xs bg-ink text-paper px-1.5 py-0.5 mr-1">
+                        Custom Box
+                      </span>
+                      <Link
+                        href={`/admin/orders/${o.id}`}
+                        className="text-xs underline text-ink-soft hover:text-ink"
+                      >
+                        View details
+                      </Link>
+                    </>
+                  ) : (
+                    o.product_title
+                  )}
                   {o.variation_label && (
                     <>
                       <br />
@@ -2224,6 +2251,374 @@ function TierTable({
           </tr>
         </tbody>
       </table>
+    </div>
+  );
+}
+
+type CustomBoxCategoryRow = {
+  id: string;
+  name: string;
+  name_en: string | null;
+  image_url: string | null;
+  sort_order: number;
+};
+
+type CustomBoxArticleRow = {
+  id: string;
+  category_id: string;
+  label: string;
+  label_en: string | null;
+  price_cents: number;
+  sort_order: number;
+};
+
+function CustomBoxTab() {
+  const [categories, setCategories] = useState<CustomBoxCategoryRow[] | null>(null);
+  const [articles, setArticles] = useState<CustomBoxArticleRow[]>([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [shippingCents, setShippingCents] = useState("");
+  const [minOrderCents, setMinOrderCents] = useState("");
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [newArticle, setNewArticle] = useState<
+    Record<string, { label: string; label_en: string; price: string }>
+  >({});
+
+  function load() {
+    fetch("/api/admin/custom-box-categories")
+      .then((r) => r.json())
+      .then((d) => {
+        setCategories(d.categories ?? []);
+        setArticles(d.articles ?? []);
+      });
+    fetch("/api/admin/shipping")
+      .then((r) => r.json())
+      .then((d) => {
+        setShippingCents(((d.settings?.custom_box_shipping_cents ?? 0) / 100).toString());
+        setMinOrderCents(((d.settings?.custom_box_min_order_cents ?? 0) / 100).toString());
+      });
+  }
+
+  useEffect(load, []);
+
+  async function saveSettings() {
+    setSavingSettings(true);
+    await Promise.all([
+      fetch("/api/admin/shipping", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setting: "custom_box_shipping_cents",
+          value: Math.round(Number(shippingCents) * 100),
+        }),
+      }),
+      fetch("/api/admin/shipping", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setting: "custom_box_min_order_cents",
+          value: Math.round(Number(minOrderCents) * 100),
+        }),
+      }),
+    ]);
+    setSavingSettings(false);
+  }
+
+  async function addCategory() {
+    if (!newCategoryName.trim()) return;
+    const res = await fetch("/api/admin/custom-box-categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newCategoryName.trim() }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setCategories((prev) => (prev ? [...prev, data.category] : [data.category]));
+      setNewCategoryName("");
+    }
+  }
+
+  async function updateCategory(id: string, fields: Partial<CustomBoxCategoryRow>) {
+    setCategories((prev) =>
+      prev ? prev.map((c) => (c.id === id ? { ...c, ...fields } : c)) : prev
+    );
+    await fetch("/api/admin/custom-box-categories", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...fields }),
+    });
+  }
+
+  async function deleteCategory(id: string) {
+    if (!confirm("Remove this category and all its articles?")) return;
+    setCategories((prev) => prev?.filter((c) => c.id !== id) ?? null);
+    setArticles((prev) => prev.filter((a) => a.category_id !== id));
+    await fetch("/api/admin/custom-box-categories", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  async function uploadCategoryImage(id: string, file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/admin/upload", { method: "POST", body: formData });
+    const data = await res.json();
+    if (res.ok) updateCategory(id, { image_url: data.url });
+  }
+
+  async function addArticle(categoryId: string) {
+    const draft = newArticle[categoryId];
+    if (!draft?.label.trim() || !draft.price) return;
+    const res = await fetch("/api/admin/custom-box-articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        category_id: categoryId,
+        label: draft.label.trim(),
+        label_en: draft.label_en.trim() || undefined,
+        price: draft.price,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setArticles((prev) => [...prev, data.article]);
+      setNewArticle((prev) => ({ ...prev, [categoryId]: { label: "", label_en: "", price: "" } }));
+    }
+  }
+
+  async function updateArticle(id: string, fields: Partial<CustomBoxArticleRow> & { price?: string }) {
+    setArticles((prev) =>
+      prev.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              ...fields,
+              price_cents: fields.price != null ? Math.round(Number(fields.price) * 100) : a.price_cents,
+            }
+          : a
+      )
+    );
+    await fetch("/api/admin/custom-box-articles", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...fields }),
+    });
+  }
+
+  async function deleteArticle(id: string) {
+    setArticles((prev) => prev.filter((a) => a.id !== id));
+    await fetch("/api/admin/custom-box-articles", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  if (categories === null) return <p className="text-ink-soft">Loading…</p>;
+
+  return (
+    <div className="max-w-3xl space-y-10">
+      <p className="text-ink-soft text-sm">
+        Customers build their own box on its own page from the categories
+        below — pick a quantity per article, or add a whole category at
+        once. Each category needs one photo showing everything in it.
+      </p>
+
+      <div className="border border-line p-4 space-y-2">
+        <p className="placard-label text-ink-soft mb-2">Custom box settings</p>
+        <div className="flex items-center gap-2">
+          <label className="w-56 text-sm">Flat shipping fee (€)</label>
+          <input
+            type="number"
+            step="0.01"
+            value={shippingCents}
+            onChange={(e) => setShippingCents(e.target.value)}
+            className="w-28 border border-line px-2 py-1 bg-paper"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="w-56 text-sm">Minimum order value (€)</label>
+          <input
+            type="number"
+            step="0.01"
+            value={minOrderCents}
+            onChange={(e) => setMinOrderCents(e.target.value)}
+            className="w-28 border border-line px-2 py-1 bg-paper"
+          />
+        </div>
+        <button
+          onClick={saveSettings}
+          disabled={savingSettings}
+          className="bg-ink text-paper px-4 py-1.5 placard-label text-sm disabled:opacity-50 mt-2"
+        >
+          {savingSettings ? "Saving…" : "Save"}
+        </button>
+      </div>
+
+      <div className="space-y-8">
+        {categories.map((cat) => (
+          <div key={cat.id} className="border border-line p-4 space-y-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex gap-3 flex-1">
+                {cat.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={cat.image_url} alt="" className="w-20 h-20 object-cover" />
+                ) : (
+                  <div className="w-20 h-20 border border-line flex items-center justify-center text-xs text-ink-soft">
+                    No photo
+                  </div>
+                )}
+                <div className="flex-1 space-y-1">
+                  <input
+                    value={cat.name}
+                    onChange={(e) => updateCategory(cat.id, { name: e.target.value })}
+                    placeholder="Category name (German)"
+                    className="w-full border border-line px-2 py-1 bg-paper text-sm"
+                  />
+                  <input
+                    value={cat.name_en ?? ""}
+                    onChange={(e) => updateCategory(cat.id, { name_en: e.target.value })}
+                    placeholder="Category name (English, optional)"
+                    className="w-full border border-line px-2 py-1 bg-paper text-sm"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadCategoryImage(cat.id, file);
+                    }}
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={() => deleteCategory(cat.id)}
+                className="text-oxblood text-sm placard-label"
+              >
+                Delete category
+              </button>
+            </div>
+
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="text-left border-b border-line placard-label text-ink-soft">
+                  <th className="py-2 pr-4">Article (German)</th>
+                  <th className="py-2 pr-4">Article (English)</th>
+                  <th className="py-2 pr-4">Price (€)</th>
+                  <th className="py-2 pr-4"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {articles
+                  .filter((a) => a.category_id === cat.id)
+                  .map((a) => (
+                    <tr key={a.id} className="border-b border-line">
+                      <td className="py-2 pr-4">
+                        <input
+                          value={a.label}
+                          onChange={(e) => updateArticle(a.id, { label: e.target.value })}
+                          className="w-full border border-line px-2 py-1 bg-paper"
+                        />
+                      </td>
+                      <td className="py-2 pr-4">
+                        <input
+                          value={a.label_en ?? ""}
+                          onChange={(e) => updateArticle(a.id, { label_en: e.target.value })}
+                          className="w-full border border-line px-2 py-1 bg-paper"
+                        />
+                      </td>
+                      <td className="py-2 pr-4">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={(a.price_cents / 100).toString()}
+                          onChange={(e) => updateArticle(a.id, { price: e.target.value })}
+                          className="w-24 border border-line px-2 py-1 bg-paper"
+                        />
+                      </td>
+                      <td className="py-2 pr-4">
+                        <button
+                          onClick={() => deleteArticle(a.id)}
+                          className="text-oxblood text-sm"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                <tr>
+                  <td className="py-2 pr-4">
+                    <input
+                      placeholder="New article"
+                      value={newArticle[cat.id]?.label ?? ""}
+                      onChange={(e) =>
+                        setNewArticle((prev) => ({
+                          ...prev,
+                          [cat.id]: { ...prev[cat.id], label: e.target.value, label_en: prev[cat.id]?.label_en ?? "", price: prev[cat.id]?.price ?? "" },
+                        }))
+                      }
+                      className="w-full border border-line px-2 py-1 bg-paper"
+                    />
+                  </td>
+                  <td className="py-2 pr-4">
+                    <input
+                      placeholder="Optional"
+                      value={newArticle[cat.id]?.label_en ?? ""}
+                      onChange={(e) =>
+                        setNewArticle((prev) => ({
+                          ...prev,
+                          [cat.id]: { ...prev[cat.id], label_en: e.target.value, label: prev[cat.id]?.label ?? "", price: prev[cat.id]?.price ?? "" },
+                        }))
+                      }
+                      className="w-full border border-line px-2 py-1 bg-paper"
+                    />
+                  </td>
+                  <td className="py-2 pr-4">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="price"
+                      value={newArticle[cat.id]?.price ?? ""}
+                      onChange={(e) =>
+                        setNewArticle((prev) => ({
+                          ...prev,
+                          [cat.id]: { ...prev[cat.id], price: e.target.value, label: prev[cat.id]?.label ?? "", label_en: prev[cat.id]?.label_en ?? "" },
+                        }))
+                      }
+                      className="w-24 border border-line px-2 py-1 bg-paper"
+                    />
+                  </td>
+                  <td className="py-2 pr-4">
+                    <button
+                      onClick={() => addArticle(cat.id)}
+                      className="placard-label text-ink-soft hover:text-ink"
+                    >
+                      + Add
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+
+      <div className="border border-line p-4 flex items-center gap-3">
+        <input
+          placeholder="New category name"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          className="flex-1 border border-line px-3 py-2 bg-paper"
+        />
+        <button
+          onClick={addCategory}
+          className="bg-ink text-paper px-4 py-2 placard-label text-sm"
+        >
+          + Add category
+        </button>
+      </div>
     </div>
   );
 }

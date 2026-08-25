@@ -9,6 +9,7 @@ export type Dictionary = {
     login: string;
     openMenu: string;
     closeMenu: string;
+    buildYourOwn: string;
   };
   home: {
     defaultSubheadline: string;
@@ -80,6 +81,18 @@ export type Dictionary = {
     loginTrack: string;
     paymentNote: string;
     customTextLabel: string;
+    customBoxNotesLabel: string;
+  };
+  customBox: {
+    heading: string;
+    subheading: string;
+    empty: string;
+    addWholeCategory: string;
+    notesLabel: string;
+    notesPlaceholder: string;
+    totalLabel: string;
+    belowMinimum: string; // template with {min}, {remaining}
+    cartTitle: string;
   };
   auth: {
     loginTitle: string;
@@ -237,6 +250,7 @@ const de: Dictionary = {
     login: "Anmelden",
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
+    buildYourOwn: "Eigene Box",
   },
   home: {
     defaultSubheadline: "ZUM-SELBST-BEMALEN-FIGUREN",
@@ -311,6 +325,19 @@ const de: Dictionary = {
     loginTrack: "Anmelden / Registrieren, um diese Bestellung zu verfolgen",
     paymentNote: "Kartenzahlung über Stripe",
     customTextLabel: "Personalisierung",
+    customBoxNotesLabel: "Bestellhinweise",
+  },
+  customBox: {
+    heading: "Stelle deine eigene Box zusammen",
+    subheading:
+      "Wähle Artikel aus jeder Kategorie, lege die Menge fest und füge deine Box dem Warenkorb hinzu.",
+    empty: "Aktuell sind noch keine Kategorien verfügbar.",
+    addWholeCategory: "Ganze Kategorie hinzufügen",
+    notesLabel: "Bestellhinweise (optional)",
+    notesPlaceholder: "Besondere Wünsche zu deiner Bestellung…",
+    totalLabel: "Gesamt",
+    belowMinimum: "Mindestbestellwert für die eigene Box ist {min} — noch {remaining} bis zum Mindestwert.",
+    cartTitle: "Eigene Box",
   },
   auth: {
     loginTitle: "Anmelden",
@@ -513,6 +540,7 @@ const en: Dictionary = {
     login: "Log in",
     openMenu: "Open menu",
     closeMenu: "Close menu",
+    buildYourOwn: "Build Your Own Box",
   },
   home: {
     defaultSubheadline: "PAINT-YOUR-OWN FIGURE KITS",
@@ -586,6 +614,19 @@ const en: Dictionary = {
     loginTrack: "Log in / Sign up to track this order",
     paymentNote: "Card payment via Stripe",
     customTextLabel: "Personalization",
+    customBoxNotesLabel: "Order notes",
+  },
+  customBox: {
+    heading: "Build your own box",
+    subheading:
+      "Pick articles from each category, set the quantity, and add your box to the cart.",
+    empty: "No categories are available yet.",
+    addWholeCategory: "Add whole category",
+    notesLabel: "Order notes (optional)",
+    notesPlaceholder: "Anything specific about your order…",
+    totalLabel: "Total",
+    belowMinimum: "Minimum order for a custom box is {min} — {remaining} more to reach it.",
+    cartTitle: "Custom Box",
   },
   auth: {
     loginTitle: "Log in",
