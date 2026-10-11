@@ -7,6 +7,8 @@ import AddToCartButton from "@/components/AddToCartButton";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCard from "@/components/ProductCard";
 import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
+import ProductSafetyNotice from "@/components/ProductSafetyNotice";
+import { getPageContent } from "@/lib/getPageContent";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { localizeProduct } from "@/lib/localizeProduct";
@@ -83,6 +85,7 @@ export default async function ProductPage({
     }));
   }
 
+  const safetyContent = await getPageContent("product_safety", locale);
   const shippingSettings = await getShippingSettings();
   const freeThreshold = shippingSettings?.free_standard_threshold_cents;
   // The cart, checkout, and order emails should show whichever language
@@ -170,6 +173,8 @@ export default async function ProductPage({
           <div className="mt-8">
             <MadeInGermanyBadge locale={locale} className="w-20 h-20" />
           </div>
+
+          <ProductSafetyNotice content={safetyContent} contents={display.dimensions} />
         </div>
       </main>
 

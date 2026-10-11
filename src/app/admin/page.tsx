@@ -1283,6 +1283,7 @@ const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "privacy", label: "Privacy Policy" },
   { key: "faq", label: "FAQ" },
   { key: "contact", label: "Contact page" },
+  { key: "product_safety", label: "Product safety notice (all product pages)" },
 ];
 
 type ContentField = {
