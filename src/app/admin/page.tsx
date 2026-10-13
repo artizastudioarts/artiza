@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { formatPrice } from "@/lib/types";
 import { supabasePublic } from "@/lib/supabase";
+import SuppliesTab from "./SuppliesTab";
+import ShipmentsTab from "./ShipmentsTab";
 
 type Order = {
   id: string;
@@ -86,6 +88,8 @@ export default function AdminDashboard() {
     | "invoices"
     | "discounts"
     | "newsletter"
+    | "supplies"
+    | "shipments"
   >("orders");
 
   return (
@@ -181,6 +185,22 @@ export default function AdminDashboard() {
           >
             Newsletter
           </button>
+          <button
+            onClick={() => setTab("supplies")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "supplies" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Supplies
+          </button>
+          <button
+            onClick={() => setTab("shipments")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "shipments" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Shipments
+          </button>
         </div>
       </div>
 
@@ -204,8 +224,12 @@ export default function AdminDashboard() {
         <InvoicesTab />
       ) : tab === "discounts" ? (
         <DiscountsTab />
-      ) : (
+      ) : tab === "newsletter" ? (
         <NewsletterTab />
+      ) : tab === "supplies" ? (
+        <SuppliesTab />
+      ) : (
+        <ShipmentsTab />
       )}
     </main>
   );

@@ -45,6 +45,7 @@ instead, which already contains the end result of all of these combined
 27. `migration-product-variations.sql` — optional priced dropdown options per product (e.g. "Mom + Dad" vs "Full Family of 5")
 28. `migration-custom-box.sql` — "Build Your Own Box": admin-managed categories/articles, flat box shipping, minimum order value, and the order fields to record what was built
 29. `migration-product-safety.sql` — admin-editable "Sicherheitshinweise" (age 4+, small-parts warning, supervision, manufacturer address) shown on every product page (needs #9 first)
+30. `migration-supplies-traceability.sql` — admin-only Supplies register (paint / casting powder purchases with batch numbers) and Shipments log (order number, kit batch, which supply batches were used), both with CSV export
 
 ## Going forward
 

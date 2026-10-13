@@ -158,3 +158,29 @@ export function formatPrice(cents: number, currency: string) {
     currency: currency.toUpperCase(),
   }).format(cents / 100);
 }
+
+export type SupplyKind = "paint" | "casting_powder" | "other";
+
+export type SupplyItem = {
+  id: string;
+  kind: SupplyKind;
+  name: string;
+  supplier: string;
+  batch_number: string;
+  purchased_at: string; // YYYY-MM-DD
+  quantity: string | null;
+  best_before: string | null;
+  invoice_number: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type ShipmentRecord = {
+  id: string;
+  shipped_at: string; // YYYY-MM-DD
+  order_number: string;
+  kit_batch_number: string;
+  notes: string | null;
+  created_at: string;
+  shipment_supplies: { supply_id: string; supply_items: SupplyItem | null }[];
+};

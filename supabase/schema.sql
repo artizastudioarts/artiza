@@ -574,3 +574,43 @@ insert into site_content (page_key, field_key, label, field_type, value_de, valu
     'Hersteller: Artiza Studio, Inh. Nithi Prabhanand, Hinterbergstr. 17, 65207 Wiesbaden, Deutschland, info@artizastudio.de',
     'Manufacturer: Artiza Studio, owner Nithi Prabhanand, Hinterbergstr. 17, 65207 Wiesbaden, Germany, info@artizastudio.de', 9)
 on conflict (page_key, field_key) do nothing;
+
+-- Supplies register and shipment traceability (see migration-supplies-traceability.sql)
+create table supply_items (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null default 'paint'
+    check (kind in ('paint', 'casting_powder', 'other')),
+  name text not null,              -- e.g. "Fingerfarbe Rot", "Gießpulver Ultraweiß"
+  supplier text not null,
+  batch_number text not null,      -- Chargennummer / LOT from the packaging
+  purchased_at date not null,
+  quantity text,                   -- free text, e.g. "6 x 250 ml" or "5 kg"
+  best_before date,                -- MHD
+  invoice_number text,             -- supplier's invoice no., to find the paper receipt
+  notes text,
+  created_at timestamptz not null default now()
+);
+create index supply_items_kind_idx on supply_items (kind, purchased_at desc);
+alter table supply_items enable row level security;
+
+create table shipment_records (
+  id uuid primary key default gen_random_uuid(),
+  shipped_at date not null default current_date,
+  order_number text not null,      -- shop order number, e.g. AS-2610-000012
+  kit_batch_number text not null,  -- your own batch / production number for the package
+  notes text,
+  created_at timestamptz not null default now()
+);
+create index shipment_records_order_idx on shipment_records (order_number);
+alter table shipment_records enable row level security;
+
+-- Which supply batches went into which package. A supply item that is linked
+-- to a shipment cannot be deleted (on delete restrict) so trace records never
+-- end up pointing at nothing; deleting a shipment removes its links.
+create table shipment_supplies (
+  shipment_id uuid not null references shipment_records(id) on delete cascade,
+  supply_id uuid not null references supply_items(id) on delete restrict,
+  primary key (shipment_id, supply_id)
+);
+create index shipment_supplies_supply_idx on shipment_supplies (supply_id);
+alter table shipment_supplies enable row level security;
