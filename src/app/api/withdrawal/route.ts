@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { logOrderEvent } from "@/lib/orderEvents";
 import { isReasonCode, WITHDRAWAL_REASON_LABEL_DE } from "@/lib/withdrawalReasons";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -104,6 +105,15 @@ export async function POST(req: NextRequest) {
   if (error || !saved) {
     console.error("Withdrawal could not be saved", error);
     return NextResponse.json({ error: "server" }, { status: 500 });
+  }
+
+  if (matched) {
+    await logOrderEvent(db, {
+      order_number: cleanOrder,
+      event_type: "withdrawal_received",
+      source: "withdrawal",
+      note: cleanItems ? `Teilwiderruf: ${cleanItems}` : "Gesamte Bestellung",
+    });
   }
 
   const receivedAt = berlinTime(saved.created_at, "de");

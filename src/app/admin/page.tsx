@@ -254,6 +254,19 @@ function OrdersTab() {
   const [invoicesByOrder, setInvoicesByOrder] = useState<Record<string, DocInfo>>({});
   const [creditNotesByOrder, setCreditNotesByOrder] = useState<Record<string, DocInfo>>({});
   const [generating, setGenerating] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState<string | null>(null);
+  const [history, setHistory] = useState<
+    | {
+        id: string;
+        created_at: string;
+        event_type: string;
+        from_status: string | null;
+        to_status: string | null;
+        source: string;
+        note: string | null;
+      }[]
+    | null
+  >(null);
 
   useEffect(() => {
     fetch("/api/admin/orders")
@@ -313,6 +326,18 @@ function OrdersTab() {
     loadInvoices();
   }
 
+  async function toggleHistory(orderNumber: string) {
+    if (historyOpen === orderNumber) {
+      setHistoryOpen(null);
+      return;
+    }
+    setHistoryOpen(orderNumber);
+    setHistory(null);
+    const res = await fetch(`/api/admin/orders/history?order_number=${encodeURIComponent(orderNumber)}`);
+    const d = await res.json().catch(() => ({}));
+    setHistory(d.events ?? []);
+  }
+
   async function updateStatus(id: string, status: string) {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
     await fetch("/api/admin/orders", {
@@ -370,6 +395,46 @@ function OrdersTab() {
                       rowSpan={group.length}
                     >
                       {first.order_number}
+                      <br />
+                      <button
+                        onClick={() => toggleHistory(first.order_number)}
+                        className="placard-label text-ink-soft hover:text-ink mt-1"
+                      >
+                        {historyOpen === first.order_number ? "Hide history" : "History"}
+                      </button>
+                      {historyOpen === first.order_number && (
+                        <div className="mt-2 font-sans text-xs text-ink-soft whitespace-normal min-w-[220px]">
+                          <p>
+                            {new Date(first.created_at).toLocaleString("de-DE", {
+                              timeZone: "Europe/Berlin",
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })}{" "}
+                            – Order placed (paid)
+                          </p>
+                          {history === null ? (
+                            <p>Loading…</p>
+                          ) : (
+                            history.map((e) => (
+                              <p key={e.id} className="mt-1">
+                                {new Date(e.created_at).toLocaleString("de-DE", {
+                                  timeZone: "Europe/Berlin",
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                })}{" "}
+                                –{" "}
+                                {e.event_type === "status_change"
+                                  ? `${e.from_status ?? "?"} → ${e.to_status ?? "?"}`
+                                  : e.event_type === "withdrawal_received"
+                                    ? "Withdrawal received"
+                                    : "Withdrawal processed"}
+                                {e.event_type === "status_change" && e.source === "withdrawal" ? " (automatic)" : ""}
+                                {e.note ? ` · ${e.note}` : ""}
+                              </p>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 pr-4 whitespace-nowrap" rowSpan={group.length}>
                       {new Date(first.created_at).toLocaleDateString("de-DE")}

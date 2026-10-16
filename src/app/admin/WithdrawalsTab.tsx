@@ -16,6 +16,7 @@ function fmt(iso: string) {
 export default function WithdrawalsTab() {
   const [requests, setRequests] = useState<WithdrawalRequest[] | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   function load() {
     fetch("/api/admin/withdrawals")
@@ -27,6 +28,7 @@ export default function WithdrawalsTab() {
 
   async function setStatus(r: WithdrawalRequest, status: "received" | "processed") {
     setError("");
+    setNotice("");
     const res = await fetch(`/api/admin/withdrawals/${r.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -35,6 +37,16 @@ export default function WithdrawalsTab() {
     if (!res.ok) {
       setError("Could not update this request.");
       return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (data.orderUpdate === "cancelled") {
+      setNotice(`Order ${r.order_number} was set to Cancelled automatically.`);
+    } else if (data.orderUpdate === "already_cancelled") {
+      setNotice(`Order ${r.order_number} was already Cancelled.`);
+    } else if (data.orderUpdate === "manual") {
+      setNotice(
+        `Order ${r.order_number} was NOT changed (partial withdrawal or no matching order). Please update its status in the Orders tab yourself.`
+      );
     }
     load();
   }
@@ -48,9 +60,13 @@ export default function WithdrawalsTab() {
         (you also get an email, and the customer gets an acknowledgment of receipt). Mark a request
         as processed once you have answered it and handled the return and refund. A request marked
         &quot;no matching order&quot; had an order number and email that don&apos;t belong to any
-        order, so check the details with the customer before refunding.
+        order, so check the details with the customer before refunding. Marking a request as
+        processed also sets a fully withdrawn order to Cancelled automatically (partial or
+        unmatched withdrawals are left for you to change by hand). No email is sent to the
+        customer when this happens.
       </p>
       {error && <FormMessage type="error">{error}</FormMessage>}
+      {notice && <FormMessage type="success">{notice}</FormMessage>}
       {requests === null ? (
         <p className="text-ink-soft">Loading…</p>
       ) : requests.length === 0 ? (

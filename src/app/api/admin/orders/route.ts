@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { formatPrice } from "@/lib/types";
+import { logOrderEvent } from "@/lib/orderEvents";
 
 const STATUS_LABELS_DE: Record<string, string> = {
   paid: "Bestellung eingegangen",
@@ -23,6 +24,7 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   const { id, status } = await req.json();
   const db = supabaseAdmin();
+  const { data: before } = await db.from("orders").select("status").eq("id", id).single();
   const { data: order, error } = await db
     .from("orders")
     .update({ status })
@@ -30,6 +32,16 @@ export async function PATCH(req: NextRequest) {
     .select()
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (order && before?.status !== status) {
+    await logOrderEvent(db, {
+      order_number: order.order_number,
+      event_type: "status_change",
+      from_status: before?.status ?? null,
+      to_status: status,
+      note: order.product_title ?? null,
+    });
+  }
 
   if (order?.customer_email) {
     const template = await getEmailTemplate("order_status_changed");

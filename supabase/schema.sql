@@ -678,3 +678,17 @@ where key = 'order_confirmation' and body not like '%{{withdrawal_url}}%';
 alter table withdrawal_requests
   add column if not exists reason_code text,
   add column if not exists reason_note text;
+
+-- Order history (see migration-order-history.sql)
+create table order_events (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  order_number text not null,
+  event_type text not null,
+  from_status text,
+  to_status text,
+  source text not null default 'admin',
+  note text
+);
+create index order_events_order_idx on order_events (order_number, created_at);
+alter table order_events enable row level security;
