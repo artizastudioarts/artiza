@@ -51,6 +51,30 @@ export default function WithdrawalsTab() {
     load();
   }
 
+  async function sendRefundEmail(r: WithdrawalRequest) {
+    setError("");
+    setNotice("");
+    const amount = window.prompt(
+      `Refund email to ${r.email}\n\nAmount you refunded in Stripe (in euros, e.g. 24,90):`
+    );
+    if (!amount) return;
+    const res = await fetch(`/api/admin/withdrawals/${r.id}/refund-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount }),
+    });
+    if (res.status === 400) {
+      setError("That amount isn't valid. Use a number like 24,90.");
+      return;
+    }
+    if (!res.ok) {
+      setError("The email could not be sent.");
+      return;
+    }
+    setNotice(`Refund email sent to ${r.email}.`);
+    load();
+  }
+
   const open = (requests ?? []).filter((r) => r.status === "received").length;
 
   return (
@@ -82,6 +106,10 @@ export default function WithdrawalsTab() {
             Click &quot;Mark processed&quot; here. A fully withdrawn order is set to Cancelled
             automatically. For a partial withdrawal, refund only those items in Stripe and change
             the order status in the Orders tab yourself.
+          </li>
+          <li>
+            Click &quot;Send refund email&quot; on the request and enter the amount you refunded, so
+            the customer knows the money is on its way (Stripe&apos;s own receipt is generic).
           </li>
           <li>
             Orders tab → &quot;Generate credit note&quot; on the cancelled order and keep the PDF
@@ -167,6 +195,16 @@ export default function WithdrawalsTab() {
                         >
                           Reopen
                         </button>
+                      )}
+                      <br />
+                      <button
+                        onClick={() => sendRefundEmail(r)}
+                        className="placard-label text-oxblood hover:underline mt-1"
+                      >
+                        {r.refund_email_sent_at ? "Send refund email again" : "Send refund email"}
+                      </button>
+                      {r.refund_email_sent_at && (
+                        <p className="text-ink-soft text-xs">Sent {fmt(r.refund_email_sent_at)}</p>
                       )}
                     </td>
                   </tr>

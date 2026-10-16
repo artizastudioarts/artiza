@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type OrderEventInput = {
   order_number: string;
-  event_type: "status_change" | "withdrawal_received" | "withdrawal_processed";
+  event_type: "status_change" | "withdrawal_received" | "withdrawal_processed" | "refund_email_sent";
   from_status?: string | null;
   to_status?: string | null;
   source?: "admin" | "withdrawal";

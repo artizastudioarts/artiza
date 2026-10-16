@@ -692,3 +692,17 @@ create table order_events (
 );
 create index order_events_order_idx on order_events (order_number, created_at);
 alter table order_events enable row level security;
+
+-- Refund confirmation email (see migration-refund-email.sql)
+alter table withdrawal_requests add column if not exists refund_email_sent_at timestamptz;
+insert into email_templates (key, subject, body) values
+(
+  'refund_confirmation',
+  'Deine Erstattung zur Bestellung {{order_number}}',
+  '<p>Hallo {{name}},</p>
+<p>wir haben deine Erstattung zur Bestellung <strong>{{order_number}}</strong> veranlasst.</p>
+<p>Erstattungsbetrag: <strong>{{amount}}</strong></p>
+<p>Das Geld geht auf demselben Zahlungsweg zurück, den du bei der Bestellung genutzt hast. Bis die Gutschrift auf deinem Konto erscheint, kann es je nach Bank etwa 5–10 Werktage dauern.</p>
+<p>Bei Fragen antworte einfach auf diese E-Mail.</p>'
+)
+on conflict (key) do nothing;

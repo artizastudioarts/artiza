@@ -64,7 +64,8 @@ export type EmailTemplateKey =
   | "order_status_changed"
   | "abandoned_cart"
   | "newsletter_welcome"
-  | "withdrawal_confirmation";
+  | "withdrawal_confirmation"
+  | "refund_confirmation";
 
 export type EmailTemplate = {
   key: EmailTemplateKey;
@@ -89,7 +90,7 @@ export async function sendEmail({
   html: string;
   attachments?: { filename: string; content: string }[]; // content = base64
   replyTo?: string; // overrides the default EMAIL_REPLY_TO — e.g. a contact-form sender's own address
-}) {
+}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   // Where a customer's "Reply" lands — separate from the "from" address,
@@ -100,7 +101,7 @@ export async function sendEmail({
     console.error(
       "Email not sent — RESEND_API_KEY or EMAIL_FROM is not configured."
     );
-    return;
+    return false;
   }
 
   try {
@@ -121,9 +122,12 @@ export async function sendEmail({
     });
     if (!res.ok) {
       console.error("Resend API error:", await res.text());
+      return false;
     }
+    return true;
   } catch (err) {
     console.error("Failed to send email:", err);
+    return false;
   }
 }
 

@@ -52,6 +52,8 @@ instead, which already contains the end result of all of these combined
 
 34. `migration-order-history.sql` — order history log (status changes, withdrawals) shown per order in the admin Orders tab
 
+35. `migration-refund-email.sql` — editable refund confirmation email and a "Send refund email" button in the Withdrawals tab (needs #31 and #34 first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

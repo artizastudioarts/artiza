@@ -427,7 +427,9 @@ function OrdersTab() {
                                   ? `${e.from_status ?? "?"} → ${e.to_status ?? "?"}`
                                   : e.event_type === "withdrawal_received"
                                     ? "Withdrawal received"
-                                    : "Withdrawal processed"}
+                                    : e.event_type === "refund_email_sent"
+                                      ? "Refund email sent"
+                                      : "Withdrawal processed"}
                                 {e.event_type === "status_change" && e.source === "withdrawal" ? " (automatic)" : ""}
                                 {e.note ? ` · ${e.note}` : ""}
                               </p>
@@ -1894,7 +1896,8 @@ type EmailTemplateKey =
   | "order_status_changed"
   | "abandoned_cart"
   | "newsletter_welcome"
-  | "withdrawal_confirmation";
+  | "withdrawal_confirmation"
+  | "refund_confirmation";
 
 type EmailTemplateRow = {
   key: EmailTemplateKey;
@@ -1941,6 +1944,12 @@ const EMAIL_TEMPLATE_META: Record<
       "Acknowledgment of receipt sent right after a customer declares a withdrawal on the \"Vertrag widerrufen\" page. Keep it factual — it only confirms receipt.",
     placeholders: ["{{name}}", "{{order_number}}", "{{received_at}}", "{{items}}"],
   },
+  refund_confirmation: {
+    label: "Refund confirmation",
+    description:
+      "Sent with the \"Send refund email\" button in Admin → Withdrawals, after you have refunded the customer in Stripe. You type the refunded amount when you click the button.",
+    placeholders: ["{{name}}", "{{order_number}}", "{{amount}}"],
+  },
 };
 
 const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
@@ -1949,6 +1958,7 @@ const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
   "abandoned_cart",
   "newsletter_welcome",
   "withdrawal_confirmation",
+  "refund_confirmation",
 ];
 
 function EmailsTab() {
