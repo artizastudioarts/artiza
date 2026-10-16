@@ -5,6 +5,7 @@ import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { formatPrice } from "@/lib/types";
+import { escapeHtml } from "@/lib/escapeHtml";
 import Stripe from "stripe";
 
 // Stripe needs the raw request body to verify the webhook signature.
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
     const shippingCents = session.shipping_cost?.amount_total ?? 0;
 
     const itemLines: string[] = [];
+    const ownerLines: string[] = []; // same items, escaped, for your own notification
     let totalCents = 0;
     let anyInserted = false;
     let isFirstRow = true;
@@ -143,6 +145,11 @@ export async function POST(req: NextRequest) {
           const notesPart = entry.notes ? ` — Hinweis: ${entry.notes}` : "";
           itemLines.push(
             `<li>Eigene Box × ${entry.quantity}${notesPart} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
+          );
+          ownerLines.push(
+            `<li><strong>Eigene Box × ${entry.quantity}</strong>${entry.notes ? ` — Hinweis: ${escapeHtml(entry.notes)}` : ""} — ${formatPrice(lineTotal, session.currency ?? "eur")}<br>${resolvedItems
+              .map((i) => `${escapeHtml(i.categoryLabel)}: ${escapeHtml(i.articleLabel)} × ${i.quantity}`)
+              .join("<br>")}</li>`
           );
         }
         continue;
@@ -213,6 +220,9 @@ export async function POST(req: NextRequest) {
         itemLines.push(
           `<li>${product.title}${variationPart} × ${quantity}${personalization} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
         );
+        ownerLines.push(
+          `<li><strong>${escapeHtml(product.title)}</strong>${variationLabel ? ` (${escapeHtml(variationLabel)})` : ""} × ${quantity}${customText ? ` — <strong>Personalisierung: ${escapeHtml(customText)}</strong>` : ""} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
+        );
       }
     }
 
@@ -262,6 +272,42 @@ export async function POST(req: NextRequest) {
           html: renderTemplate(template.body, vars),
           attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
         });
+      }
+    }
+
+    // Notification to you: a new order has come in. Never blocks the order.
+    if (anyInserted) {
+      try {
+        const owner = process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM;
+        if (owner) {
+          const cur = session.currency ?? "eur";
+          const a = session.customer_details?.address;
+          const address = a
+            ? [a.line1, a.line2, [a.postal_code, a.city].filter(Boolean).join(" "), a.country]
+                .filter(Boolean)
+                .map((x) => escapeHtml(String(x)))
+                .join("<br>")
+            : "—";
+          if (shippingCents > 0) {
+            ownerLines.push(`<li>Versand — ${formatPrice(shippingCents, cur)}</li>`);
+          }
+          await sendEmail({
+            to: owner,
+            subject: `Neue Bestellung ${orderNumber} – ${formatPrice(totalCents, cur)}`,
+            html: `
+              <p><strong>Neue Bestellung ${escapeHtml(orderNumber)}</strong></p>
+              <ul>${ownerLines.join("")}</ul>
+              <p><strong>Gesamt:</strong> ${formatPrice(totalCents, cur)}</p>
+              <p><strong>Kunde:</strong> ${escapeHtml(session.customer_details?.name ?? "")}<br>
+                 ${escapeHtml(email ?? "")}${session.customer_details?.phone ? `<br>${escapeHtml(session.customer_details.phone)}` : ""}</p>
+              <p><strong>Lieferadresse:</strong><br>${address}</p>
+              <p>Details: Admin → Orders.</p>
+            `,
+            replyTo: email ?? undefined,
+          });
+        }
+      } catch (err) {
+        console.error("Owner order notification failed", orderNumber, err);
       }
     }
 
