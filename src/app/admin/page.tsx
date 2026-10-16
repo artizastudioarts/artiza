@@ -1925,6 +1925,7 @@ const EMAIL_TEMPLATE_META: Record<
       "{{withdrawal_url}}",
       "{{withdrawal_info_url}}",
       "{{widerrufsbelehrung}}",
+      "{{agb}}",
     ],
   },
   order_status_changed: {

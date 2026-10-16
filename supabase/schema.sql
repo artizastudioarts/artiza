@@ -743,3 +743,11 @@ set body = body || '
 <p><strong>Widerrufsbelehrung</strong></p>
 {{widerrufsbelehrung}}'
 where key = 'order_confirmation' and body not like '%{{widerrufsbelehrung}}%';
+
+-- AGB in the order confirmation email (see migration-agb-in-order-email.sql)
+update email_templates
+set body = body || '
+<hr style="border:none;border-top:1px solid #ddd;margin:28px 0 16px;">
+<p><strong>Allgemeine Geschäftsbedingungen (AGB)</strong></p>
+{{agb}}'
+where key = 'order_confirmation' and body not like '%{{agb}}%';

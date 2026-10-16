@@ -60,6 +60,8 @@ instead, which already contains the end result of all of these combined
 
 38. `migration-order-legal-and-shipping-note.sql` — editable "ships within 2 working days" note on product pages and in the cart, and the full Widerrufsbelehrung inside the order confirmation email (needs #9, #26 and #13 first)
 
+39. `migration-agb-in-order-email.sql` — the full AGB text inside the order confirmation email, after the Widerrufsbelehrung (needs #38 first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

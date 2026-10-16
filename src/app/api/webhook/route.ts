@@ -7,6 +7,7 @@ import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { formatPrice } from "@/lib/types";
 import { escapeHtml } from "@/lib/escapeHtml";
 import { getPageContent } from "@/lib/getPageContent";
+import { getTermsEmailHtml } from "@/lib/termsEmailHtml";
 import Stripe from "stripe";
 
 // Stripe needs the raw request body to verify the webhook signature.
@@ -272,6 +273,7 @@ export async function POST(req: NextRequest) {
           .filter((s) => s.h && s.b)
           .map((s) => `<p><strong>${s.h}</strong></p><p>${s.b}</p>`)
           .join("");
+        const agbHtml = await getTermsEmailHtml();
         const vars = {
           customer_name: session.customer_details?.name ?? "",
           order_numbers: orderNumber,
@@ -283,6 +285,8 @@ export async function POST(req: NextRequest) {
           withdrawal_info_url: `${process.env.SITE_URL ?? ""}/widerruf`,
           // Full Widerrufsbelehrung incl. model form, from the editable page text.
           widerrufsbelehrung: widerrufHtml,
+          // Full AGB text from the editable Terms page.
+          agb: agbHtml,
         };
         await sendEmail({
           to: email,
