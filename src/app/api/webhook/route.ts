@@ -6,6 +6,7 @@ import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { formatPrice } from "@/lib/types";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { getPageContent } from "@/lib/getPageContent";
 import Stripe from "stripe";
 
 // Stripe needs the raw request body to verify the webhook signature.
@@ -265,6 +266,12 @@ export async function POST(req: NextRequest) {
     if (email && anyInserted) {
       const template = await getEmailTemplate("order_confirmation");
       if (template) {
+        const widerrufContent = await getPageContent("widerruf", "de");
+        const widerrufHtml = [1, 2, 3, 4]
+          .map((n) => ({ h: widerrufContent[`s${n}_heading`], b: widerrufContent[`s${n}_body`] }))
+          .filter((s) => s.h && s.b)
+          .map((s) => `<p><strong>${s.h}</strong></p><p>${s.b}</p>`)
+          .join("");
         const vars = {
           customer_name: session.customer_details?.name ?? "",
           order_numbers: orderNumber,
@@ -274,6 +281,8 @@ export async function POST(req: NextRequest) {
           // and live emails at the live site.
           withdrawal_url: `${process.env.SITE_URL ?? ""}/vertrag-widerrufen`,
           withdrawal_info_url: `${process.env.SITE_URL ?? ""}/widerruf`,
+          // Full Widerrufsbelehrung incl. model form, from the editable page text.
+          widerrufsbelehrung: widerrufHtml,
         };
         await sendEmail({
           to: email,

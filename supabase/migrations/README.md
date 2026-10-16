@@ -58,6 +58,8 @@ instead, which already contains the end result of all of these combined
 
 37. `migration-promo-ribbon.sql` — floating promotion ribbon in the bottom corner, edited in Admin → Content → "Promotion ribbon" (needs #9 first)
 
+38. `migration-order-legal-and-shipping-note.sql` — editable "ships within 2 working days" note on product pages and in the cart, and the full Widerrufsbelehrung inside the order confirmation email (needs #9, #26 and #13 first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

@@ -730,3 +730,16 @@ insert into site_content (page_key, field_key, label, field_type, value_de, valu
   ('promo', 'code', 'Discount code shown on the ribbon (optional; customers tap it to copy)', 'text', '', '', 3),
   ('promo', 'link', 'Page the short text links to (optional), e.g. /shop', 'text', '', '', 4)
 on conflict do nothing;
+
+-- Shipping time note + Widerrufsbelehrung in the order email (see migration-order-legal-and-shipping-note.sql)
+insert into site_content (page_key, field_key, label, field_type, value_de, value_en, sort_order) values
+  ('shipping_note', 'text', 'Shipping time note (leave empty to hide)', 'textarea',
+    'Handgemacht mit Liebe: Dein Set wird innerhalb von 2 Werktagen versendet. Gute Dinge brauchen eben ein bisschen Zeit!',
+    'Handmade with love: your kit ships within 2 working days. Good things take a little time!', 1)
+on conflict (page_key, field_key) do nothing;
+update email_templates
+set body = body || '
+<hr style="border:none;border-top:1px solid #ddd;margin:28px 0 16px;">
+<p><strong>Widerrufsbelehrung</strong></p>
+{{widerrufsbelehrung}}'
+where key = 'order_confirmation' and body not like '%{{widerrufsbelehrung}}%';

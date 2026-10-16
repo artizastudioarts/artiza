@@ -9,6 +9,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { interpolate } from "@/lib/i18n";
 import { formatPrice, MAX_CART_QTY } from "@/lib/types";
 import FormMessage from "@/components/FormMessage";
+import ShippingNote from "@/components/ShippingNote";
 
 export default function CartPage() {
   const { items, removeItem, setQuantity } = useCart();
@@ -173,6 +174,8 @@ export default function CartPage() {
                 {formatPrice(total, currency)}
               </span>
             </div>
+
+            <ShippingNote className="mb-4" />
 
             {error && <div className="mb-4"><FormMessage type="error">{error}</FormMessage></div>}
 

@@ -1390,6 +1390,7 @@ const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "contact", label: "Contact page" },
   { key: "product_safety", label: "Product safety notice (all product pages)" },
   { key: "promo", label: "Promotion ribbon (bottom corner)" },
+  { key: "shipping_note", label: "Shipping time note (product pages and cart)" },
 ];
 
 type ContentField = {
@@ -1923,6 +1924,7 @@ const EMAIL_TEMPLATE_META: Record<
       "{{total}}",
       "{{withdrawal_url}}",
       "{{withdrawal_info_url}}",
+      "{{widerrufsbelehrung}}",
     ],
   },
   order_status_changed: {
