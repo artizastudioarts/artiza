@@ -60,8 +60,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+  // Safety net for delayed payment methods: if a checkout ever finishes
+  // while the money is still "unpaid", the order is only created once
+  // Stripe confirms the payment (checkout.session.async_payment_succeeded).
+  // Not used with the current card/PayPal setup.
+  const paidSession =
+    event.type === "checkout.session.completed" ||
+    event.type === "checkout.session.async_payment_succeeded"
+      ? (event.data.object as Stripe.Checkout.Session)
+      : null;
+  if (paidSession && paidSession.payment_status !== "unpaid") {
+    const session = paidSession;
     const db = supabaseAdmin();
     const pendingCheckoutId = session.metadata?.pendingCheckoutId;
     const cartEntries = await getCartFromPending(db, pendingCheckoutId);
@@ -314,6 +323,31 @@ export async function POST(req: NextRequest) {
     // The staged cart has served its purpose — clean it up.
     if (pendingCheckoutId) {
       await db.from("pending_checkouts").delete().eq("id", pendingCheckoutId);
+    }
+  }
+
+  // A delayed payment (direct debit) was rejected by the bank. No order was
+  // ever created, so just tell the owner and clean up the staged cart.
+  if (event.type === "checkout.session.async_payment_failed") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const db = supabaseAdmin();
+    try {
+      const owner = process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM;
+      if (owner) {
+        await sendEmail({
+          to: owner,
+          subject: "Lastschrift fehlgeschlagen – keine Bestellung angelegt",
+          html: `<p>Eine Lastschriftzahlung wurde von der Bank abgelehnt. Es wurde <strong>keine</strong> Bestellung angelegt und nichts muss versendet werden.</p>
+            <p><strong>Kunde:</strong> ${escapeHtml(session.customer_details?.name ?? "")} ${escapeHtml(session.customer_details?.email ?? "")}</p>
+            <p>Stripe-Zahlung: ${escapeHtml(session.id)}</p>`,
+        });
+      }
+    } catch (err) {
+      console.error("Failed-payment notification failed", err);
+    }
+    const pendingId = session.metadata?.pendingCheckoutId;
+    if (pendingId) {
+      await db.from("pending_checkouts").delete().eq("id", pendingId);
     }
   }
 

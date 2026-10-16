@@ -280,10 +280,10 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      // PayPal removed for now — requires a verified PayPal Business
-      // account linked in Stripe's live settings first. Add "paypal"
-      // back to this array once that's set up.
-      payment_method_types: ["card"],
+      // "card" also covers Apple Pay and Google Pay automatically (when
+      // enabled in the Stripe dashboard). PayPal must be activated in
+      // Stripe -> Settings -> Payment methods first.
+      payment_method_types: ["card", "paypal"],
       customer_email: userEmail,
       phone_number_collection: { enabled: true },
       line_items: [

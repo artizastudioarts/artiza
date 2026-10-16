@@ -126,6 +126,7 @@ export type Dictionary = {
     thankYou: string;
     confirmationSent: string;
     saveOrderNumber: string;
+    pendingNote: string;
     backToShop: string;
   };
   footer: {
@@ -404,6 +405,8 @@ const de: Dictionary = {
     confirmationSent:
       "Eine Bestätigung wurde an deine E-Mail-Adresse gesendet. Dein Stück wird sorgfältig verpackt und bald versendet.",
     saveOrderNumber: "Speichere diese Bestellnummer, um sie später griffbereit zu haben.",
+    pendingNote:
+      "Deine Zahlung wird noch verarbeitet. Sobald sie bestätigt ist, erhältst du die Bestellbestätigung per E-Mail.",
     backToShop: "Zurück zum Shop",
   },
   footer: {
@@ -727,6 +730,8 @@ const en: Dictionary = {
     confirmationSent:
       "A confirmation has been sent to your email. Your piece will be carefully packed and shipped soon.",
     saveOrderNumber: "Save this order number to reference it later.",
+    pendingNote:
+      "Your payment is still being processed. Once it is confirmed you will receive your order confirmation by email.",
     backToShop: "Back to shop",
   },
   footer: {

@@ -22,6 +22,7 @@ function SuccessContent() {
   const { dict, locale } = useLocale();
   const sessionId = useSearchParams().get("session_id");
   const [orders, setOrders] = useState<OrderSummary[] | null>(null);
+  const [stillProcessing, setStillProcessing] = useState(false);
 
   useEffect(() => {
     if (loaded) clear();
@@ -45,6 +46,9 @@ function SuccessContent() {
         setOrders(data.orders);
       } else if (attempts < 6) {
         setTimeout(poll, 1500);
+      } else {
+        // No order yet: slow webhook, or a delayed method like direct debit.
+        setStillProcessing(true);
       }
     }
     poll();
@@ -58,7 +62,11 @@ function SuccessContent() {
     <main className="max-w-xl mx-auto px-6 py-24 flex-1 w-full text-center">
       <p className="placard-label text-ink-soft mb-3">{dict.success.orderConfirmed}</p>
       <h1 className="font-display text-3xl italic mb-4">{dict.success.thankYou}</h1>
-      <p className="text-ink-soft mb-8">{dict.success.confirmationSent}</p>
+      <p className="text-ink-soft mb-8">
+        {stillProcessing && !(orders && orders.length > 0)
+          ? dict.success.pendingNote
+          : dict.success.confirmationSent}
+      </p>
 
       {orders && orders.length > 0 && (
         <div className="border border-line p-5 mb-8 text-left inline-block">
