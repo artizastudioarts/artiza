@@ -92,7 +92,7 @@ function WriteReviewForm() {
         <p className="text-ink-soft mb-8">{dict.reviews.successBody}</p>
         <Link
           href="/shop"
-          className="inline-block bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
+          className="inline-block bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors"
         >
           {dict.reviews.backToShop}
         </Link>
@@ -168,7 +168,7 @@ function WriteReviewForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-ink text-paper px-6 py-3 placard-label disabled:opacity-50"
+          className="w-full bg-brand text-white px-6 py-3 placard-label disabled:opacity-50"
         >
           {submitting ? dict.reviews.submitting : dict.reviews.submitButton}
         </button>

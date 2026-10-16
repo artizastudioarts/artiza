@@ -88,7 +88,7 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+        className="bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors disabled:opacity-50"
       >
         {status === "sending" ? dict.contact.submitting : dict.contact.submitButton}
       </button>

@@ -59,7 +59,7 @@ export default function NewsletterSignup({ stacked = false }: { stacked?: boolea
         <button
           type="submit"
           disabled={status === "sending"}
-          className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors disabled:opacity-50 whitespace-nowrap"
+          className="bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors disabled:opacity-50 whitespace-nowrap"
         >
           {status === "sending" ? dict.newsletter.submitting : dict.newsletter.submitButton}
         </button>

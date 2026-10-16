@@ -86,7 +86,7 @@ export default function CustomBoxBuilder({
       <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={() => router.push("/cart")}
-          className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
+          className="bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors"
         >
           {dict.product.viewCart}
         </button>
@@ -178,7 +178,7 @@ export default function CustomBoxBuilder({
         <button
           onClick={handleAdd}
           disabled={!canAdd}
-          className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+          className="bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors disabled:opacity-50"
         >
           {dict.product.addToCart}
         </button>

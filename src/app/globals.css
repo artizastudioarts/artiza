@@ -13,6 +13,9 @@
      "aged material" family as brass/oxblood, not bright web colors */
   --forest: #3f5443;
   --navy: #33455a;
+  /* Brand pink from the logo, deepened slightly so white button text stays readable (contrast 5.2:1) */
+  --brand: #d01575;
+  --brand-deep: #a80f5c;
 }
 
 @theme inline {
@@ -25,6 +28,8 @@
   --color-line: var(--line);
   --color-forest: var(--forest);
   --color-navy: var(--navy);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
   --font-script: var(--font-script);

@@ -45,7 +45,7 @@ function SiteLockedForm() {
         {error && <FormMessage type="error">{error}</FormMessage>}
         <button
           type="submit"
-          className="w-full bg-ink text-paper px-6 py-3 placard-label"
+          className="w-full bg-brand text-white px-6 py-3 placard-label"
         >
           Continue
         </button>

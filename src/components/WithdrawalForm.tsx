@@ -121,7 +121,7 @@ export default function WithdrawalForm() {
             type="button"
             onClick={handleConfirm}
             disabled={sending}
-            className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+            className="bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors disabled:opacity-50"
           >
             {sending ? w.sending : w.confirmButton}
           </button>
@@ -227,7 +227,7 @@ export default function WithdrawalForm() {
       {error && <FormMessage type="error">{error}</FormMessage>}
       <button
         type="submit"
-        className="bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
+        className="bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors"
       >
         {w.continueButton}
       </button>

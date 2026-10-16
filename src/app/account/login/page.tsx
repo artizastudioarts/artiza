@@ -99,7 +99,7 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-ink text-paper px-6 py-3 placard-label disabled:opacity-50"
+          className="w-full bg-brand text-white px-6 py-3 placard-label disabled:opacity-50"
         >
           {loading
             ? dict.auth.pleaseWait

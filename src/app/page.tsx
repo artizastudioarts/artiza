@@ -92,7 +92,7 @@ export default async function Home() {
           </p>
           <Link
             href="/shop"
-            className="inline-block mt-8 bg-ink text-paper px-8 py-4 placard-label hover:bg-oxblood transition-colors"
+            className="inline-block mt-8 bg-brand text-white px-8 py-4 placard-label hover:bg-brand-deep transition-colors"
           >
             {dict.home.shopButton}
           </Link>
@@ -208,7 +208,7 @@ export default async function Home() {
             </h2>
             <Link
               href="/shop"
-              className="inline-block bg-ink text-paper px-8 py-4 placard-label hover:bg-oxblood transition-colors"
+              className="inline-block bg-brand text-white px-8 py-4 placard-label hover:bg-brand-deep transition-colors"
             >
               {dict.home.browseButton}
             </Link>

@@ -40,7 +40,7 @@ export default function CookieConsentBanner() {
               </button>
               <button
                 onClick={acceptAll}
-                className="placard-label bg-ink text-paper px-4 py-2 hover:bg-oxblood transition-colors"
+                className="placard-label bg-brand text-white px-4 py-2 hover:bg-brand-deep transition-colors"
               >
                 {dict.cookies.acceptAll}
               </button>
@@ -93,7 +93,7 @@ export default function CookieConsentBanner() {
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => savePreferences({ analytics, marketing })}
-                className="placard-label bg-ink text-paper px-4 py-2 hover:bg-oxblood transition-colors"
+                className="placard-label bg-brand text-white px-4 py-2 hover:bg-brand-deep transition-colors"
               >
                 {dict.cookies.save}
               </button>

@@ -62,7 +62,7 @@ export default async function ReviewsPage() {
           </div>
           <Link
             href="/reviews/write"
-            className="inline-block bg-ink text-paper px-6 py-3 placard-label hover:bg-oxblood transition-colors"
+            className="inline-block bg-brand text-white px-6 py-3 placard-label hover:bg-brand-deep transition-colors"
           >
             {dict.reviews.writeReviewButton}
           </Link>

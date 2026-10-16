@@ -180,7 +180,7 @@ export default function CartPage() {
               <button
                 onClick={handleCheckout}
                 disabled={loading}
-                className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+                className="w-full bg-brand text-white px-6 py-4 placard-label hover:bg-brand-deep transition-colors disabled:opacity-50"
               >
                 {loading ? dict.cart.redirecting : dict.cart.checkout}
               </button>
@@ -189,7 +189,7 @@ export default function CartPage() {
                 <button
                   onClick={handleCheckout}
                   disabled={loading}
-                  className="w-full bg-ink text-paper px-6 py-4 placard-label hover:bg-oxblood transition-colors disabled:opacity-50"
+                  className="w-full bg-brand text-white px-6 py-4 placard-label hover:bg-brand-deep transition-colors disabled:opacity-50"
                 >
                   {loading ? dict.cart.redirecting : dict.cart.continueGuest}
                 </button>
