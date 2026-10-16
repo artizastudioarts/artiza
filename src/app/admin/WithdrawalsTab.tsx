@@ -51,6 +51,19 @@ export default function WithdrawalsTab() {
     load();
   }
 
+  async function sendReturnEmail(r: WithdrawalRequest) {
+    setError("");
+    setNotice("");
+    if (!window.confirm(`Send return instructions to ${r.email}?`)) return;
+    const res = await fetch(`/api/admin/withdrawals/${r.id}/return-email`, { method: "POST" });
+    if (!res.ok) {
+      setError("The email could not be sent.");
+      return;
+    }
+    setNotice(`Return instructions sent to ${r.email}.`);
+    load();
+  }
+
   async function sendRefundEmail(r: WithdrawalRequest) {
     setError("");
     setNotice("");
@@ -92,7 +105,10 @@ export default function WithdrawalsTab() {
       <details className="border border-line p-4 text-sm">
         <summary className="cursor-pointer placard-label">How a refund works (steps)</summary>
         <ol className="list-decimal pl-5 mt-3 space-y-2 text-ink-soft">
-          <li>Reply to the customer: ask them to send the kit back and tell them where to. The customer pays the return shipping.</li>
+          <li>
+            Click &quot;Send return instructions&quot; on the request: the customer gets your
+            return address and is told they pay the return shipping.
+          </li>
           <li>
             Wait for the parcel, or for proof of posting. You may hold the refund until then, but
             the refund must be made within 14 days of receiving the withdrawal.
@@ -195,6 +211,18 @@ export default function WithdrawalsTab() {
                         >
                           Reopen
                         </button>
+                      )}
+                      <br />
+                      <button
+                        onClick={() => sendReturnEmail(r)}
+                        className="placard-label text-oxblood hover:underline mt-1"
+                      >
+                        {r.return_email_sent_at
+                          ? "Send return instructions again"
+                          : "Send return instructions"}
+                      </button>
+                      {r.return_email_sent_at && (
+                        <p className="text-ink-soft text-xs">Sent {fmt(r.return_email_sent_at)}</p>
                       )}
                       <br />
                       <button

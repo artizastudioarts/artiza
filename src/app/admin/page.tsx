@@ -429,7 +429,9 @@ function OrdersTab() {
                                     ? "Withdrawal received"
                                     : e.event_type === "refund_email_sent"
                                       ? "Refund email sent"
-                                      : "Withdrawal processed"}
+                                      : e.event_type === "return_email_sent"
+                                        ? "Return instructions sent"
+                                        : "Withdrawal processed"}
                                 {e.event_type === "status_change" && e.source === "withdrawal" ? " (automatic)" : ""}
                                 {e.note ? ` · ${e.note}` : ""}
                               </p>
@@ -1897,7 +1899,8 @@ type EmailTemplateKey =
   | "abandoned_cart"
   | "newsletter_welcome"
   | "withdrawal_confirmation"
-  | "refund_confirmation";
+  | "refund_confirmation"
+  | "return_instructions";
 
 type EmailTemplateRow = {
   key: EmailTemplateKey;
@@ -1950,6 +1953,12 @@ const EMAIL_TEMPLATE_META: Record<
       "Sent with the \"Send refund email\" button in Admin → Withdrawals, after you have refunded the customer in Stripe. You type the refunded amount when you click the button.",
     placeholders: ["{{name}}", "{{order_number}}", "{{amount}}"],
   },
+  return_instructions: {
+    label: "Return instructions",
+    description:
+      "Sent with the \"Send return instructions\" button in Admin → Withdrawals: tells the customer where to send the kit back, that they pay the return shipping, and when the refund follows.",
+    placeholders: ["{{name}}", "{{order_number}}"],
+  },
 };
 
 const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
@@ -1959,6 +1968,7 @@ const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
   "newsletter_welcome",
   "withdrawal_confirmation",
   "refund_confirmation",
+  "return_instructions",
 ];
 
 function EmailsTab() {

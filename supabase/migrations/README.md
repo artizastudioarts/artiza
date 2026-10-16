@@ -54,6 +54,8 @@ instead, which already contains the end result of all of these combined
 
 35. `migration-refund-email.sql` — editable refund confirmation email and a "Send refund email" button in the Withdrawals tab (needs #31 and #34 first)
 
+36. `migration-return-email.sql` — editable return-instructions email and a "Send return instructions" button in the Withdrawals tab (needs #31 and #34 first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

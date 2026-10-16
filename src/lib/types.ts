@@ -198,4 +198,5 @@ export type WithdrawalRequest = {
   status: "received" | "processed";
   processed_at: string | null;
   refund_email_sent_at: string | null;
+  return_email_sent_at: string | null;
 };
