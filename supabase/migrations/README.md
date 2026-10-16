@@ -48,6 +48,8 @@ instead, which already contains the end result of all of these combined
 30. `migration-supplies-traceability.sql` — admin-only Supplies register (paint / casting powder purchases with batch numbers) and Shipments log (order number, kit batch, which supply batches were used), both with CSV export
 31. `migration-withdrawal-button.sql` — the electronic withdrawal function ("Vertrag widerrufen": requests table plus the customer confirmation email template) (needs #13 first, the email_templates table)
 32. `migration-legal-withdrawal-updates.sql` — Privacy Policy section 14, a withdrawal-form line in the Widerrufsbelehrung, and a withdrawal link in the order confirmation email (needs #31, #20, #26 and #13 first)
+33. `migration-withdrawal-reason.sql` — optional, voluntary reason on the withdrawal form, plus a sentence in Privacy Policy section 14 (needs #31 and #32 first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import FormMessage from "@/components/FormMessage";
 import { interpolate } from "@/lib/i18n";
+import { WITHDRAWAL_REASON_CODES, type WithdrawalReasonCode } from "@/lib/withdrawalReasons";
 
 type Step = "form" | "review" | "done";
 
@@ -16,6 +17,8 @@ export default function WithdrawalForm() {
   const [email, setEmail] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
   const [items, setItems] = useState("");
+  const [reason, setReason] = useState<"" | WithdrawalReasonCode>("");
+  const [reasonNote, setReasonNote] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -41,6 +44,8 @@ export default function WithdrawalForm() {
           email,
           order_number: orderNumber,
           items,
+          reason: reason || undefined,
+          reason_note: reason === "other" ? reasonNote : undefined,
           locale,
           website,
         }),
@@ -99,6 +104,15 @@ export default function WithdrawalForm() {
             <dt className="placard-label text-ink-soft">{w.itemsLabel}</dt>
             <dd>{items.trim() || w.reviewWhole}</dd>
           </div>
+          {reason && (
+            <div>
+              <dt className="placard-label text-ink-soft">{w.reasonLabel}</dt>
+              <dd>
+                {w.reasons[reason]}
+                {reason === "other" && reasonNote.trim() ? `: ${reasonNote.trim()}` : ""}
+              </dd>
+            </div>
+          )}
         </dl>
         <p className="text-sm text-ink-soft">{w.reviewIntro}</p>
         {error && <FormMessage type="error">{error}</FormMessage>}
@@ -181,6 +195,34 @@ export default function WithdrawalForm() {
           className={field}
         />
         <p className="text-xs text-ink-soft mt-1">{w.itemsHint}</p>
+      </div>
+      <div>
+        <label className="placard-label text-ink-soft block mb-1">{w.reasonLabel}</label>
+        <select
+          value={reason}
+          onChange={(e) => setReason(e.target.value as "" | WithdrawalReasonCode)}
+          className={field}
+        >
+          <option value="">{w.reasonNone}</option>
+          {WITHDRAWAL_REASON_CODES.map((c) => (
+            <option key={c} value={c}>
+              {w.reasons[c]}
+            </option>
+          ))}
+        </select>
+        {reason === "other" && (
+          <div className="mt-2">
+            <label className="placard-label text-ink-soft block mb-1">{w.reasonNoteLabel}</label>
+            <textarea
+              rows={2}
+              maxLength={1000}
+              value={reasonNote}
+              onChange={(e) => setReasonNote(e.target.value)}
+              className={field}
+            />
+          </div>
+        )}
+        <p className="text-xs text-ink-soft mt-1">{w.reasonHint}</p>
       </div>
       {error && <FormMessage type="error">{error}</FormMessage>}
       <button

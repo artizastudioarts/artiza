@@ -673,3 +673,8 @@ update email_templates
 set body = body || '
 <p style="font-size:12px;color:#888;margin-top:24px;">Du möchtest deine Bestellung widerrufen? Das geht jederzeit online über <a href="{{withdrawal_url}}">Vertrag widerrufen</a>. Unsere <a href="{{withdrawal_info_url}}">Widerrufsbelehrung</a> findest du auf unserer Website.</p>'
 where key = 'order_confirmation' and body not like '%{{withdrawal_url}}%';
+
+-- Optional withdrawal reason (see migration-withdrawal-reason.sql)
+alter table withdrawal_requests
+  add column if not exists reason_code text,
+  add column if not exists reason_note text;

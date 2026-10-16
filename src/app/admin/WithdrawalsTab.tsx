@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import FormMessage from "@/components/FormMessage";
 import type { WithdrawalRequest } from "@/lib/types";
+import { WITHDRAWAL_REASON_LABEL_DE, type WithdrawalReasonCode } from "@/lib/withdrawalReasons";
 
 function fmt(iso: string) {
   return new Date(iso).toLocaleString("de-DE", {
@@ -88,7 +89,17 @@ export default function WithdrawalsTab() {
                         {r.email}
                       </a>
                     </td>
-                    <td className="py-3 pr-4">{r.items_note ?? "Entire order"}</td>
+                    <td className="py-3 pr-4">
+                      {r.items_note ?? "Entire order"}
+                      {r.reason_code && (
+                        <p className="text-ink-soft text-xs mt-1">
+                          Reason:{" "}
+                          {WITHDRAWAL_REASON_LABEL_DE[r.reason_code as WithdrawalReasonCode] ??
+                            r.reason_code}
+                          {r.reason_note ? ` – ${r.reason_note}` : ""}
+                        </p>
+                      )}
+                    </td>
                     <td className="py-3 pr-4 whitespace-nowrap">
                       {r.status === "processed" ? (
                         <>

@@ -249,6 +249,11 @@ export type Dictionary = {
     orderHint: string;
     itemsLabel: string;
     itemsHint: string;
+    reasonLabel: string;
+    reasonHint: string;
+    reasonNone: string;
+    reasonNoteLabel: string;
+    reasons: Record<"not_liked" | "damaged" | "mistake" | "slow_delivery" | "other", string>;
     continueButton: string;
     reviewHeading: string;
     reviewIntro: string;
@@ -564,6 +569,17 @@ const de: Dictionary = {
     orderHint: "Steht in deiner Bestellbestätigung, z. B. AS-2610-000012.",
     itemsLabel: "Betroffene Artikel (optional)",
     itemsHint: "Leer lassen, um die gesamte Bestellung zu widerrufen.",
+    reasonLabel: "Grund (freiwillig)",
+    reasonHint: "Freiwillige Angabe. Sie hat keinen Einfluss auf dein Widerrufsrecht.",
+    reasonNone: "Keine Angabe",
+    reasonNoteLabel: "Bitte kurz beschreiben (freiwillig)",
+    reasons: {
+      not_liked: "Gefällt mir nicht",
+      damaged: "Beschädigt angekommen",
+      mistake: "Versehentlich bestellt",
+      slow_delivery: "Lieferzeit zu lang",
+      other: "Anderer Grund",
+    },
     continueButton: "Weiter",
     reviewHeading: "Bitte prüfe deine Angaben",
     reviewIntro: "Mit dem Klick auf „Widerruf bestätigen“ erklärst du den Widerruf deines Vertrags.",
@@ -873,6 +889,17 @@ const en: Dictionary = {
     orderHint: "Found in your order confirmation, e.g. AS-2610-000012.",
     itemsLabel: "Items concerned (optional)",
     itemsHint: "Leave empty to withdraw from the whole order.",
+    reasonLabel: "Reason (optional)",
+    reasonHint: "Voluntary. It has no effect on your right of withdrawal.",
+    reasonNone: "Prefer not to say",
+    reasonNoteLabel: "Please describe briefly (optional)",
+    reasons: {
+      not_liked: "I don't like it",
+      damaged: "Arrived damaged",
+      mistake: "Ordered by mistake",
+      slow_delivery: "Delivery took too long",
+      other: "Other reason",
+    },
     continueButton: "Continue",
     reviewHeading: "Please check your details",
     reviewIntro: "By clicking “Confirm withdrawal” you declare your withdrawal from the contract.",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { escapeHtml } from "@/lib/escapeHtml";
+import { isReasonCode, WITHDRAWAL_REASON_LABEL_DE } from "@/lib/withdrawalReasons";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
-  const { name, email, order_number, items, locale, website } = body as Record<string, unknown>;
+  const { name, email, order_number, items, reason, reason_note, locale, website } = body as Record<string, unknown>;
   const lang: "de" | "en" = locale === "en" ? "en" : "de";
 
   // Honeypot — real visitors never fill this hidden field. Pretend success.
@@ -38,6 +39,10 @@ export async function POST(req: NextRequest) {
   const cleanOrder =
     typeof order_number === "string" ? order_number.replace(/\s+/g, "").toUpperCase() : "";
   const cleanItems = typeof items === "string" ? items.trim() : "";
+  // The reason is voluntary: anything unknown or empty is simply ignored.
+  const reasonCode = isReasonCode(reason) ? reason : null;
+  const cleanReasonNote =
+    reasonCode === "other" && typeof reason_note === "string" ? reason_note.trim() : "";
 
   if (
     cleanName.length < 2 ||
@@ -46,7 +51,8 @@ export async function POST(req: NextRequest) {
     !EMAIL_RE.test(cleanEmail) ||
     cleanOrder.length < 3 ||
     cleanOrder.length > 50 ||
-    cleanItems.length > 1000
+    cleanItems.length > 1000 ||
+    cleanReasonNote.length > 1000
   ) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
@@ -89,6 +95,8 @@ export async function POST(req: NextRequest) {
       order_number: cleanOrder,
       order_matched: matched,
       items_note: cleanItems || null,
+      reason_code: reasonCode,
+      reason_note: cleanReasonNote || null,
     })
     .select("created_at")
     .single();
@@ -116,6 +124,10 @@ export async function POST(req: NextRequest) {
   });
 
   // Notification to you.
+  const reasonText = reasonCode
+    ? escapeHtml(WITHDRAWAL_REASON_LABEL_DE[reasonCode]) +
+      (cleanReasonNote ? `: ${escapeHtml(cleanReasonNote)}` : "")
+    : "nicht angegeben";
   const owner = process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM;
   if (owner) {
     await sendEmail({
@@ -129,6 +141,7 @@ export async function POST(req: NextRequest) {
         <p><strong>Name:</strong> ${escapeHtml(cleanName)}</p>
         <p><strong>E-Mail:</strong> ${escapeHtml(cleanEmail)}</p>
         <p><strong>Betroffene Artikel:</strong> ${itemsText}</p>
+        <p><strong>Grund (freiwillig):</strong> ${reasonText}</p>
         <p>Bearbeiten und abhaken: Admin → Withdrawals.</p>
       `,
       replyTo: cleanEmail,

@@ -193,6 +193,8 @@ export type WithdrawalRequest = {
   order_number: string;
   order_matched: boolean;
   items_note: string | null;
+  reason_code: string | null;
+  reason_note: string | null;
   status: "received" | "processed";
   processed_at: string | null;
 };
