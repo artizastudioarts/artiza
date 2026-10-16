@@ -67,7 +67,7 @@ export default function Header() {
             <span className="font-body font-extrabold text-2xl tracking-tight uppercase">
               Artiza
             </span>
-            <span className="font-script text-3xl text-oxblood leading-none">
+            <span className="font-script text-3xl text-brand leading-none">
               studio
             </span>
           </span>
