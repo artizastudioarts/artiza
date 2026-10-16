@@ -238,6 +238,31 @@ export type Dictionary = {
   };
   widerruf: {
     footerLink: string;
+    footerButton: string;
+    pageTitle: string;
+    eyebrow: string;
+    intro: string;
+    exemptNote: string;
+    nameLabel: string;
+    emailLabel: string;
+    orderLabel: string;
+    orderHint: string;
+    itemsLabel: string;
+    itemsHint: string;
+    continueButton: string;
+    reviewHeading: string;
+    reviewIntro: string;
+    reviewWhole: string;
+    confirmButton: string;
+    backButton: string;
+    sending: string;
+    successTitle: string;
+    successBody: string;
+    errorGeneric: string;
+    errorTooMany: string;
+    errorInvalid: string;
+    ctaOnInfoPage: string;
+    infoLink: string;
   };
 };
 
@@ -528,6 +553,31 @@ const de: Dictionary = {
   },
   widerruf: {
     footerLink: "Widerrufsrecht",
+    footerButton: "Vertrag widerrufen",
+    pageTitle: "Vertrag widerrufen",
+    eyebrow: "Widerrufsrecht",
+    intro: "Hier kannst du einen Vertrag widerrufen, den du über unseren Online-Shop geschlossen hast. Ein Login ist nicht nötig. Du erhältst eine Bestätigung per E-Mail.",
+    exemptNote: "Hinweis: Individuell angefertigte bzw. personalisierte Artikel (z. B. mit Wunschtext) sind vom Widerruf ausgeschlossen. Details findest du in der Widerrufsbelehrung.",
+    nameLabel: "Dein Name",
+    emailLabel: "E-Mail-Adresse der Bestellung",
+    orderLabel: "Bestellnummer",
+    orderHint: "Steht in deiner Bestellbestätigung, z. B. AS-2610-000012.",
+    itemsLabel: "Betroffene Artikel (optional)",
+    itemsHint: "Leer lassen, um die gesamte Bestellung zu widerrufen.",
+    continueButton: "Weiter",
+    reviewHeading: "Bitte prüfe deine Angaben",
+    reviewIntro: "Mit dem Klick auf „Widerruf bestätigen“ erklärst du den Widerruf deines Vertrags.",
+    reviewWhole: "Gesamte Bestellung",
+    confirmButton: "Widerruf bestätigen",
+    backButton: "Zurück",
+    sending: "Wird gesendet…",
+    successTitle: "Dein Widerruf ist bei uns eingegangen.",
+    successBody: "Eingang: {time}. Wir haben dir eine Bestätigung per E-Mail an {email} geschickt und melden uns mit den nächsten Schritten zu Rücksendung und Erstattung.",
+    errorGeneric: "Etwas ist schiefgelaufen. Bitte versuche es erneut oder schreib uns eine E-Mail.",
+    errorTooMany: "Zu viele Anfragen. Bitte versuche es später erneut oder schreib uns eine E-Mail.",
+    errorInvalid: "Bitte prüfe deine Angaben: Name, gültige E-Mail-Adresse und Bestellnummer sind Pflichtfelder.",
+    ctaOnInfoPage: "Du möchtest widerrufen? Hier geht es direkt zum Widerruf →",
+    infoLink: "Zur Widerrufsbelehrung",
   },
 };
 
@@ -812,6 +862,31 @@ const en: Dictionary = {
   },
   widerruf: {
     footerLink: "Right of Withdrawal",
+    footerButton: "Withdraw from contract",
+    pageTitle: "Withdraw from contract",
+    eyebrow: "Right of withdrawal",
+    intro: "Use this form to withdraw from a contract you made through our online shop. No login needed. You will receive a confirmation by email.",
+    exemptNote: "Note: Custom-made or personalised items (e.g. with a text of your choice) are excluded from withdrawal. See the right of withdrawal notice for details.",
+    nameLabel: "Your name",
+    emailLabel: "Email address used for the order",
+    orderLabel: "Order number",
+    orderHint: "Found in your order confirmation, e.g. AS-2610-000012.",
+    itemsLabel: "Items concerned (optional)",
+    itemsHint: "Leave empty to withdraw from the whole order.",
+    continueButton: "Continue",
+    reviewHeading: "Please check your details",
+    reviewIntro: "By clicking “Confirm withdrawal” you declare your withdrawal from the contract.",
+    reviewWhole: "Entire order",
+    confirmButton: "Confirm withdrawal",
+    backButton: "Back",
+    sending: "Sending…",
+    successTitle: "We have received your withdrawal.",
+    successBody: "Received: {time}. We've sent a confirmation to {email} and will get back to you with the next steps for the return and refund.",
+    errorGeneric: "Something went wrong. Please try again or send us an email.",
+    errorTooMany: "Too many requests. Please try again later or send us an email.",
+    errorInvalid: "Please check your details: name, a valid email address and the order number are required.",
+    ctaOnInfoPage: "Want to withdraw? Go straight to the withdrawal form →",
+    infoLink: "Right of withdrawal notice",
   },
 };
 

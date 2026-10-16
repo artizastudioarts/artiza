@@ -63,7 +63,8 @@ export type EmailTemplateKey =
   | "order_confirmation"
   | "order_status_changed"
   | "abandoned_cart"
-  | "newsletter_welcome";
+  | "newsletter_welcome"
+  | "withdrawal_confirmation";
 
 export type EmailTemplate = {
   key: EmailTemplateKey;

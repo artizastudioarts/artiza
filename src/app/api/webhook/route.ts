@@ -251,6 +251,10 @@ export async function POST(req: NextRequest) {
           order_numbers: orderNumber,
           items: `<ul>${itemLines.join("")}</ul>`,
           total: formatPrice(totalCents, session.currency ?? "eur"),
+          // Links built from SITE_URL so staging emails point at staging
+          // and live emails at the live site.
+          withdrawal_url: `${process.env.SITE_URL ?? ""}/vertrag-widerrufen`,
+          withdrawal_info_url: `${process.env.SITE_URL ?? ""}/widerruf`,
         };
         await sendEmail({
           to: email,

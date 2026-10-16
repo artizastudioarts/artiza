@@ -28,6 +28,9 @@ export default function Footer() {
           <Link href="/widerruf" className="hover:text-ink">
             {dict.widerruf.footerLink}
           </Link>
+          <Link href="/vertrag-widerrufen" className="hover:text-ink">
+            {dict.widerruf.footerButton}
+          </Link>
           <Link href="/privacy" className="hover:text-ink">
             {dict.privacy.footerLink}
           </Link>

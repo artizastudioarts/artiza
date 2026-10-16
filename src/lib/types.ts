@@ -184,3 +184,15 @@ export type ShipmentRecord = {
   created_at: string;
   shipment_supplies: { supply_id: string; supply_items: SupplyItem | null }[];
 };
+
+export type WithdrawalRequest = {
+  id: string;
+  created_at: string;
+  name: string;
+  email: string;
+  order_number: string;
+  order_matched: boolean;
+  items_note: string | null;
+  status: "received" | "processed";
+  processed_at: string | null;
+};

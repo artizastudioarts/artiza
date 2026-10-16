@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/types";
 import { supabasePublic } from "@/lib/supabase";
 import SuppliesTab from "./SuppliesTab";
 import ShipmentsTab from "./ShipmentsTab";
+import WithdrawalsTab from "./WithdrawalsTab";
 
 type Order = {
   id: string;
@@ -90,6 +91,7 @@ export default function AdminDashboard() {
     | "newsletter"
     | "supplies"
     | "shipments"
+    | "withdrawals"
   >("orders");
 
   return (
@@ -201,6 +203,14 @@ export default function AdminDashboard() {
           >
             Shipments
           </button>
+          <button
+            onClick={() => setTab("withdrawals")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "withdrawals" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Withdrawals
+          </button>
         </div>
       </div>
 
@@ -228,8 +238,10 @@ export default function AdminDashboard() {
         <NewsletterTab />
       ) : tab === "supplies" ? (
         <SuppliesTab />
-      ) : (
+      ) : tab === "shipments" ? (
         <ShipmentsTab />
+      ) : (
+        <WithdrawalsTab />
       )}
     </main>
   );
@@ -1816,7 +1828,8 @@ type EmailTemplateKey =
   | "order_confirmation"
   | "order_status_changed"
   | "abandoned_cart"
-  | "newsletter_welcome";
+  | "newsletter_welcome"
+  | "withdrawal_confirmation";
 
 type EmailTemplateRow = {
   key: EmailTemplateKey;
@@ -1831,7 +1844,14 @@ const EMAIL_TEMPLATE_META: Record<
   order_confirmation: {
     label: "Order confirmation",
     description: "Sent once, right after a customer completes checkout.",
-    placeholders: ["{{customer_name}}", "{{order_numbers}}", "{{items}}", "{{total}}"],
+    placeholders: [
+      "{{customer_name}}",
+      "{{order_numbers}}",
+      "{{items}}",
+      "{{total}}",
+      "{{withdrawal_url}}",
+      "{{withdrawal_info_url}}",
+    ],
   },
   order_status_changed: {
     label: "Order status update",
@@ -1850,6 +1870,12 @@ const EMAIL_TEMPLATE_META: Record<
       "Sent right after someone signs up for the newsletter on the homepage — includes their welcome discount code.",
     placeholders: ["{{code}}", "{{unsubscribe_url}}"],
   },
+  withdrawal_confirmation: {
+    label: "Withdrawal confirmation",
+    description:
+      "Acknowledgment of receipt sent right after a customer declares a withdrawal on the \"Vertrag widerrufen\" page. Keep it factual — it only confirms receipt.",
+    placeholders: ["{{name}}", "{{order_number}}", "{{received_at}}", "{{items}}"],
+  },
 };
 
 const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
@@ -1857,6 +1883,7 @@ const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
   "order_status_changed",
   "abandoned_cart",
   "newsletter_welcome",
+  "withdrawal_confirmation",
 ];
 
 function EmailsTab() {

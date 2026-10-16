@@ -46,7 +46,8 @@ instead, which already contains the end result of all of these combined
 28. `migration-custom-box.sql` — "Build Your Own Box": admin-managed categories/articles, flat box shipping, minimum order value, and the order fields to record what was built
 29. `migration-product-safety.sql` — admin-editable "Sicherheitshinweise" (age 4+, small-parts warning, supervision, manufacturer address) shown on every product page (needs #9 first)
 30. `migration-supplies-traceability.sql` — admin-only Supplies register (paint / casting powder purchases with batch numbers) and Shipments log (order number, kit batch, which supply batches were used), both with CSV export
-
+31. `migration-withdrawal-button.sql` — the electronic withdrawal function ("Vertrag widerrufen": requests table plus the customer confirmation email template) (needs #13 first, the email_templates table)
+32. `migration-legal-withdrawal-updates.sql` — Privacy Policy section 14, a withdrawal-form line in the Widerrufsbelehrung, and a withdrawal link in the order confirmation email (needs #31, #20, #26 and #13 first)
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

@@ -2,6 +2,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { getLocale } from "@/lib/getLocale";
 import { getPageContent } from "@/lib/getPageContent";
+import Link from "next/link";
+import { getDictionary } from "@/lib/dictionaries";
 import type { Metadata } from "next";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,6 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function WiderrufPage() {
   const locale = await getLocale();
   const content = await getPageContent("widerruf", locale);
+  const dict = getDictionary(locale);
 
   const sections = Array.from({ length: 4 }, (_, i) => {
     const n = i + 1;
@@ -41,6 +44,12 @@ export default async function WiderrufPage() {
             </section>
           ))}
         </div>
+
+        <p className="mt-10">
+          <Link href="/vertrag-widerrufen" className="underline">
+            {dict.widerruf.ctaOnInfoPage}
+          </Link>
+        </p>
       </main>
       <Footer />
     </div>

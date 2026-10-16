@@ -614,3 +614,62 @@ create table shipment_supplies (
 );
 create index shipment_supplies_supply_idx on shipment_supplies (supply_id);
 alter table shipment_supplies enable row level security;
+
+-- Withdrawal button / Widerrufsbutton (see migration-withdrawal-button.sql)
+create table withdrawal_requests (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),   -- time of receipt
+  name text not null,
+  email text not null,
+  order_number text not null,
+  order_matched boolean not null default false,    -- order number + email matched an order
+  items_note text,                                  -- empty = whole order
+  status text not null default 'received'
+    check (status in ('received', 'processed')),
+  processed_at timestamptz
+);
+create index withdrawal_requests_created_idx on withdrawal_requests (created_at desc);
+create index withdrawal_requests_email_idx on withdrawal_requests (email, created_at desc);
+alter table withdrawal_requests enable row level security;
+
+insert into email_templates (key, subject, body) values
+(
+  'withdrawal_confirmation',
+  'Eingangsbestätigung deines Widerrufs – Bestellung {{order_number}}',
+  '<p>Hallo {{name}},</p>
+<p>wir bestätigen den Eingang deiner Widerrufserklärung zur Bestellung <strong>{{order_number}}</strong> am <strong>{{received_at}}</strong>.</p>
+<p>Betroffene Artikel: {{items}}</p>
+<p>Wir prüfen deine Angaben und melden uns in Kürze mit den nächsten Schritten zu Rücksendung und Erstattung.</p>
+<p style="font-size:12px;color:#888;margin-top:24px;">Dies ist eine automatische Eingangsbestätigung. Bei Rückfragen antworte einfach auf diese E-Mail.</p>'
+)
+on conflict (key) do nothing;
+
+-- Legal updates for the withdrawal button (see migration-legal-withdrawal-updates.sql)
+-- 1. Privacy Policy, section 14
+insert into site_content (page_key, field_key, label, field_type, value_de, value_en, sort_order) values
+  ('privacy', 's14_heading', 'Section 14 — heading', 'text',
+    '14. Widerrufsformular', '14. Withdrawal form', 30),
+  ('privacy', 's14_body', 'Section 14 — body', 'textarea',
+    'Wenn du über unser Formular „Vertrag widerrufen“ einen Widerruf erklärst, speichern wir deinen Namen, deine E-Mail-Adresse, die Bestellnummer, gegebenenfalls die betroffenen Artikel sowie den Zeitpunkt des Eingangs, um deinen Widerruf zu bearbeiten und dir den Eingang zu bestätigen. Die Bestätigung senden wir per E-Mail über unseren E-Mail-Dienstleister Resend. Rechtsgrundlage ist die Durchführung des Vertrags und die Erfüllung rechtlicher Pflichten (Art. 6 Abs. 1 lit. b und c DSGVO). Wir speichern diese Angaben, solange dies für die Abwicklung erforderlich ist und gesetzliche Aufbewahrungspflichten bestehen.',
+    'If you declare a withdrawal through our “Withdraw from contract” form, we store your name, email address, order number, any items concerned, and the time we received it, in order to process your withdrawal and confirm receipt to you. We send the confirmation by email through our email provider, Resend. The legal basis is the performance of the contract and compliance with legal obligations (Art. 6(1)(b) and (c) GDPR). We keep this information for as long as it is needed to handle the withdrawal and statutory retention obligations apply.',
+    31)
+on conflict (page_key, field_key) do nothing;
+
+-- 2. Widerrufsbelehrung: mention the online option (appended once)
+update site_content
+set
+  value_de = value_de || '<br><br>Du kannst deinen Widerruf auch direkt online erklären: <a href="/vertrag-widerrufen">Vertrag widerrufen</a>. Wir bestätigen dir den Eingang per E-Mail.'
+where page_key = 'widerruf' and field_key = 's1_body'
+  and value_de is not null and value_de not like '%vertrag-widerrufen%';
+
+update site_content
+set
+  value_en = value_en || '<br><br>You can also declare your withdrawal directly online: <a href="/vertrag-widerrufen">Withdraw from contract</a>. We will confirm receipt by email.'
+where page_key = 'widerruf' and field_key = 's1_body'
+  and value_en is not null and value_en not like '%vertrag-widerrufen%';
+
+-- 3. Order confirmation email: link to the withdrawal form (appended once)
+update email_templates
+set body = body || '
+<p style="font-size:12px;color:#888;margin-top:24px;">Du möchtest deine Bestellung widerrufen? Das geht jederzeit online über <a href="{{withdrawal_url}}">Vertrag widerrufen</a>. Unsere <a href="{{withdrawal_info_url}}">Widerrufsbelehrung</a> findest du auf unserer Website.</p>'
+where key = 'order_confirmation' and body not like '%{{withdrawal_url}}%';
