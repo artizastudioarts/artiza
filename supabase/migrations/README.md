@@ -56,6 +56,8 @@ instead, which already contains the end result of all of these combined
 
 36. `migration-return-email.sql` — editable return-instructions email and a "Send return instructions" button in the Withdrawals tab (needs #31 and #34 first)
 
+37. `migration-promo-ribbon.sql` — floating promotion ribbon in the bottom corner, edited in Admin → Content → "Promotion ribbon" (needs #9 first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

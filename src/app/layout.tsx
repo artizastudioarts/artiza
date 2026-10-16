@@ -7,6 +7,8 @@ import { LocaleProvider } from "@/context/LocaleContext";
 import { CookieConsentProvider } from "@/context/CookieConsentContext";
 import CookieConsentBanner from "@/components/CookieConsentBanner";
 import AnalyticsGate from "@/components/AnalyticsGate";
+import PromoRibbon from "@/components/PromoRibbon";
+import { getPageContent } from "@/lib/getPageContent";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { getShippingSettings } from "@/lib/getShippingSettings";
@@ -66,6 +68,7 @@ export default async function RootLayout({
   const dict = getDictionary(locale);
   const shippingSettings = await getShippingSettings();
   const threshold = shippingSettings?.free_standard_threshold_cents;
+  const promo = await getPageContent("promo", locale);
 
   return (
     <html
@@ -87,6 +90,7 @@ export default async function RootLayout({
             <AuthProvider>
               <CartProvider>{children}</CartProvider>
             </AuthProvider>
+            <PromoRibbon badge={promo.badge} text={promo.text} code={promo.code} link={promo.link} />
             <CookieConsentBanner />
             <AnalyticsGate />
           </CookieConsentProvider>

@@ -722,3 +722,11 @@ insert into email_templates (key, subject, body) values
 <p>Bei Fragen antworte einfach auf diese E-Mail.</p>'
 )
 on conflict (key) do nothing;
+
+-- Promotion ribbon (see migration-promo-ribbon.sql)
+insert into site_content (page_key, field_key, label, field_type, value_de, value_en, sort_order) values
+  ('promo', 'badge', 'Big text on the ribbon, e.g. -15 %  (leave empty together with the short text to hide the ribbon)', 'text', '', '', 1),
+  ('promo', 'text', 'Short text next to it, e.g. auf alle Bausätze', 'text', '', '', 2),
+  ('promo', 'code', 'Discount code shown on the ribbon (optional; customers tap it to copy)', 'text', '', '', 3),
+  ('promo', 'link', 'Page the short text links to (optional), e.g. /shop', 'text', '', '', 4)
+on conflict do nothing;

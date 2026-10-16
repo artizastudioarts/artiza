@@ -1389,6 +1389,7 @@ const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "faq", label: "FAQ" },
   { key: "contact", label: "Contact page" },
   { key: "product_safety", label: "Product safety notice (all product pages)" },
+  { key: "promo", label: "Promotion ribbon (bottom corner)" },
 ];
 
 type ContentField = {
