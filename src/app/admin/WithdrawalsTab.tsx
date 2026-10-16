@@ -65,6 +65,30 @@ export default function WithdrawalsTab() {
         unmatched withdrawals are left for you to change by hand). No email is sent to the
         customer when this happens.
       </p>
+      <details className="border border-line p-4 text-sm">
+        <summary className="cursor-pointer placard-label">How a refund works (steps)</summary>
+        <ol className="list-decimal pl-5 mt-3 space-y-2 text-ink-soft">
+          <li>Reply to the customer: ask them to send the kit back and tell them where to. The customer pays the return shipping.</li>
+          <li>
+            Wait for the parcel, or for proof of posting. You may hold the refund until then, but
+            the refund must be made within 14 days of receiving the withdrawal.
+          </li>
+          <li>
+            Refund in Stripe: Payments → find the payment (search by the customer&apos;s email) →
+            Refund. Refund the full amount including the original standard shipping, to the original
+            payment method.
+          </li>
+          <li>
+            Click &quot;Mark processed&quot; here. A fully withdrawn order is set to Cancelled
+            automatically. For a partial withdrawal, refund only those items in Stripe and change
+            the order status in the Orders tab yourself.
+          </li>
+          <li>
+            Orders tab → &quot;Generate credit note&quot; on the cancelled order and keep the PDF
+            for your accounting.
+          </li>
+        </ol>
+      </details>
       {error && <FormMessage type="error">{error}</FormMessage>}
       {notice && <FormMessage type="success">{notice}</FormMessage>}
       {requests === null ? (
