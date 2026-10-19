@@ -49,7 +49,7 @@ export default function ProductGallery({
           src={images[active]}
           alt={title}
           fill
-          className="object-cover"
+          className="object-contain"
           priority
         />
         <ProductBadgeRibbon badge={badge ?? null} dict={dict} />
@@ -65,7 +65,7 @@ export default function ProductGallery({
                 i === active ? "border-ink" : "border-line opacity-70 hover:opacity-100"
               }`}
             >
-              <Image src={url} alt="" fill className="object-cover" />
+              <Image src={url} alt="" fill className="object-contain" />
             </button>
           ))}
         </div>

@@ -31,7 +31,7 @@ export default function ProductCard({
               src={product.image_url}
               alt={display.title ?? ""}
               fill
-              className={`object-cover transition duration-500 group-hover:scale-[1.03] ${
+              className={`object-contain transition duration-500 group-hover:scale-[1.03] ${
                 secondImage ? "group-hover:opacity-0" : ""
               }`}
             />
@@ -40,7 +40,7 @@ export default function ProductCard({
                 src={secondImage}
                 alt={display.title ?? ""}
                 fill
-                className="object-cover opacity-0 transition duration-500 group-hover:opacity-100"
+                className="object-contain opacity-0 transition duration-500 group-hover:opacity-100"
               />
             )}
           </>
