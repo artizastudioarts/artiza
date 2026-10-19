@@ -41,15 +41,37 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: deleteError.message }, { status: 500 });
   }
 
-  const rows = (variations as { label: string; label_en?: string; price: number | string }[])
-    .filter((v) => v.label && v.label.trim())
-    .map((v, i) => ({
+  type Row = {
+    label: string;
+    label_en?: string;
+    price: number | string;
+    box_contents?: string;
+    box_contents_en?: string;
+    colors_included?: string;
+    colors_included_en?: string;
+    image_index?: number | string | null;
+    is_default?: boolean;
+  };
+  const cleaned = (variations as Row[]).filter((v) => v.label && v.label.trim());
+  // Exactly one option can be preselected; if none is marked, the first is.
+  const defaultIndex = Math.max(0, cleaned.findIndex((v) => v.is_default));
+  const rows = cleaned.map((v, i) => {
+    const idx =
+      v.image_index === "" || v.image_index == null ? null : Math.floor(Number(v.image_index));
+    return {
       product_id: productId,
       label: v.label.trim(),
       label_en: v.label_en?.trim() || null,
       price_cents: Math.round(Number(v.price) * 100),
       sort_order: i,
-    }));
+      box_contents: v.box_contents?.trim() || null,
+      box_contents_en: v.box_contents_en?.trim() || null,
+      colors_included: v.colors_included?.trim() || null,
+      colors_included_en: v.colors_included_en?.trim() || null,
+      image_index: idx != null && Number.isFinite(idx) && idx >= 0 ? idx : null,
+      is_default: i === defaultIndex,
+    };
+  });
 
   if (rows.length === 0) {
     return NextResponse.json({ ok: true, variations: [] });

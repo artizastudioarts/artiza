@@ -74,6 +74,12 @@ type ProductVariation = {
   label: string;
   label_en: string;
   price: string; // euros, as text, mirrors how `price` is handled in ProductForm
+  box_contents: string;
+  box_contents_en: string;
+  colors_included: string;
+  colors_included_en: string;
+  image_index: string; // "" = none, otherwise 0-based photo index as text
+  is_default: boolean;
 };
 
 export default function AdminDashboard() {
@@ -781,12 +787,24 @@ function ProductForm({
             label: string;
             label_en: string | null;
             price_cents: number;
+            box_contents: string | null;
+            box_contents_en: string | null;
+            colors_included: string | null;
+            colors_included_en: string | null;
+            image_index: number | null;
+            is_default: boolean;
           }[]
         )?.map((v) => ({
           id: v.id,
           label: v.label,
           label_en: v.label_en ?? "",
           price: (v.price_cents / 100).toString(),
+          box_contents: v.box_contents ?? "",
+          box_contents_en: v.box_contents_en ?? "",
+          colors_included: v.colors_included ?? "",
+          colors_included_en: v.colors_included_en ?? "",
+          image_index: v.image_index == null ? "" : String(v.image_index),
+          is_default: !!v.is_default,
         }));
         setVariations(loaded ?? []);
       })
@@ -794,17 +812,42 @@ function ProductForm({
   }, [product]);
 
   function addVariationRow() {
-    setVariations((prev) => [...prev, { label: "", label_en: "", price: "" }]);
+    setVariations((prev) => [
+      ...prev,
+      {
+        label: "",
+        label_en: "",
+        price: "",
+        box_contents: "",
+        box_contents_en: "",
+        colors_included: "",
+        colors_included_en: "",
+        image_index: "",
+        is_default: prev.length === 0,
+      },
+    ]);
   }
 
   function updateVariationRow(
     index: number,
-    field: "label" | "label_en" | "price",
+    field:
+      | "label"
+      | "label_en"
+      | "price"
+      | "box_contents"
+      | "box_contents_en"
+      | "colors_included"
+      | "colors_included_en"
+      | "image_index",
     value: string
   ) {
     setVariations((prev) =>
       prev.map((v, i) => (i === index ? { ...v, [field]: value } : v))
     );
+  }
+
+  function setDefaultVariation(index: number) {
+    setVariations((prev) => prev.map((v, i) => ({ ...v, is_default: i === index })));
   }
 
   function removeVariationRow(index: number) {
@@ -1153,44 +1196,105 @@ function ProductForm({
             }
           />
           <span className="placard-label text-ink-soft">
-            Offer variations (customer picks from a dropdown, each option has its own price)
+            Offer variations (customer picks one option button, each option has its own price, contents and photo)
           </span>
         </label>
         {form.variations_enabled && (
           <div className="space-y-3">
-            {variations.map((v, i) => (
-              <div key={i} className="flex gap-2 items-start">
-                <input
-                  placeholder="Option label (German) — e.g. Mama + Papa"
-                  value={v.label}
-                  onChange={(e) => updateVariationRow(i, "label", e.target.value)}
-                  className="flex-1 border border-line px-3 py-2 bg-paper text-sm"
-                />
-                <input
-                  placeholder="Label (English, optional)"
-                  value={v.label_en}
-                  onChange={(e) => updateVariationRow(i, "label_en", e.target.value)}
-                  className="flex-1 border border-line px-3 py-2 bg-paper text-sm"
-                />
-                <input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  placeholder="Price (€)"
-                  value={v.price}
-                  onChange={(e) => updateVariationRow(i, "price", e.target.value)}
-                  className="w-24 border border-line px-3 py-2 bg-paper text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeVariationRow(i)}
-                  className="text-oxblood text-sm px-2 py-2"
-                  aria-label="Remove option"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+            {variations.map((v, i) => {
+              const photoCount = files.length || product?.image_urls?.length || 0;
+              return (
+                <div key={i} className="border border-line p-3 space-y-2">
+                  <div className="flex gap-2 items-start">
+                    <input
+                      placeholder="Option label (German) — e.g. Mama + Papa"
+                      value={v.label}
+                      onChange={(e) => updateVariationRow(i, "label", e.target.value)}
+                      className="flex-1 border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                    <input
+                      placeholder="Label (English, optional)"
+                      value={v.label_en}
+                      onChange={(e) => updateVariationRow(i, "label_en", e.target.value)}
+                      className="flex-1 border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      placeholder="Price (€)"
+                      value={v.price}
+                      onChange={(e) => updateVariationRow(i, "price", e.target.value)}
+                      className="w-24 border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeVariationRow(i)}
+                      className="text-oxblood text-sm px-2 py-2"
+                      aria-label="Remove option"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex gap-4 items-center flex-wrap text-sm">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="default-variation"
+                        checked={v.is_default}
+                        onChange={() => setDefaultVariation(i)}
+                      />
+                      <span className="placard-label text-ink-soft">Preselected option</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <span className="placard-label text-ink-soft">Photo for this option</span>
+                      <select
+                        value={v.image_index}
+                        onChange={(e) => updateVariationRow(i, "image_index", e.target.value)}
+                        className="border border-line px-2 py-1 bg-paper"
+                      >
+                        <option value="">— none —</option>
+                        {Array.from({ length: photoCount }, (_, n) => (
+                          <option key={n} value={String(n)}>
+                            Photo {n + 1}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-2">
+                    <textarea
+                      rows={3}
+                      placeholder="What's in the box with this option (German)"
+                      value={v.box_contents}
+                      onChange={(e) => updateVariationRow(i, "box_contents", e.target.value)}
+                      className="border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                    <textarea
+                      rows={3}
+                      placeholder="What's in the box (English, optional)"
+                      value={v.box_contents_en}
+                      onChange={(e) => updateVariationRow(i, "box_contents_en", e.target.value)}
+                      className="border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                    <textarea
+                      rows={2}
+                      placeholder="Colors included with this option (German)"
+                      value={v.colors_included}
+                      onChange={(e) => updateVariationRow(i, "colors_included", e.target.value)}
+                      className="border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                    <textarea
+                      rows={2}
+                      placeholder="Colors included (English, optional)"
+                      value={v.colors_included_en}
+                      onChange={(e) => updateVariationRow(i, "colors_included_en", e.target.value)}
+                      className="border border-line px-3 py-2 bg-paper text-sm"
+                    />
+                  </div>
+                </div>
+              );
+            })}
             <button
               type="button"
               onClick={addVariationRow}
@@ -1199,9 +1303,9 @@ function ProductForm({
               + Add option
             </button>
             <p className="text-ink-soft text-xs">
-              Add as many options as you like. The customer sees a dropdown on
-              the product page and the price shown updates to whatever
-              they pick.
+              Add as many options as you like. The customer sees one button per
+              option on the product page; the price, the &ldquo;What&apos;s in the box&rdquo;
+              section and the photo update to whatever they pick.
             </p>
           </div>
         )}
@@ -1391,6 +1495,7 @@ const CONTENT_PAGES: { key: string; label: string }[] = [
   { key: "product_safety", label: "Product safety notice (all product pages)" },
   { key: "promo", label: "Promotion ribbon (bottom corner)" },
   { key: "shipping_note", label: "Shipping time note (product pages and cart)" },
+  { key: "product_materials", label: "Materials used (all product pages)" },
 ];
 
 type ContentField = {

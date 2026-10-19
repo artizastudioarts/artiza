@@ -8,6 +8,8 @@ import ProductGallery from "@/components/ProductGallery";
 import ProductCard from "@/components/ProductCard";
 import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import ProductSafetyNotice from "@/components/ProductSafetyNotice";
+import ProductVariantProvider, { SelectedVariationPrice } from "@/components/ProductVariantProvider";
+import ProductDetailsAccordions from "@/components/ProductDetailsAccordions";
 import ShippingNote from "@/components/ShippingNote";
 import { getPageContent } from "@/lib/getPageContent";
 import { getLocale } from "@/lib/getLocale";
@@ -83,10 +85,14 @@ export default async function ProductPage({
     variations = ((variationRows as ProductVariation[]) ?? []).map((v) => ({
       ...v,
       label: locale === "en" ? v.label_en || v.label : v.label,
+      box_contents: locale === "en" ? v.box_contents_en || v.box_contents : v.box_contents,
+      colors_included:
+        locale === "en" ? v.colors_included_en || v.colors_included : v.colors_included,
     }));
   }
 
   const safetyContent = await getPageContent("product_safety", locale);
+  const materialsText = (await getPageContent("product_materials", locale)).text ?? "";
   const shippingNote = (await getPageContent("shipping_note", locale)).text ?? "";
   const shippingSettings = await getShippingSettings();
   const freeThreshold = shippingSettings?.free_standard_threshold_cents;
@@ -127,6 +133,7 @@ export default async function ProductPage({
   return (
     <>
       <Header />
+      <ProductVariantProvider variations={variations}>
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
         <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge} />
 
@@ -142,19 +149,17 @@ export default async function ProductPage({
           )}
           <div className="mb-6">
             <p className="text-2xl font-display mb-1">
-              {product.variations_enabled && variations.length > 0
-                ? interpolate(dict.product.priceFrom, {
-                    amount: formatPrice(
-                      Math.min(...variations.map((v) => v.price_cents)),
-                      product.currency
-                    ),
-                  })
-                : product.custom_text_pricing_mode === "per_character" &&
-                    product.custom_text_price_per_char_cents != null
-                  ? interpolate(dict.product.customTextPriceRate, {
-                      rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
-                    })
-                  : formatPrice(product.price_cents, product.currency)}
+              <SelectedVariationPrice
+                currency={product.currency}
+                fallback={
+                  product.custom_text_pricing_mode === "per_character" &&
+                  product.custom_text_price_per_char_cents != null
+                    ? interpolate(dict.product.customTextPriceRate, {
+                        rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
+                      })
+                    : formatPrice(product.price_cents, product.currency)
+                }
+              />
             </p>
             {freeThreshold != null && (
               <p className="placard-label text-ink-soft">
@@ -164,15 +169,15 @@ export default async function ProductPage({
               </p>
             )}
           </div>
-          {display.artist_note && (
-            <p className="text-ink-soft leading-relaxed mb-8">
-              {display.artist_note}
-            </p>
-          )}
-
           <AddToCartButton product={displayProduct} variations={variations} dict={dict} />
 
           <ShippingNote text={shippingNote} className="mt-4" />
+
+          <ProductDetailsAccordions
+            description={display.artist_note ?? ""}
+            materials={materialsText}
+            dict={dict}
+          />
 
           <div className="mt-8">
             <MadeInGermanyBadge locale={locale} className="w-20 h-20" />
@@ -181,6 +186,7 @@ export default async function ProductPage({
           <ProductSafetyNotice content={safetyContent} contents={display.dimensions} />
         </div>
       </main>
+      </ProductVariantProvider>
 
       {related.length > 0 && (
         <section className="max-w-6xl mx-auto px-6 pb-20">

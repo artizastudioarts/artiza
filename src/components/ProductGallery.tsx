@@ -6,6 +6,7 @@ import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
 import type { ProductBadge } from "@/lib/types";
 import ProductBadgeRibbon from "@/components/ProductBadgeRibbon";
+import { useProductVariant } from "@/components/ProductVariantProvider";
 
 export default function ProductGallery({
   images,
@@ -18,7 +19,17 @@ export default function ProductGallery({
   dict: Dictionary;
   badge?: ProductBadge | null;
 }) {
+  const variant = useProductVariant();
   const [active, setActive] = useState(0);
+  // When the customer picks an option that has a photo assigned, show it.
+  const optionIndex = variant?.selected?.image_index;
+  const [lastOptionIndex, setLastOptionIndex] = useState<number | null | undefined>(undefined);
+  if (optionIndex !== lastOptionIndex) {
+    setLastOptionIndex(optionIndex);
+    if (optionIndex != null && optionIndex >= 0 && optionIndex < images.length) {
+      setActive(optionIndex);
+    }
+  }
 
   if (images.length === 0) {
     return (

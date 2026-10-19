@@ -62,6 +62,8 @@ instead, which already contains the end result of all of these combined
 
 39. `migration-agb-in-order-email.sql` — the full AGB text inside the order confirmation email, after the Widerrufsbelehrung (needs #38 first)
 
+40. `migration-product-details-accordions.sql` — option buttons with per-option "What's in the box", colors, photo and preselected flag, plus a standard "Materials used" text (needs #9 and the variations migration first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

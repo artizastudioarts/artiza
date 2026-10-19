@@ -39,6 +39,12 @@ export type ProductVariation = {
   label_en: string | null;
   price_cents: number;
   sort_order: number;
+  box_contents: string | null;
+  box_contents_en: string | null;
+  colors_included: string | null;
+  colors_included_en: string | null;
+  image_index: number | null;
+  is_default: boolean;
 };
 
 export type ShippingMethod = "standard" | "express";

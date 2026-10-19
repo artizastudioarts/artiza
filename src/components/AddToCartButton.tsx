@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useProductVariant } from "@/components/ProductVariantProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
@@ -25,11 +26,11 @@ export default function AddToCartButton({
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
   const [customText, setCustomText] = useState("");
-  const [variationId, setVariationId] = useState("");
+  const variant = useProductVariant();
   const [added, setAdded] = useState(false);
 
   const hasVariations = product.variations_enabled && variations.length > 0;
-  const selectedVariation = variations.find((v) => v.id === variationId);
+  const selectedVariation = variant?.selected;
 
   const router = useRouter();
 
@@ -101,24 +102,33 @@ export default function AddToCartButton({
     <div className="space-y-3">
       {hasVariations && (
         <div>
-          <label className="placard-label text-ink-soft block mb-1">
+          <p className="placard-label text-ink-soft mb-2">
             {dict.product.chooseVariation}
-          </label>
-          <select
-            required
-            value={variationId}
-            onChange={(e) => setVariationId(e.target.value)}
-            className="w-full max-w-xs border border-line px-3 py-2 bg-paper"
-          >
-            <option value="" disabled>
-              {dict.product.selectVariationPlaceholder}
-            </option>
-            {variations.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.label} — {formatPrice(v.price_cents, product.currency)}
-              </option>
-            ))}
-          </select>
+          </p>
+          <div role="radiogroup" aria-label={dict.product.chooseVariation} className="flex flex-wrap gap-2">
+            {variations.map((v) => {
+              const on = v.id === selectedVariation?.id;
+              return (
+                <button
+                  key={v.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  onClick={() => variant?.select(v.id)}
+                  className={`px-4 py-2 text-left border-2 transition-colors ${
+                    on
+                      ? "border-brand bg-brand text-white"
+                      : "border-line bg-paper hover:border-brand"
+                  }`}
+                >
+                  <span className="block text-sm font-semibold leading-tight">{v.label}</span>
+                  <span className={`block text-xs ${on ? "text-white/90" : "text-ink-soft"}`}>
+                    {formatPrice(v.price_cents, product.currency)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
       {requiresCustomText && (

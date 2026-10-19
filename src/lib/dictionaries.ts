@@ -61,6 +61,10 @@ export type Dictionary = {
     customTextPriceRate: string; // template with {rate}
     customTextComputedTotal: string; // template with {total}
     chooseVariation: string;
+    descriptionHeading: string;
+    boxHeading: string;
+    colorsIncluded: string;
+    materialsHeading: string;
     selectVariationPlaceholder: string;
     priceFrom: string; // template with {amount}
     continueShopping: string;
@@ -336,6 +340,10 @@ const de: Dictionary = {
     customTextPriceRate: "{rate} pro Zeichen",
     customTextComputedTotal: "Gesamt: {total}",
     chooseVariation: "Wähle eine Option",
+    descriptionHeading: "Produktbeschreibung",
+    boxHeading: "Was ist in der Box?",
+    colorsIncluded: "Enthaltene Farben bei dieser Option",
+    materialsHeading: "Verwendete Materialien",
     selectVariationPlaceholder: "Bitte auswählen",
     priceFrom: "ab {amount}",
     continueShopping: "Weiter einkaufen",
@@ -663,6 +671,10 @@ const en: Dictionary = {
     customTextPriceRate: "{rate} per character",
     customTextComputedTotal: "Total: {total}",
     chooseVariation: "Choose an option",
+    descriptionHeading: "Product description",
+    boxHeading: "What's in the box",
+    colorsIncluded: "Colors included with this option",
+    materialsHeading: "Materials used",
     selectVariationPlaceholder: "Please select",
     priceFrom: "from {amount}",
     continueShopping: "Continue shopping",
