@@ -35,7 +35,7 @@ export default function ProductGallery({
 
   if (images.length === 0) {
     return (
-      <div className="relative aspect-[4/5] bg-paper-dim flex items-center justify-center placard-label text-ink-soft">
+      <div className="relative aspect-square bg-paper-dim flex items-center justify-center placard-label text-ink-soft">
         No image
         <ProductBadgeRibbon badge={badge ?? null} dict={dict} />
       </div>
@@ -44,7 +44,7 @@ export default function ProductGallery({
 
   return (
     <div>
-      <div className="relative aspect-[4/5] bg-paper-dim">
+      <div className="relative aspect-square bg-paper-dim">
         <Image
           src={images[active]}
           alt={title}

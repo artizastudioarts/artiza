@@ -24,7 +24,7 @@ export default function ProductCard({
 
   return (
     <Link href={`/product/${product.id}`} className="group block">
-      <div className="relative aspect-[4/5] bg-paper-dim overflow-hidden">
+      <div className="relative aspect-square bg-paper-dim overflow-hidden">
         {product.image_url ? (
           <>
             <Image
