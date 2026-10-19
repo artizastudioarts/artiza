@@ -11,12 +11,15 @@ export default function ProductCard({
   product,
   dict,
   locale,
+  fromPriceCents,
 }: {
   product: Product;
   dict: Dictionary;
   locale: Locale;
+  fromPriceCents?: number;
 }) {
-  const secondImage = product.image_urls?.[1];
+  // Hover image: the first gallery photo that is not the cover itself.
+  const secondImage = product.image_urls?.find((u) => u !== product.image_url);
   const display = localizeProduct(product, locale);
 
   return (
@@ -57,7 +60,11 @@ export default function ProductCard({
             ? interpolate(dict.product.customTextPriceRate, {
                 rate: formatPrice(product.custom_text_price_per_char_cents, product.currency),
               })
-            : formatPrice(product.price_cents, product.currency)}
+            : fromPriceCents != null
+              ? interpolate(dict.product.priceFrom, {
+                  amount: formatPrice(fromPriceCents, product.currency),
+                })
+              : formatPrice(product.price_cents, product.currency)}
         </p>
       </div>
     </Link>

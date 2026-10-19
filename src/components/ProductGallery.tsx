@@ -13,14 +13,16 @@ export default function ProductGallery({
   title,
   dict,
   badge,
+  initialIndex = 0,
 }: {
   images: string[];
   title: string;
   dict: Dictionary;
   badge?: ProductBadge | null;
+  initialIndex?: number;
 }) {
   const variant = useProductVariant();
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(initialIndex);
   // When the customer picks an option that has a photo assigned, show it.
   const optionIndex = variant?.selected?.image_index;
   const [lastOptionIndex, setLastOptionIndex] = useState<number | null | undefined>(undefined);

@@ -773,6 +773,13 @@ function ProductForm({
   const [variationsLoaded, setVariationsLoaded] = useState(!product);
   const [formLocale, setFormLocale] = useState<"de" | "en">("de");
   const [files, setFiles] = useState<File[]>([]);
+  // Which photo is the cover shown on the shop page (0-based). Starts at
+  // the product's current cover photo.
+  const [coverIndex, setCoverIndex] = useState(() => {
+    if (!product) return 0;
+    const i = (product.image_urls ?? []).indexOf(product.image_url ?? "");
+    return i >= 0 ? i : 0;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -893,7 +900,7 @@ function ProductForm({
         }
       }
 
-      const image_url = image_urls[0] ?? "";
+      const image_url = image_urls[coverIndex] ?? image_urls[0] ?? "";
       const badge = form.badge || null;
       const weight_grams = form.weight_grams ? Math.max(0, Math.round(Number(form.weight_grams))) : null;
       const custom_text_max_length = form.custom_text_max_length
@@ -1313,14 +1320,26 @@ function ProductForm({
       <div>
         {product?.image_urls?.length && files.length === 0 ? (
           <div className="flex gap-2 mb-2 flex-wrap">
-            {product.image_urls.map((url) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+            {product.image_urls.map((url, n) => (
+              <button
+                type="button"
                 key={url}
-                src={url}
-                alt={product.title}
-                className="w-16 h-16 object-cover border border-line"
-              />
+                onClick={() => setCoverIndex(n)}
+                className="text-center"
+                title="Use as shop cover photo"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={url}
+                  alt={product.title}
+                  className={`w-16 h-16 object-cover border-2 ${
+                    n === coverIndex ? "border-brand" : "border-line"
+                  }`}
+                />
+                <span className="text-xs text-ink-soft">
+                  {n === coverIndex ? "Cover" : `Photo ${n + 1}`}
+                </span>
+              </button>
             ))}
           </div>
         ) : null}
@@ -1332,9 +1351,33 @@ function ProductForm({
         />
         <p className="text-ink-soft text-sm mt-1">
           {product
-            ? "Select one or more photos to replace the current gallery, or leave empty to keep it. The first photo becomes the cover photo."
-            : "You can select more than one photo. The first one becomes the cover photo shown on the shop page."}
+            ? "Select one or more photos to replace the current gallery, or leave empty to keep it."
+            : "You can select more than one photo."}
         </p>
+        {(files.length || product?.image_urls?.length || 0) > 1 && (
+          <label className="flex items-center gap-2 mt-2 text-sm">
+            <span className="placard-label text-ink-soft">
+              Cover photo on the shop page
+            </span>
+            <select
+              value={Math.min(
+                coverIndex,
+                Math.max(0, (files.length || product?.image_urls?.length || 1) - 1)
+              )}
+              onChange={(e) => setCoverIndex(Number(e.target.value))}
+              className="border border-line px-2 py-1 bg-paper"
+            >
+              {Array.from(
+                { length: files.length || product?.image_urls?.length || 0 },
+                (_, n) => (
+                  <option key={n} value={n}>
+                    Photo {n + 1}
+                  </option>
+                )
+              )}
+            </select>
+          </label>
+        )}
       </div>
       {error && <p className="text-oxblood text-sm">{error}</p>}
       <div className="flex gap-3">

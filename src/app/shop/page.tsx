@@ -4,6 +4,7 @@ import ProductCard from "@/components/ProductCard";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SortSelect from "@/components/SortSelect";
+import { getVariationFromPrices } from "@/lib/getVariationFromPrices";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { Suspense } from "react";
@@ -46,6 +47,7 @@ export default async function ShopPage({
   const { data: products } = await query;
 
   const list = (products as Product[]) ?? [];
+  const fromPrices = await getVariationFromPrices(list);
   const locale = await getLocale();
   const dict = getDictionary(locale);
 
@@ -73,7 +75,13 @@ export default async function ShopPage({
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-12">
             {list.map((p) => (
-              <ProductCard key={p.id} product={p} dict={dict} locale={locale} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                dict={dict}
+                locale={locale}
+                fromPriceCents={fromPrices[p.id]}
+              />
             ))}
           </div>
         )}

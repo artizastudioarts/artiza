@@ -11,6 +11,7 @@ import ProductSafetyNotice from "@/components/ProductSafetyNotice";
 import ProductVariantProvider, { SelectedVariationPrice } from "@/components/ProductVariantProvider";
 import ProductDetailsAccordions from "@/components/ProductDetailsAccordions";
 import ShippingNote from "@/components/ShippingNote";
+import { getVariationFromPrices } from "@/lib/getVariationFromPrices";
 import { getPageContent } from "@/lib/getPageContent";
 import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
@@ -130,12 +131,16 @@ export default async function ProductPage({
     related.push(...((others as Product[]) ?? []));
   }
 
+  const relatedFromPrices = await getVariationFromPrices(related);
+
   return (
     <>
       <Header />
       <ProductVariantProvider variations={variations}>
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
-        <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge} />
+        <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge}
+          initialIndex={Math.max(0, images.indexOf(product.image_url ?? ""))}
+        />
 
         <div className="max-w-md">
           <p className="placard-label text-ink-soft mb-3">
@@ -195,7 +200,13 @@ export default async function ProductPage({
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
             {related.map((p) => (
-              <ProductCard key={p.id} product={p} dict={dict} locale={locale} />
+              <ProductCard
+                key={p.id}
+                product={p}
+                dict={dict}
+                locale={locale}
+                fromPriceCents={relatedFromPrices[p.id]}
+              />
             ))}
           </div>
         </section>
