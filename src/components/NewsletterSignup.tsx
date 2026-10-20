@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import FormMessage from "@/components/FormMessage";
 
@@ -64,6 +65,11 @@ export default function NewsletterSignup({ stacked = false }: { stacked?: boolea
           {status === "sending" ? dict.newsletter.submitting : dict.newsletter.submitButton}
         </button>
       </form>
+      <p className="mt-3 text-center">
+        <Link href="/newsletter/unsubscribe" className="text-xs text-ink-soft underline hover:text-ink">
+          {dict.newsletter.unsubscribeLink}
+        </Link>
+      </p>
       {status === "error" && (
         <div className="mt-3">
           <FormMessage type="error">{dict.newsletter.errorMessage}</FormMessage>

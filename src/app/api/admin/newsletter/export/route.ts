@@ -5,14 +5,15 @@ export async function GET() {
   const db = supabaseAdmin();
   const { data, error } = await db
     .from("newsletter_subscribers")
-    .select("email, locale, subscribed_at")
+    .select("email, locale, subscribed_at, confirmed_at")
+    .not("confirmed_at", "is", null)
     .order("subscribed_at", { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const rows = ["Email,Sprache,Angemeldet am"];
+  const rows = ["Email,Sprache,Bestätigt am"];
   for (const s of data ?? []) {
-    const date = new Date(s.subscribed_at).toLocaleDateString("de-DE");
+    const date = new Date(s.confirmed_at).toLocaleDateString("de-DE");
     rows.push(`${s.email},${s.locale},${date}`);
   }
 

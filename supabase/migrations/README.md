@@ -64,6 +64,8 @@ instead, which already contains the end result of all of these combined
 
 40. `migration-product-details-accordions.sql` — option buttons with per-option "What's in the box", colors, photo and preselected flag, plus a standard "Materials used" text (needs #9 and the variations migration first)
 
+41. `migration-newsletter-double-optin.sql` — newsletter double opt-in: confirmation email + confirm page, consent proof (confirmed_at), welcome code only after confirming (needs the newsletter migrations first)
+
 ## Going forward
 
 Any new database change I build for you will be added here as a new,

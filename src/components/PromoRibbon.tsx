@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/context/LocaleContext";
@@ -8,12 +8,22 @@ import { useLocale } from "@/context/LocaleContext";
 type Props = { badge?: string; text?: string; code?: string; link?: string };
 
 // Floating promotion ribbon, pinned to the bottom-right corner on every screen
-// size. It stays put (no animation, no close button). Content comes from
-// Admin -> Content -> "Promotion ribbon"; with both texts empty it is hidden.
+// size. It shows in full for 5 seconds, then shrinks to a small "%" button so it
+// never covers the footer; tap the button to show the offer again (it shrinks
+// again after 5 seconds). Content comes from Admin -> Content -> "Promotion
+// ribbon"; with both texts empty it is hidden.
 export default function PromoRibbon({ badge, text, code, link }: Props) {
   const { locale } = useLocale();
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
+  const [open, setOpen] = useState(true);
+
+  // Collapse 5 seconds after the ribbon is (re)opened.
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(() => setOpen(false), 5000);
+    return () => clearTimeout(t);
+  }, [open]);
 
   if (!badge && !text) return null;
   if (pathname.startsWith("/admin") || pathname.startsWith("/site-locked")) return null;
@@ -30,6 +40,20 @@ export default function PromoRibbon({ badge, text, code, link }: Props) {
   }
 
   const safeLink = link && link.startsWith("/") ? link : undefined;
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={locale === "de" ? "Aktion anzeigen" : "Show promotion"}
+        className="fixed right-3 z-40 w-11 h-11 rounded-full bg-brand text-white shadow-lg flex items-center justify-center font-display text-2xl font-bold leading-none hover:bg-brand-deep transition-colors"
+        style={{ bottom: "max(12px, env(safe-area-inset-bottom, 0px))" }}
+      >
+        %
+      </button>
+    );
+  }
 
   return (
     <aside

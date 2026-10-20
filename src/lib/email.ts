@@ -64,6 +64,7 @@ export type EmailTemplateKey =
   | "order_status_changed"
   | "abandoned_cart"
   | "newsletter_welcome"
+  | "newsletter_confirm"
   | "withdrawal_confirmation"
   | "refund_confirmation"
   | "return_instructions";

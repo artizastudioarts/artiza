@@ -251,6 +251,16 @@ export type Dictionary = {
     submitting: string;
     successMessage: string;
     errorMessage: string;
+    confirmTitle: string;
+    confirmBody: string;
+    confirmButton: string;
+    confirmDone: string;
+    confirmInvalid: string;
+    unsubscribeLink: string;
+    unsubTitle: string;
+    unsubBody: string;
+    unsubButton: string;
+    unsubDone: string;
   };
   widerruf: {
     footerLink: string;
@@ -586,8 +596,18 @@ const de: Dictionary = {
     emailPlaceholder: "Deine E-Mail-Adresse",
     submitButton: "Anmelden",
     submitting: "Wird gesendet…",
-    successMessage: "Danke! Wir haben dir deinen Rabattcode per E-Mail geschickt.",
+    successMessage: "Fast geschafft! Wir haben dir eine E-Mail geschickt. Bitte bestätige deine Anmeldung, dann bekommst du deinen Rabattcode.",
+    confirmTitle: "Newsletter-Anmeldung bestätigen",
+    confirmBody: "Ein Klick noch: Bestätige, dass du unseren Newsletter erhalten möchtest. Danach schicken wir dir deinen Rabattcode.",
+    confirmButton: "Anmeldung bestätigen",
+    confirmDone: "Danke, du bist angemeldet! Dein Rabattcode ist unterwegs in dein Postfach.",
+    confirmInvalid: "Dieser Link ist ungültig oder abgelaufen. Bitte melde dich einfach noch einmal an.",
     errorMessage: "Etwas ist schiefgelaufen. Bitte versuche es erneut.",
+    unsubscribeLink: "Newsletter abbestellen",
+    unsubTitle: "Newsletter abbestellen",
+    unsubBody: "Gib die E-Mail-Adresse ein, mit der du dich angemeldet hast. Wir entfernen sie sofort aus dem Verteiler.",
+    unsubButton: "Abbestellen",
+    unsubDone: "Wenn die Adresse bei uns eingetragen war, wurde sie entfernt. Du erhältst keine Newsletter mehr.",
   },
   widerruf: {
     footerLink: "Widerrufsrecht",
@@ -923,8 +943,18 @@ const en: Dictionary = {
     emailPlaceholder: "Your email address",
     submitButton: "Sign up",
     submitting: "Sending…",
-    successMessage: "Thanks! We've sent your discount code to your email.",
+    successMessage: "Almost done! We sent you an email. Please confirm your signup and your discount code is on its way.",
+    confirmTitle: "Confirm your newsletter signup",
+    confirmBody: "One more click: confirm that you want to receive our newsletter. We will then send you your discount code.",
+    confirmButton: "Confirm signup",
+    confirmDone: "Thanks, you are signed up! Your discount code is on its way to your inbox.",
+    confirmInvalid: "This link is invalid or has expired. Please just sign up again.",
     errorMessage: "Something went wrong. Please try again.",
+    unsubscribeLink: "Unsubscribe from newsletter",
+    unsubTitle: "Unsubscribe from newsletter",
+    unsubBody: "Enter the email address you signed up with. We will remove it from our list right away.",
+    unsubButton: "Unsubscribe",
+    unsubDone: "If the address was on our list, it has been removed. You will not receive any more newsletters.",
   },
   widerruf: {
     footerLink: "Right of Withdrawal",

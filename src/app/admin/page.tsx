@@ -2060,6 +2060,7 @@ type EmailTemplateKey =
   | "order_status_changed"
   | "abandoned_cart"
   | "newsletter_welcome"
+  | "newsletter_confirm"
   | "withdrawal_confirmation"
   | "refund_confirmation"
   | "return_instructions";
@@ -2099,10 +2100,16 @@ const EMAIL_TEMPLATE_META: Record<
       "Sent automatically if a customer reaches Stripe checkout, enters their email, but doesn't finish paying within an hour.",
     placeholders: ["{{items}}"],
   },
+  newsletter_confirm: {
+    label: "Newsletter confirmation (double opt-in)",
+    description:
+      "The first email after someone enters their address in the newsletter form. It only contains the confirm link; the welcome email with the discount code follows after they click it.",
+    placeholders: ["{{confirm_url}}"],
+  },
   newsletter_welcome: {
     label: "Newsletter welcome",
     description:
-      "Sent right after someone signs up for the newsletter on the homepage — includes their welcome discount code.",
+      "Sent after someone has confirmed their newsletter signup — includes their welcome discount code.",
     placeholders: ["{{code}}", "{{unsubscribe_url}}"],
   },
   withdrawal_confirmation: {
@@ -2129,6 +2136,7 @@ const EMAIL_TEMPLATE_KEYS: EmailTemplateKey[] = [
   "order_confirmation",
   "order_status_changed",
   "abandoned_cart",
+  "newsletter_confirm",
   "newsletter_welcome",
   "withdrawal_confirmation",
   "refund_confirmation",
@@ -3395,6 +3403,7 @@ type NewsletterSubscriber = {
   email: string;
   locale: string;
   subscribed_at: string;
+  confirmed_at: string | null;
 };
 
 function NewsletterTab() {
@@ -3410,8 +3419,10 @@ function NewsletterTab() {
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-ink-soft text-sm">
-          Anyone who signs up on the homepage newsletter section shows up
-          here, along with the welcome code they were sent (set under
+          Newsletter signups use double opt-in: a new address first shows as
+          &quot;Waiting for confirmation&quot; (deleted automatically after 7
+          days) and only gets the welcome code after clicking the link in the
+          confirmation email. Only confirmed addresses are exported. The code is set under
           Admin → Content → Home page, field &quot;newsletterCode&quot; —
           make sure it matches a real code created in the Discounts tab).
         </p>
@@ -3434,6 +3445,7 @@ function NewsletterTab() {
               <th className="py-2 pr-4">Email</th>
               <th className="py-2 pr-4">Language</th>
               <th className="py-2 pr-4">Signed up</th>
+              <th className="py-2 pr-4">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -3443,6 +3455,11 @@ function NewsletterTab() {
                 <td className="py-3 pr-4">{s.locale.toUpperCase()}</td>
                 <td className="py-3 pr-4">
                   {new Date(s.subscribed_at).toLocaleDateString("de-DE")}
+                </td>
+                <td className="py-3 pr-4 text-xs">
+                  {s.confirmed_at
+                    ? `Confirmed ${new Date(s.confirmed_at).toLocaleDateString("de-DE")}`
+                    : "Waiting for confirmation"}
                 </td>
               </tr>
             ))}

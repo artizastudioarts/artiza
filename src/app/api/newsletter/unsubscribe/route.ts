@@ -17,3 +17,16 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.redirect(`${siteUrl}/newsletter/unsubscribed`);
 }
+
+// POST { email } — used by the "Unsubscribe from newsletter" page. Always
+// answers OK, whether or not the address was on the list, so nobody can use
+// this to find out who is subscribed.
+export async function POST(req: NextRequest) {
+  const { email } = (await req.json().catch(() => ({}))) as { email?: string };
+  if (typeof email !== "string" || !email.includes("@")) {
+    return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+  }
+  const db = supabaseAdmin();
+  await db.from("newsletter_subscribers").delete().eq("email", email.trim().toLowerCase());
+  return NextResponse.json({ ok: true });
+}
