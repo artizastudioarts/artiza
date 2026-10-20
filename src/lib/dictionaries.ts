@@ -141,6 +141,8 @@ export type Dictionary = {
   footer: {
     rights: string; // template with {year}
     terms: string;
+    payWith: string;
+    payNote: string;
   };
   terms: {
     eyebrow: string;
@@ -430,6 +432,8 @@ const de: Dictionary = {
   footer: {
     rights: "© {year} Artiza Studio. Alle Artikel werden mit Sorgfalt versendet.",
     terms: "AGB",
+    payWith: "Sicher bezahlen mit",
+    payNote: "Apple Pay und Google Pay erscheinen an der Kasse auf unterstützten Geräten.",
   },
   terms: {
     eyebrow: "Rechtliches",
@@ -764,6 +768,8 @@ const en: Dictionary = {
   footer: {
     rights: "© {year} Artiza Studio. All items shipped with care.",
     terms: "Terms & Conditions",
+    payWith: "Pay securely with",
+    payNote: "Apple Pay and Google Pay appear at checkout on supported devices.",
   },
   terms: {
     eyebrow: "Legal",
