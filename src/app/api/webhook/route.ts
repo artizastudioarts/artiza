@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
+import { resolveBoxArticles } from "@/lib/customBoxCatalog";
 import { formatPrice } from "@/lib/types";
 import { escapeHtml } from "@/lib/escapeHtml";
 import { getPageContent } from "@/lib/getPageContent";
@@ -95,31 +96,13 @@ export async function POST(req: NextRequest) {
 
     for (const entry of cartEntries) {
       if (entry.type === "custom_box") {
-        const articleIds = entry.articles.map((a) => a.articleId);
-        const { data: articleRows } =
-          articleIds.length > 0
-            ? await db.from("custom_box_articles").select("*").in("id", articleIds)
-            : { data: [] as { id: string; category_id: string; label: string; price_cents: number }[] };
-        const articlesById = new Map((articleRows ?? []).map((a) => [a.id as string, a]));
-        const categoryIds = [...new Set((articleRows ?? []).map((a) => a.category_id as string))];
-        const { data: categoryRows } =
-          categoryIds.length > 0
-            ? await db.from("custom_box_categories").select("*").in("id", categoryIds)
-            : { data: [] as { id: string; name: string }[] };
-        const categoriesById = new Map((categoryRows ?? []).map((c) => [c.id as string, c]));
-
+        const resolvedArticles = await resolveBoxArticles(
+          db,
+          entry.articles.map((a) => a.articleId)
+        );
         const resolvedItems = entry.articles
-          .filter((a) => a.quantity > 0 && articlesById.has(a.articleId))
-          .map((a) => {
-            const article = articlesById.get(a.articleId)!;
-            const category = categoriesById.get(article.category_id);
-            return {
-              categoryLabel: category?.name ?? "",
-              articleLabel: article.label,
-              priceCents: article.price_cents,
-              quantity: a.quantity,
-            };
-          });
+          .filter((a) => a.quantity > 0 && resolvedArticles.has(a.articleId))
+          .map((a) => ({ ...resolvedArticles.get(a.articleId)!, quantity: a.quantity }));
         if (resolvedItems.length === 0) continue;
 
         const boxSubtotal = resolvedItems.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);

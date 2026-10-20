@@ -1,5 +1,6 @@
 import { supabasePublic } from "@/lib/supabase";
-import { CustomBoxCategory, CustomBoxArticle } from "@/lib/types";
+import type { Product, ProductVariation } from "@/lib/types";
+import { buildBoxCatalog } from "@/lib/customBoxCatalog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CustomBoxBuilder from "@/components/CustomBoxBuilder";
@@ -23,26 +24,19 @@ export default async function BuildYourOwnPage() {
   const locale = await getLocale();
   const dict = getDictionary(locale);
 
-  const [{ data: categoryRows }, { data: articleRows }, shippingSettings] = await Promise.all([
-    supabasePublic
-      .from("custom_box_categories")
-      .select("*")
-      .order("sort_order", { ascending: true }),
-    supabasePublic
-      .from("custom_box_articles")
-      .select("*")
-      .order("sort_order", { ascending: true }),
+  const [{ data: productRows }, { data: variationRows }, shippingSettings] = await Promise.all([
+    supabasePublic.from("products").select("*").order("created_at", { ascending: false }),
+    supabasePublic.from("product_variations").select("*"),
     getShippingSettings(),
   ]);
 
-  const categories = ((categoryRows as CustomBoxCategory[]) ?? []).map((c) => ({
-    ...c,
-    name: locale === "en" ? c.name_en || c.name : c.name,
-  }));
-  const articles = ((articleRows as CustomBoxArticle[]) ?? []).map((a) => ({
-    ...a,
-    label: locale === "en" ? a.label_en || a.label : a.label,
-  }));
+  // Every shop product with all its options — nothing to maintain twice.
+  const { categories, articles } = buildBoxCatalog(
+    (productRows as Product[]) ?? [],
+    (variationRows as ProductVariation[]) ?? [],
+    locale,
+    "Standard"
+  );
 
   return (
     <>

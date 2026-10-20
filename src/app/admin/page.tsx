@@ -2729,9 +2729,11 @@ function CustomBoxTab() {
   return (
     <div className="max-w-3xl space-y-10">
       <p className="text-ink-soft text-sm">
-        Customers build their own box on its own page from the categories
-        below — pick a quantity per article, or add a whole category at
-        once. Each category needs one photo showing everything in it.
+        The &ldquo;Build your own box&rdquo; page now lists all your shop
+        products with all their options automatically, so nothing is entered
+        twice (products with personalization text are left out). Only the
+        shipping fee and minimum order below still apply. The categories and
+        articles further down are no longer shown to customers.
       </p>
 
       <div className="border border-line p-4 space-y-2">

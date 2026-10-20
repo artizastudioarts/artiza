@@ -67,6 +67,7 @@ instead, which already contains the end result of all of these combined
 41. `migration-newsletter-double-optin.sql` — newsletter double opt-in: confirmation email + confirm page, consent proof (confirmed_at), welcome code only after confirming (needs the newsletter migrations first)
 
 42. `migration-terms-kleinunternehmer.sql` — AGB section 2: replaces "prices include VAT" with the § 19 UStG small-business wording (needs the editable-terms migration first)
+43. `migration-product-materials-text.sql` — fills in the standard "Materials used" text (gypsum casting powder, water-based kid-friendly paints, brush included); keeps your text if you already edited it
 
 ## Going forward
 

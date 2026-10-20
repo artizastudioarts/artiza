@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { calcShippingCents, DEFAULT_PRODUCT_WEIGHT_G } from "@/lib/shipping";
 import { getLocale } from "@/lib/getLocale";
 import { countBillableChars, calcPerCharacterPriceCents, isValidCustomText } from "@/lib/customTextPricing";
+import { resolveBoxArticles } from "@/lib/customBoxCatalog";
 import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
@@ -163,18 +164,10 @@ export async function POST(req: NextRequest) {
     ]);
     const settings = shippingSettingsRow as ShippingSettings | null;
 
-    // Custom box articles are looked up fresh here too (never trust a
-    // client-sent price) — one query covering every article referenced
-    // across all boxes in the cart, plus their categories for labels.
+    // Custom box articles (shop products and their options) are looked up
+    // fresh here too — never trust a client-sent price.
     const allArticleIds = [...new Set(boxes.flatMap((b) => b.articles.map((a) => a.articleId)))];
-    const [{ data: articleRows }, { data: categoryRows }] = await Promise.all([
-      allArticleIds.length > 0
-        ? db.from("custom_box_articles").select("*").in("id", allArticleIds)
-        : Promise.resolve({ data: [] as { id: string; category_id: string; label: string; price_cents: number }[] }),
-      db.from("custom_box_categories").select("*"),
-    ]);
-    const articlesById = new Map((articleRows ?? []).map((a) => [a.id as string, a]));
-    const categoriesById = new Map((categoryRows ?? []).map((c) => [c.id as string, c]));
+    const resolvedArticles = await resolveBoxArticles(db, allArticleIds);
     const minOrderCents = settings?.custom_box_min_order_cents ?? 0;
     const boxShippingCents = settings?.custom_box_shipping_cents ?? 0;
 
@@ -186,15 +179,9 @@ export async function POST(req: NextRequest) {
       const items: ResolvedBoxItem[] = [];
       for (const a of box.articles) {
         if (!a.quantity || a.quantity <= 0) continue;
-        const article = articlesById.get(a.articleId);
+        const article = resolvedArticles.get(a.articleId);
         if (!article) continue;
-        const category = categoriesById.get(article.category_id);
-        items.push({
-          categoryLabel: category?.name ?? "",
-          articleLabel: article.label,
-          priceCents: article.price_cents,
-          quantity: a.quantity,
-        });
+        items.push({ ...article, quantity: a.quantity });
       }
       const subtotalCents = items.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
       if (items.length === 0 || subtotalCents < minOrderCents) {
