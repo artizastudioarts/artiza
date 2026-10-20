@@ -54,3 +54,7 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
+
+html {
+  scroll-behavior: smooth;
+}

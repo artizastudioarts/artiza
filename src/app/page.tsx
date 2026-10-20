@@ -9,6 +9,7 @@ import { getPageContent } from "@/lib/getPageContent";
 import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
 import BestSellersSlider from "@/components/BestSellersSlider";
 import { getVariationFromPrices } from "@/lib/getVariationFromPrices";
+import SocialLinks from "@/components/SocialLinks";
 import ReviewCard from "@/components/ReviewCard";
 import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -157,7 +158,7 @@ export default async function Home() {
           </section>
         )}
 
-        <section className="border-t border-line">
+        <section id="about" className="border-t border-line scroll-mt-4">
           <div className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-12 gap-8 md:gap-12">
             <div className="md:col-span-5">
               <p className="placard-label text-ink-soft mb-3">
@@ -222,6 +223,17 @@ export default async function Home() {
             </div>
           </section>
         )}
+
+        <section className="border-t border-line">
+          <div className="max-w-6xl mx-auto px-6 py-14 text-center">
+            <p className="placard-label text-ink-soft mb-3">{dict.home.followEyebrow}</p>
+            <h2 className="font-display text-2xl md:text-3xl italic mb-3">
+              {dict.home.followHeading}
+            </h2>
+            <p className="text-ink-soft mb-8 max-w-md mx-auto">{dict.home.followBody}</p>
+            <SocialLinks />
+          </div>
+        </section>
 
         <section id="newsletter" className="border-t border-line">
           <div className="max-w-6xl mx-auto px-6 py-16 text-center">

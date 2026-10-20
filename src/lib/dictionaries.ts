@@ -10,6 +10,7 @@ export type Dictionary = {
     openMenu: string;
     closeMenu: string;
     buildYourOwn: string;
+    about: string;
   };
   home: {
     defaultSubheadline: string;
@@ -27,6 +28,9 @@ export type Dictionary = {
     carouselPrev: string;
     carouselNext: string;
     carouselRegionLabel: string;
+    followEyebrow: string;
+    followHeading: string;
+    followBody: string;
     bestSellersEyebrow: string;
     bestSellersHeading: string;
     bestSellersAll: string;
@@ -293,6 +297,7 @@ const de: Dictionary = {
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
     buildYourOwn: "Eigene Box",
+    about: "Über uns",
   },
   home: {
     defaultSubheadline: "ZUM-SELBST-BEMALEN-FIGUREN",
@@ -312,6 +317,9 @@ const de: Dictionary = {
     carouselPrev: "Vorheriges Bild",
     carouselNext: "Nächstes Bild",
     carouselRegionLabel: "Bildergalerie, mit der Maus oder durch Wischen durchsuchbar",
+    followEyebrow: "BLEIB VERBUNDEN",
+    followHeading: "Folge uns",
+    followBody: "Neue Figuren, Party-Ideen und Einblicke in unser Studio: schau bei uns vorbei!",
     bestSellersEyebrow: "UNSERE LIEBLINGE",
     bestSellersHeading: "Bestseller",
     bestSellersAll: "Alle ansehen",
@@ -632,6 +640,7 @@ const en: Dictionary = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     buildYourOwn: "Build Your Own Box",
+    about: "About us",
   },
   home: {
     defaultSubheadline: "PAINT-YOUR-OWN FIGURE KITS",
@@ -651,6 +660,9 @@ const en: Dictionary = {
     carouselPrev: "Previous photo",
     carouselNext: "Next photo",
     carouselRegionLabel: "Photo gallery, scrollable with mouse or swipe",
+    followEyebrow: "STAY IN TOUCH",
+    followHeading: "Follow us",
+    followBody: "New figures, party ideas and a peek into our studio: come say hi!",
     bestSellersEyebrow: "OUR FAVORITES",
     bestSellersHeading: "Best Sellers",
     bestSellersAll: "View all",

@@ -37,6 +37,13 @@ export default function Header() {
         {dict.nav.buildYourOwn}
       </Link>
       <Link
+        href="/#about"
+        onClick={() => setMenuOpen(false)}
+        className="placard-label text-ink-soft hover:text-ink"
+      >
+        {dict.nav.about}
+      </Link>
+      <Link
         href="/cart"
         onClick={() => setMenuOpen(false)}
         className="placard-label text-ink-soft hover:text-ink"
