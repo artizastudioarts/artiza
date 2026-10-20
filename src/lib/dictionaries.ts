@@ -27,6 +27,11 @@ export type Dictionary = {
     carouselPrev: string;
     carouselNext: string;
     carouselRegionLabel: string;
+    bestSellersEyebrow: string;
+    bestSellersHeading: string;
+    bestSellersAll: string;
+    bestSellersSwipe: string;
+    bestSellersRegionLabel: string;
     defaultReviewsEyebrow: string;
     defaultReviewsHeading: string;
     defaultNewsletterHeading: string;
@@ -305,6 +310,11 @@ const de: Dictionary = {
     carouselPrev: "Vorheriges Bild",
     carouselNext: "Nächstes Bild",
     carouselRegionLabel: "Bildergalerie, mit der Maus oder durch Wischen durchsuchbar",
+    bestSellersEyebrow: "UNSERE LIEBLINGE",
+    bestSellersHeading: "Bestseller",
+    bestSellersAll: "Alle ansehen",
+    bestSellersSwipe: "Wischen →",
+    bestSellersRegionLabel: "Bestseller, durch Wischen oder mit den Pfeilen durchsuchbar",
     defaultReviewsEyebrow: "WAS UNSERE KUNDEN SAGEN",
     defaultReviewsHeading: "Echte Bewertungen von echten Käufern",
     defaultNewsletterHeading: "Bleib auf dem Laufenden",
@@ -637,6 +647,11 @@ const en: Dictionary = {
     carouselPrev: "Previous photo",
     carouselNext: "Next photo",
     carouselRegionLabel: "Photo gallery, scrollable with mouse or swipe",
+    bestSellersEyebrow: "OUR FAVORITES",
+    bestSellersHeading: "Best Sellers",
+    bestSellersAll: "View all",
+    bestSellersSwipe: "Swipe →",
+    bestSellersRegionLabel: "Best sellers, scroll by swiping or with the arrows",
     defaultReviewsEyebrow: "WHAT OUR CUSTOMERS SAY",
     defaultReviewsHeading: "Real reviews from real buyers",
     defaultNewsletterHeading: "Stay in the loop",

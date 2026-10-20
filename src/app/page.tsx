@@ -7,11 +7,13 @@ import { getLocale } from "@/lib/getLocale";
 import { getDictionary } from "@/lib/dictionaries";
 import { getPageContent } from "@/lib/getPageContent";
 import HomeCarousel, { type CarouselImage } from "@/components/HomeCarousel";
+import BestSellersSlider from "@/components/BestSellersSlider";
+import { getVariationFromPrices } from "@/lib/getVariationFromPrices";
 import ReviewCard from "@/components/ReviewCard";
 import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import NewsletterPopup from "@/components/NewsletterPopup";
-import type { Review } from "@/lib/types";
+import type { Review, Product } from "@/lib/types";
 import type { Metadata } from "next";
 
 export const revalidate = 0;
@@ -72,6 +74,16 @@ export default async function Home() {
 
   const featuredReviews = (reviewRows as Review[]) ?? [];
 
+  // Products the admin marked with the "Best Seller" badge.
+  const { data: bestRows } = await supabasePublic
+    .from("products")
+    .select("*")
+    .eq("badge", "best_seller")
+    .order("created_at", { ascending: false })
+    .limit(12);
+  const bestSellers = (bestRows as Product[]) ?? [];
+  const bestFromPrices = await getVariationFromPrices(bestSellers);
+
   return (
     <>
       <NewsletterPopup
@@ -87,9 +99,27 @@ export default async function Home() {
           <h1 className="font-display text-4xl md:text-6xl italic leading-tight max-w-3xl mx-auto">
             {pageContent.headline ?? dict.home.defaultHeadline}
           </h1>
-          <p className="mt-6 text-ink-soft max-w-xl mx-auto leading-relaxed">
-            {pageContent.body ?? dict.home.defaultBody}
-          </p>
+          <div className="max-w-4xl mx-auto mt-10">
+            <div className="relative aspect-video bg-paper-dim overflow-hidden">
+              {content?.video_url ? (
+                <video
+                  src={content.video_url}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft text-center px-6">
+                  {dict.home.videoFallback}
+                </div>
+              )}
+            </div>
+            <p className="placard-label text-ink-soft text-center mt-4">
+              {dict.home.videoCaption}
+            </p>
+          </div>
           <Link
             href="/shop"
             className="inline-block mt-8 bg-brand text-white px-8 py-4 placard-label hover:bg-brand-deep transition-colors"
@@ -101,27 +131,31 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="max-w-4xl mx-auto px-6 pb-20">
-          <div className="relative aspect-video bg-paper-dim overflow-hidden">
-            {content?.video_url ? (
-              <video
-                src={content.video_url}
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center placard-label text-ink-soft text-center px-6">
-                {dict.home.videoFallback}
+        {bestSellers.length > 0 && (
+          <section className="border-t border-line">
+            <div className="max-w-6xl mx-auto px-6 py-14">
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+                <div>
+                  <p className="placard-label text-ink-soft mb-2">
+                    {dict.home.bestSellersEyebrow}
+                  </p>
+                  <h2 className="font-display text-3xl md:text-4xl italic leading-tight">
+                    {dict.home.bestSellersHeading}
+                  </h2>
+                </div>
+                <Link href="/shop" className="placard-label text-ink-soft hover:text-ink">
+                  {dict.home.bestSellersAll} →
+                </Link>
               </div>
-            )}
-          </div>
-          <p className="placard-label text-ink-soft text-center mt-4">
-            {dict.home.videoCaption}
-          </p>
-        </section>
+              <BestSellersSlider
+                products={bestSellers}
+                dict={dict}
+                locale={locale}
+                fromPrices={bestFromPrices}
+              />
+            </div>
+          </section>
+        )}
 
         <section className="border-t border-line">
           <div className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-12 gap-8 md:gap-12">
