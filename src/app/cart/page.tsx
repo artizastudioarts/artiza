@@ -175,6 +175,7 @@ export default function CartPage() {
               </span>
             </div>
 
+            <p className="text-sm text-ink-soft mb-3">{dict.cart.priceNote}</p>
             <ShippingNote className="mb-4" />
 
             {error && <div className="mb-4"><FormMessage type="error">{error}</FormMessage></div>}

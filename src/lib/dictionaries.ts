@@ -93,6 +93,7 @@ export type Dictionary = {
     continueGuest: string;
     loginTrack: string;
     paymentNote: string;
+    priceNote: string;
     customTextLabel: string;
     customBoxNotesLabel: string;
   };
@@ -394,6 +395,7 @@ const de: Dictionary = {
     continueGuest: "Als Gast fortfahren",
     loginTrack: "Anmelden / Registrieren, um diese Bestellung zu verfolgen",
     paymentNote: "Kartenzahlung über Stripe",
+    priceNote: "Versandkosten kommen hinzu und werden vor der Zahlung angezeigt. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     customTextLabel: "Personalisierung",
     customBoxNotesLabel: "Bestellhinweise",
   },
@@ -747,6 +749,7 @@ const en: Dictionary = {
     continueGuest: "Continue as guest",
     loginTrack: "Log in / Sign up to track this order",
     paymentNote: "Card payment via Stripe",
+    priceNote: "Shipping is added and shown before you pay. No VAT is charged in accordance with § 19 UStG.",
     customTextLabel: "Personalization",
     customBoxNotesLabel: "Order notes",
   },

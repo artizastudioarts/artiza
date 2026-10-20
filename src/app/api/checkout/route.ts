@@ -332,6 +332,14 @@ export async function POST(req: NextRequest) {
       // separate mandatory field, just a nudge to include the house
       // number in the same line as the street.
       custom_text: {
+        // Shown right above the pay button: makes the payment obligation
+        // explicit (§ 312j BGB "Button-Lösung").
+        submit: {
+          message:
+            locale === "de"
+              ? "Mit Klick auf „Bezahlen“ gibst du eine zahlungspflichtige Bestellung ab. Preise ohne Ausweis der Umsatzsteuer gemäß § 19 UStG."
+              : "By clicking “Pay” you place a binding order with an obligation to pay. Prices without VAT in accordance with § 19 UStG.",
+        },
         shipping_address: {
           message:
             locale === "de"
