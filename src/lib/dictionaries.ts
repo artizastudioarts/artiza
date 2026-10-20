@@ -146,6 +146,7 @@ export type Dictionary = {
     rights: string; // template with {year}
     terms: string;
     payWith: string;
+    smallBusiness: string;
     payNote: string;
   };
   terms: {
@@ -451,6 +452,7 @@ const de: Dictionary = {
     rights: "© {year} Artiza Studio. Alle Artikel werden mit Sorgfalt versendet.",
     terms: "AGB",
     payWith: "Sicher bezahlen mit",
+    smallBusiness: "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     payNote: "Apple Pay und Google Pay erscheinen an der Kasse auf unterstützten Geräten.",
   },
   terms: {
@@ -463,7 +465,7 @@ const de: Dictionary = {
     },
     s2: {
       heading: "2. Bestellungen und Zahlung",
-      body: "Alle Preise werden in Euro (EUR) angezeigt und enthalten die geltende Mehrwertsteuer, sofern nicht anders angegeben. Die Zahlung wird zum Zeitpunkt der Bestellung sicher über Stripe abgewickelt. Wir speichern keine Kartendaten. Eine Bestellung gilt als bestätigt, sobald die Zahlung erfolgreich abgeschlossen wurde; du erhältst dann eine Bestätigung mit deiner eindeutigen Bestellnummer.",
+      body: "Alle Preise werden in Euro (EUR) angezeigt. Als Kleinunternehmer im Sinne von § 19 UStG erheben wir keine Umsatzsteuer und weisen sie daher nicht aus. Hinzu kommen gegebenenfalls Versandkosten, die vor Abschluss der Bestellung angezeigt werden. Die Zahlung wird zum Zeitpunkt der Bestellung sicher über Stripe abgewickelt. Wir speichern keine Kartendaten. Eine Bestellung gilt als bestätigt, sobald die Zahlung erfolgreich abgeschlossen wurde; du erhältst dann eine Bestätigung mit deiner eindeutigen Bestellnummer.",
     },
     s3: {
       heading: "3. Konten",
@@ -801,6 +803,7 @@ const en: Dictionary = {
     rights: "© {year} Artiza Studio. All items shipped with care.",
     terms: "Terms & Conditions",
     payWith: "Pay securely with",
+    smallBusiness: "No VAT is charged in accordance with § 19 UStG (small business regulation).",
     payNote: "Apple Pay and Google Pay appear at checkout on supported devices.",
   },
   terms: {
@@ -813,7 +816,7 @@ const en: Dictionary = {
     },
     s2: {
       heading: "2. Orders and payment",
-      body: "All prices are shown in Euros (EUR) and include applicable taxes unless stated otherwise. Payment is processed securely by Stripe at the time of checkout. We do not store your card details. An order is confirmed once payment has been successfully completed, at which point you will receive a confirmation with your unique order number.",
+      body: "All prices are shown in Euros (EUR). As a small business under § 19 UStG (German VAT Act), we do not charge VAT and therefore do not show it. Shipping costs may be added and are shown before you complete your order. Payment is processed securely by Stripe at the time of checkout. We do not store your card details. An order is confirmed once payment has been successfully completed, at which point you will receive a confirmation with your unique order number.",
     },
     s3: {
       heading: "3. Accounts",

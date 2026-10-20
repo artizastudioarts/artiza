@@ -29,6 +29,7 @@ export default function Footer() {
       </div>
       <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-between gap-3 placard-label text-ink-soft">
         <span>{interpolate(dict.footer.rights, { year: new Date().getFullYear() })}</span>
+        <span className="w-full text-xs normal-case tracking-normal">{dict.footer.smallBusiness}</span>
         <div className="flex gap-5 flex-wrap">
           <Link href="/reviews" className="hover:text-ink">
             {dict.reviews.pageTitle}
