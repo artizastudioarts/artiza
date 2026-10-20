@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/types";
 import { supabasePublic } from "@/lib/supabase";
 import SuppliesTab from "./SuppliesTab";
+import UsersTab from "./UsersTab";
 import ShipmentsTab from "./ShipmentsTab";
 import WithdrawalsTab from "./WithdrawalsTab";
 
@@ -98,13 +99,14 @@ export default function AdminDashboard() {
     | "supplies"
     | "shipments"
     | "withdrawals"
+    | "users"
   >("orders");
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <h1 className="font-display text-3xl italic">Admin</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setTab("orders")}
             className={`placard-label px-4 py-2 border border-line ${
@@ -217,6 +219,14 @@ export default function AdminDashboard() {
           >
             Withdrawals
           </button>
+          <button
+            onClick={() => setTab("users")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "users" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Users
+          </button>
         </div>
       </div>
 
@@ -246,6 +256,8 @@ export default function AdminDashboard() {
         <SuppliesTab />
       ) : tab === "shipments" ? (
         <ShipmentsTab />
+      ) : tab === "users" ? (
+        <UsersTab />
       ) : (
         <WithdrawalsTab />
       )}
