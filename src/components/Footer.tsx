@@ -4,28 +4,25 @@ import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { useCookieConsent } from "@/context/CookieConsentContext";
 import { interpolate } from "@/lib/i18n";
+import { PAYMENT_LOGOS } from "@/lib/paymentLogos";
 
 export default function Footer() {
   const { dict } = useLocale();
   const { reopenBanner } = useCookieConsent();
-  const methods = [
-    { name: "Visa", src: "/payment/visa.svg" },
-    { name: "Mastercard", src: "/payment/mastercard.svg" },
-    { name: "American Express", src: "/payment/amex.svg" },
-    { name: "PayPal", src: "/payment/paypal.svg" },
-    { name: "Apple Pay", src: "/payment/apple-pay.svg" },
-    { name: "Google Pay", src: "/payment/google-pay.svg" },
-  ];
   return (
     <footer className="border-t border-line py-8 mt-10">
       <div className="max-w-6xl mx-auto px-6 mb-6 pb-6 border-b border-line flex flex-wrap items-center gap-x-4 gap-y-3">
         <span className="placard-label text-ink-soft">{dict.footer.payWith}</span>
         <ul className="flex flex-wrap gap-2" aria-label={dict.footer.payWith}>
-          {methods.map((m) => (
-            <li key={m.name}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.src} alt={m.name} width={46} height={29} className="h-7 w-auto" />
-            </li>
+          {PAYMENT_LOGOS.map((m) => (
+            <li
+              key={m.name}
+              role="img"
+              aria-label={m.name}
+              title={m.name}
+              className="[&>svg]:h-7 [&>svg]:w-auto"
+              dangerouslySetInnerHTML={{ __html: m.svg }}
+            />
           ))}
         </ul>
         <p className="w-full text-xs text-ink-soft">{dict.footer.payNote}</p>
