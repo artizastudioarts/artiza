@@ -17,6 +17,7 @@ export default function CartPage() {
   const { dict } = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [freeThreshold, setFreeThreshold] = useState<number | null>(null);
 
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function CartPage() {
           // Only sent when logged in — lets the order be linked to the
           // account so it shows up under "Your orders".
           accessToken: session?.access_token ?? null,
+          newsletterOptIn,
         }),
       });
       const data = await res.json();
@@ -190,6 +192,16 @@ export default function CartPage() {
 
             <p className="text-sm text-ink-soft mb-3">{dict.cart.priceNote}</p>
             <ShippingNote className="mb-4" />
+
+            <label className="flex items-start gap-3 mb-4 text-sm text-ink-soft cursor-pointer">
+              <input
+                type="checkbox"
+                checked={newsletterOptIn}
+                onChange={(e) => setNewsletterOptIn(e.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0"
+              />
+              <span>{dict.cart.newsletterOptIn}</span>
+            </label>
 
             {error && <div className="mb-4"><FormMessage type="error">{error}</FormMessage></div>}
 

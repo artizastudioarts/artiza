@@ -5,6 +5,7 @@ import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { resolveBoxArticles } from "@/lib/customBoxCatalog";
+import { startNewsletterSignup } from "@/lib/newsletterSignup";
 import {
   cleanColorIds,
   loadSpecialColors,
@@ -336,6 +337,16 @@ export async function POST(req: NextRequest) {
           html: renderTemplate(template.body, vars),
           attachments: invoiceAttachment ? [invoiceAttachment] : undefined,
         });
+      }
+    }
+
+    // Newsletter box ticked in the cart: start the double opt-in (a confirmation
+    // email, no subscription until the link is clicked). Never blocks the order.
+    if (anyInserted && session.metadata?.newsletter_optin === "1" && email) {
+      try {
+        await startNewsletterSignup(email, session.metadata?.newsletter_locale === "en" ? "en" : "de");
+      } catch (err) {
+        console.error("Newsletter opt-in from checkout failed", err);
       }
     }
 

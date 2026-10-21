@@ -106,6 +106,7 @@ export type Dictionary = {
     loginTrack: string;
     paymentNote: string;
     priceNote: string;
+    newsletterOptIn: string;
     specialColorsLabel: string;
     colorPickLabel: string;
     customTextLabel: string;
@@ -423,6 +424,7 @@ const de: Dictionary = {
     paymentNote: "Kartenzahlung über Stripe",
     specialColorsLabel: "Spezialfarben",
     colorPickLabel: "Farbwahl",
+    newsletterOptIn: "Ja, ich möchte den Artiza-Newsletter per E-Mail erhalten. Nach der Bestellung bekomme ich zuerst eine Bestätigungs-E-Mail und bin erst nach Klick auf den Link angemeldet. Abmeldung jederzeit möglich.",
     priceNote: "Versandkosten kommen hinzu und werden vor der Zahlung angezeigt. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     customTextLabel: "Personalisierung",
     customBoxNotesLabel: "Bestellhinweise",
@@ -791,6 +793,7 @@ const en: Dictionary = {
     paymentNote: "Card payment via Stripe",
     specialColorsLabel: "Special colors",
     colorPickLabel: "Color choice",
+    newsletterOptIn: "Yes, I would like to receive the Artiza newsletter by email. After my order I will first get a confirmation email and am only subscribed once I click the link. I can unsubscribe at any time.",
     priceNote: "Shipping is added and shown before you pay. No VAT is charged in accordance with § 19 UStG.",
     customTextLabel: "Personalization",
     customBoxNotesLabel: "Order notes",

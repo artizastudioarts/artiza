@@ -18,7 +18,7 @@ import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, customBoxes, accessToken } = (await req.json()) as {
+    const { items, customBoxes, accessToken, newsletterOptIn } = (await req.json()) as {
       items: { id: string; quantity: number; customText?: string; variationId?: string; specialColorIds?: string[]; paletteColorIds?: string[] }[];
       customBoxes?: {
         articles: { articleId: string; quantity: number }[];
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
         quantity?: number;
       }[];
       accessToken?: string | null;
+      newsletterOptIn?: boolean;
     };
 
     const boxes = customBoxes ?? [];
@@ -480,6 +481,10 @@ export async function POST(req: NextRequest) {
         pendingCheckoutId: pending.id,
         // Empty string for guest checkouts — Stripe metadata values can't be null
         user_id: userId ?? "",
+        // The customer ticked the newsletter box in the cart. This only starts the
+        // double opt-in (a confirmation email); nobody is subscribed until they click it.
+        newsletter_optin: newsletterOptIn === true ? "1" : "",
+        newsletter_locale: locale === "en" ? "en" : "de",
       },
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/cart`,
