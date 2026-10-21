@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/types";
 import { supabasePublic } from "@/lib/supabase";
 import SuppliesTab from "./SuppliesTab";
 import UsersTab from "./UsersTab";
+import SpecialColorsTab from "./SpecialColorsTab";
 import ShipmentsTab from "./ShipmentsTab";
 import WithdrawalsTab from "./WithdrawalsTab";
 
@@ -100,6 +101,7 @@ export default function AdminDashboard() {
     | "shipments"
     | "withdrawals"
     | "users"
+    | "specialColors"
   >("orders");
 
   return (
@@ -162,6 +164,14 @@ export default function AdminDashboard() {
             }`}
           >
             Shipping
+          </button>
+          <button
+            onClick={() => setTab("specialColors")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "specialColors" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Special colors
           </button>
           <button
             onClick={() => setTab("customBox")}
@@ -244,6 +254,8 @@ export default function AdminDashboard() {
         <EmailsTab />
       ) : tab === "shipping" ? (
         <ShippingTab />
+      ) : tab === "specialColors" ? (
+        <SpecialColorsTab />
       ) : tab === "customBox" ? (
         <CustomBoxTab />
       ) : tab === "invoices" ? (

@@ -5,6 +5,7 @@ import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { resolveBoxArticles } from "@/lib/customBoxCatalog";
+import { cleanColorIds, loadSpecialColors, extraCentsFor, colorNames } from "@/lib/specialColors";
 import { formatPrice } from "@/lib/types";
 import { escapeHtml } from "@/lib/escapeHtml";
 import { getPageContent } from "@/lib/getPageContent";
@@ -23,6 +24,7 @@ type PendingProductItem = {
   quantity: number;
   customText: string | null;
   variationId: string | null;
+  specialColorIds?: string[] | null;
 };
 
 type PendingCustomBoxItem = {
@@ -150,6 +152,7 @@ export async function POST(req: NextRequest) {
       }
 
       const { productId, quantity, customText, variationId } = entry;
+      const specialIds = cleanColorIds(entry.specialColorIds);
       const { data: product } = await db
         .from("products")
         .select("*")
@@ -172,11 +175,22 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Special add-on colors the customer picked: added to the price per set
+      // and written into the option label so orders, invoices and emails show them.
+      const pickedColors = await loadSpecialColors(db, specialIds, false);
+      const extraCents = extraCentsFor(specialIds, pickedColors);
+      const pickedNames = colorNames(specialIds, pickedColors, "de");
+      if (pickedNames.length > 0) {
+        variationLabel = [variationLabel, `Spezialfarben: ${pickedNames.join(", ")}`]
+          .filter(Boolean)
+          .join(" + ");
+      }
+
       const unitPrice =
-        product.custom_text_pricing_mode === "per_character" &&
+        (product.custom_text_pricing_mode === "per_character" &&
         product.custom_text_price_per_char_cents != null
           ? calcPerCharacterPriceCents(customText ?? "", product.custom_text_price_per_char_cents)
-          : baseCents;
+          : baseCents) + extraCents;
       const lineTotal = unitPrice * quantity;
 
       const { data: inserted } = await db

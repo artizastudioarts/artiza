@@ -70,6 +70,9 @@ export type Dictionary = {
     customTextPriceRate: string; // template with {rate}
     customTextComputedTotal: string; // template with {total}
     chooseVariation: string;
+    specialColorsHeading: string;
+    specialColorsAsk: string;
+    specialColorsTotal: string; // template with {n}, {total}
     descriptionHeading: string;
     boxHeading: string;
     colorsIncluded: string;
@@ -94,6 +97,7 @@ export type Dictionary = {
     loginTrack: string;
     paymentNote: string;
     priceNote: string;
+    specialColorsLabel: string;
     customTextLabel: string;
     customBoxNotesLabel: string;
   };
@@ -372,6 +376,9 @@ const de: Dictionary = {
     customTextPriceRate: "{rate} pro Zeichen",
     customTextComputedTotal: "Gesamt: {total}",
     chooseVariation: "Wähle eine Option",
+    specialColorsHeading: "Glitzer-Spezialfarben",
+    specialColorsAsk: "Möchtest du Glitzer-Spezialfarben zu deinem Set dazubestellen? Jede gewählte Farbe wird dem Set zusätzlich beigelegt.",
+    specialColorsTotal: "{n} Spezialfarbe(n): +{total} pro Set",
     descriptionHeading: "Produktbeschreibung",
     boxHeading: "Was ist in der Box?",
     colorsIncluded: "Enthaltene Farben bei dieser Option",
@@ -395,6 +402,7 @@ const de: Dictionary = {
     continueGuest: "Als Gast fortfahren",
     loginTrack: "Anmelden / Registrieren, um diese Bestellung zu verfolgen",
     paymentNote: "Kartenzahlung über Stripe",
+    specialColorsLabel: "Spezialfarben",
     priceNote: "Versandkosten kommen hinzu und werden vor der Zahlung angezeigt. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     customTextLabel: "Personalisierung",
     customBoxNotesLabel: "Bestellhinweise",
@@ -726,6 +734,9 @@ const en: Dictionary = {
     customTextPriceRate: "{rate} per character",
     customTextComputedTotal: "Total: {total}",
     chooseVariation: "Choose an option",
+    specialColorsHeading: "Special glitter colors",
+    specialColorsAsk: "Would you like special glitter colors added to your set? Each color you choose is added to the set as an extra.",
+    specialColorsTotal: "{n} special color(s): +{total} per set",
     descriptionHeading: "Product description",
     boxHeading: "What's in the box",
     colorsIncluded: "Colors included with this option",
@@ -749,6 +760,7 @@ const en: Dictionary = {
     continueGuest: "Continue as guest",
     loginTrack: "Log in / Sign up to track this order",
     paymentNote: "Card payment via Stripe",
+    specialColorsLabel: "Special colors",
     priceNote: "Shipping is added and shown before you pay. No VAT is charged in accordance with § 19 UStG.",
     customTextLabel: "Personalization",
     customBoxNotesLabel: "Order notes",

@@ -20,6 +20,10 @@ export type CartItem = {
   customText?: string;
   variationId?: string;
   variationLabel?: string;
+  // Optional paid add-on colors. price_cents already includes them (display only;
+  // the checkout re-resolves the real prices server-side from the ids).
+  specialColorIds?: string[];
+  specialColorLabels?: string[];
   isCustomBox?: boolean;
   customBoxArticles?: { articleId: string; quantity: number }[];
   customBoxNotes?: string;
@@ -28,8 +32,9 @@ export type CartItem = {
   customBoxSummary?: CustomBoxOrderItem[];
 };
 
-function buildCartItemId(productId: string, customText?: string, variationId?: string) {
-  return `${productId}::${customText ?? ""}::${variationId ?? ""}`;
+function buildCartItemId(productId: string, customText?: string, variationId?: string, specialColorIds?: string[]) {
+  const colors = [...(specialColorIds ?? [])].sort().join(",");
+  return `${productId}::${customText ?? ""}::${variationId ?? ""}::${colors}`;
 }
 
 type CartContextType = {
@@ -72,7 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     item: Omit<CartItem, "quantity" | "cartItemId">,
     quantity = 1
   ) {
-    const cartItemId = buildCartItemId(item.id, item.customText, item.variationId);
+    const cartItemId = buildCartItemId(item.id, item.customText, item.variationId, item.specialColorIds);
     setItems((prev) => {
       const existing = prev.find((i) => i.cartItemId === cartItemId);
       if (existing) {

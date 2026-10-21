@@ -206,3 +206,15 @@ export type WithdrawalRequest = {
   refund_email_sent_at: string | null;
   return_email_sent_at: string | null;
 };
+
+// Optional paid add-on colors (e.g. glitter), managed in Admin -> Special colors
+// and offered on every product page.
+export type SpecialColor = {
+  id: string;
+  name: string;
+  name_en: string | null;
+  hex: string | null;
+  price_cents: number;
+  active: boolean;
+  sort_order: number;
+};

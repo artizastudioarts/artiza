@@ -1,5 +1,5 @@
 import { supabasePublic } from "@/lib/supabase";
-import { Product, ProductVariation, formatPrice } from "@/lib/types";
+import { Product, ProductVariation, SpecialColor, formatPrice } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { notFound } from "next/navigation";
@@ -92,6 +92,16 @@ export default async function ProductPage({
     }));
   }
 
+  const { data: specialColorRows } = await supabasePublic
+    .from("special_colors")
+    .select("*")
+    .eq("active", true)
+    .order("sort_order", { ascending: true });
+  const specialColors = ((specialColorRows as SpecialColor[]) ?? []).map((c) => ({
+    ...c,
+    name: locale === "en" ? c.name_en || c.name : c.name,
+  }));
+
   const safetyContent = await getPageContent("product_safety", locale);
   const materialsText = (await getPageContent("product_materials", locale)).text ?? "";
   const shippingNote = (await getPageContent("shipping_note", locale)).text ?? "";
@@ -174,7 +184,7 @@ export default async function ProductPage({
               </p>
             )}
           </div>
-          <AddToCartButton product={displayProduct} variations={variations} dict={dict} />
+          <AddToCartButton product={displayProduct} variations={variations} specialColors={specialColors} dict={dict} />
 
           <ShippingNote text={shippingNote} className="mt-4" />
 

@@ -5,12 +5,13 @@ import { calcShippingCents, DEFAULT_PRODUCT_WEIGHT_G } from "@/lib/shipping";
 import { getLocale } from "@/lib/getLocale";
 import { countBillableChars, calcPerCharacterPriceCents, isValidCustomText } from "@/lib/customTextPricing";
 import { resolveBoxArticles } from "@/lib/customBoxCatalog";
+import { cleanColorIds, loadSpecialColors, extraCentsFor, colorNames } from "@/lib/specialColors";
 import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
     const { items, customBoxes, accessToken } = (await req.json()) as {
-      items: { id: string; quantity: number; customText?: string; variationId?: string }[];
+      items: { id: string; quantity: number; customText?: string; variationId?: string; specialColorIds?: string[] }[];
       customBoxes?: {
         articles: { articleId: string; quantity: number }[];
         notes?: string;
@@ -20,6 +21,10 @@ export async function POST(req: NextRequest) {
     };
 
     const boxes = customBoxes ?? [];
+    // Special add-on colors: keep only clean, unique ids (verified against the database below).
+    if (Array.isArray(items)) {
+      for (const item of items) item.specialColorIds = cleanColorIds(item.specialColorIds);
+    }
 
     if ((!Array.isArray(items) || items.length === 0) && boxes.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -70,13 +75,30 @@ export async function POST(req: NextRequest) {
       (variationRows ?? []).map((v) => [v.id as string, v])
     );
 
+    // Special add-on colors: real prices fetched here (only colors that are
+    // still switched on). Every chosen color must still exist.
+    const colorsById = await loadSpecialColors(
+      db,
+      [...new Set(items.flatMap((i) => i.specialColorIds ?? []))],
+      true
+    );
+    for (const item of items) {
+      if ((item.specialColorIds ?? []).some((id) => !colorsById.has(id))) {
+        return NextResponse.json(
+          { error: "A special color you chose is no longer available. Please re-add the item." },
+          { status: 400 }
+        );
+      }
+    }
+
     // Never trust the client alone — re-check required custom text, its
     // length limits, and (for per-character priced products) recompute
     // the actual price server-side from the product's real settings.
     // This same function is reused below wherever a price is needed, so
     // there's exactly one place that decides what something costs.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- products comes from a raw Supabase query with no generated types
-    function unitPriceCents(product: any, customText?: string, variationId?: string) {
+    function unitPriceCents(product: any, customText?: string, variationId?: string, specialColorIds?: string[]) {
+      const extraCents = extraCentsFor(specialColorIds ?? [], colorsById);
       const baseCents = product.variations_enabled
         ? (variationsById.get(variationId ?? "")?.price_cents ?? 0)
         : product.price_cents;
@@ -84,12 +106,14 @@ export async function POST(req: NextRequest) {
         product.custom_text_pricing_mode === "per_character" &&
         product.custom_text_price_per_char_cents != null
       ) {
-        return calcPerCharacterPriceCents(
-          customText?.trim() ?? "",
-          product.custom_text_price_per_char_cents
+        return (
+          calcPerCharacterPriceCents(
+            customText?.trim() ?? "",
+            product.custom_text_price_per_char_cents
+          ) + extraCents
         );
       }
-      return baseCents;
+      return baseCents + extraCents;
     }
 
     for (const item of items) {
@@ -155,7 +179,7 @@ export async function POST(req: NextRequest) {
     const subtotalCents = items.reduce((sum, item) => {
       const product = products.find((p) => p.id === item.id);
       if (!product) return sum;
-      return sum + unitPriceCents(product, item.customText, item.variationId) * item.quantity;
+      return sum + unitPriceCents(product, item.customText, item.variationId, item.specialColorIds) * item.quantity;
     }, 0);
 
     const [{ data: rates }, { data: shippingSettingsRow }] = await Promise.all([
@@ -245,6 +269,7 @@ export async function POST(req: NextRequest) {
             quantity: item.quantity,
             customText: item.customText?.trim() || null,
             variationId: item.variationId || null,
+            specialColorIds: item.specialColorIds && item.specialColorIds.length > 0 ? item.specialColorIds : null,
           })),
           ...boxes.map((box) => ({
             type: "custom_box",
@@ -279,14 +304,21 @@ export async function POST(req: NextRequest) {
           const text = item.customText?.trim();
           const variation = variationsById.get(item.variationId ?? "");
           const nameParts = [product.title, variation?.label].filter(Boolean);
+          const pickedColorNames = colorNames(item.specialColorIds ?? [], colorsById, locale === "en" ? "en" : "de");
+          const descriptionParts = [
+            text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : "",
+            pickedColorNames.length > 0
+              ? `${locale === "de" ? "Spezialfarben" : "Special colors"}: ${pickedColorNames.join(", ")}`
+              : "",
+          ].filter(Boolean);
           return {
             quantity: item.quantity,
             price_data: {
               currency: product.currency,
-              unit_amount: unitPriceCents(product, item.customText, item.variationId),
+              unit_amount: unitPriceCents(product, item.customText, item.variationId, item.specialColorIds),
               product_data: {
                 name: nameParts.join(" — "),
-                description: text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : undefined,
+                description: descriptionParts.length > 0 ? descriptionParts.join(" · ") : undefined,
                 images: product.image_url ? [product.image_url] : undefined,
               },
             },

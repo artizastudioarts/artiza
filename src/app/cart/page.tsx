@@ -46,6 +46,7 @@ export default function CartPage() {
               quantity: i.quantity,
               customText: i.customText,
               variationId: i.variationId,
+              specialColorIds: i.specialColorIds,
             })),
           customBoxes: items
             .filter((i) => i.isCustomBox)
@@ -95,6 +96,11 @@ export default function CartPage() {
                     {item.variationLabel && (
                       <p className="text-sm text-ink-soft italic">
                         {item.variationLabel}
+                      </p>
+                    )}
+                    {item.specialColorLabels && item.specialColorLabels.length > 0 && (
+                      <p className="text-sm text-ink-soft italic">
+                        {dict.cart.specialColorsLabel}: {item.specialColorLabels.join(", ")}
                       </p>
                     )}
                     {item.customText && (

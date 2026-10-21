@@ -68,6 +68,7 @@ instead, which already contains the end result of all of these combined
 
 42. `migration-terms-kleinunternehmer.sql` — AGB section 2: replaces "prices include VAT" with the § 19 UStG small-business wording (needs the editable-terms migration first)
 43. `migration-product-materials-text.sql` — fills in the standard "Materials used" text (gypsum casting powder, water-based kid-friendly paints, brush included); keeps your text if you already edited it
+44. `migration-special-colors.sql` — special add-on colors (glitter etc.): a table you manage in Admin -> Special colors; every product page offers them at a price per color
 
 ## Going forward
 
