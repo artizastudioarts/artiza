@@ -43,7 +43,7 @@ export default function ProductDetailsAccordions({
   dict: Dictionary;
 }) {
   const ctx = useProductVariant();
-  const [openKey, setOpenKey] = useState<string | null>("desc");
+  const [openKey, setOpenKey] = useState<string | null>(null);
   const toggle = (k: string) => setOpenKey((cur) => (cur === k ? null : k));
 
   const box = ctx?.selected;
