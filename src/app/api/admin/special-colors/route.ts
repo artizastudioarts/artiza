@@ -8,11 +8,17 @@ function parseHex(v: unknown): string | null {
   return typeof v === "string" && /^#[0-9a-fA-F]{6}$/.test(v.trim()) ? v.trim() : null;
 }
 
-export async function GET() {
+function parseKind(v: unknown): "glitter" | "palette" {
+  return v === "palette" ? "palette" : "glitter";
+}
+
+export async function GET(req: NextRequest) {
+  const kind = parseKind(new URL(req.url).searchParams.get("kind"));
   const db = supabaseAdmin();
   const { data, error } = await db
     .from("special_colors")
     .select("*")
+    .eq("kind", kind)
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -22,7 +28,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const name = String(body.name ?? "").trim();
-  const price = Number(body.price);
+  const kind = parseKind(body.kind);
+  // Palette colors have no price of their own (the rule is set per product / box).
+  const price = kind === "palette" ? 0 : Number(body.price);
   if (!name) return NextResponse.json({ error: "Please enter a name" }, { status: 400 });
   if (!Number.isFinite(price) || price < 0) {
     return NextResponse.json({ error: "Please enter a valid price" }, { status: 400 });
@@ -31,6 +39,7 @@ export async function POST(req: NextRequest) {
   const { data: maxRow } = await db
     .from("special_colors")
     .select("sort_order")
+    .eq("kind", kind)
     .order("sort_order", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -41,6 +50,7 @@ export async function POST(req: NextRequest) {
       name_en: String(body.name_en ?? "").trim() || null,
       hex: parseHex(body.hex),
       price_cents: Math.round(price * 100),
+      kind,
       active: body.active !== false,
       sort_order: (maxRow?.sort_order ?? 0) + 1,
     })

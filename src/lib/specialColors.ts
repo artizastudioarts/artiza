@@ -13,9 +13,14 @@ export function cleanColorIds(ids: unknown): string[] {
 }
 
 /** Server side: the real colors (and prices) for the given ids. Never trust a price from the client. */
-export async function loadSpecialColors(db: Db, ids: string[], onlyActive: boolean): Promise<Map<string, SpecialColor>> {
+export async function loadSpecialColors(
+  db: Db,
+  ids: string[],
+  onlyActive: boolean,
+  kind: "glitter" | "palette" = "glitter"
+): Promise<Map<string, SpecialColor>> {
   if (ids.length === 0) return new Map();
-  let query = db.from("special_colors").select("*").in("id", ids);
+  let query = db.from("special_colors").select("*").in("id", ids).eq("kind", kind);
   if (onlyActive) query = query.eq("active", true);
   const { data } = await query;
   return new Map(((data as SpecialColor[]) ?? []).map((c) => [c.id, c]));
@@ -30,4 +35,13 @@ export function colorNames(ids: string[], colors: Map<string, SpecialColor>, loc
     .map((id) => colors.get(id))
     .filter((c): c is SpecialColor => !!c)
     .map((c) => (locale === "en" ? c.name_en || c.name : c.name));
+}
+
+/** Defaults of the "pick your colors" rule: this many colors are free, every further one costs the extra price. */
+export const DEFAULT_FREE_COLORS = 3;
+export const DEFAULT_EXTRA_COLOR_CENTS = 45;
+
+/** Price of a palette choice: the first `free` colors cost nothing, each further color costs `extraCents`. */
+export function paletteExtraCents(count: number, free: number, extraCents: number): number {
+  return Math.max(0, count - Math.max(0, free)) * Math.max(0, extraCents);
 }

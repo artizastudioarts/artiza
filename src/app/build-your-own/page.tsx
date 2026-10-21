@@ -1,5 +1,5 @@
 import { supabasePublic } from "@/lib/supabase";
-import type { Product, ProductVariation } from "@/lib/types";
+import type { Product, ProductVariation, SpecialColor } from "@/lib/types";
 import { buildBoxCatalog } from "@/lib/customBoxCatalog";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -24,11 +24,21 @@ export default async function BuildYourOwnPage() {
   const locale = await getLocale();
   const dict = getDictionary(locale);
 
-  const [{ data: productRows }, { data: variationRows }, shippingSettings] = await Promise.all([
+  const [{ data: productRows }, { data: variationRows }, shippingSettings, { data: paletteRows }] = await Promise.all([
     supabasePublic.from("products").select("*").order("created_at", { ascending: false }),
     supabasePublic.from("product_variations").select("*"),
     getShippingSettings(),
+    supabasePublic
+      .from("special_colors")
+      .select("*")
+      .eq("active", true)
+      .eq("kind", "palette")
+      .order("sort_order", { ascending: true }),
   ]);
+  const paletteColors = ((paletteRows as SpecialColor[]) ?? []).map((c) => ({
+    ...c,
+    name: locale === "en" ? c.name_en || c.name : c.name,
+  }));
 
   // Every shop product with all its options — nothing to maintain twice.
   const { categories, articles } = buildBoxCatalog(
@@ -51,6 +61,9 @@ export default async function BuildYourOwnPage() {
             categories={categories}
             articles={articles}
             minOrderCents={shippingSettings?.custom_box_min_order_cents ?? 0}
+            paletteColors={paletteColors}
+            colorFreeCount={shippingSettings?.custom_box_color_free_count ?? 3}
+            colorExtraCents={shippingSettings?.custom_box_color_extra_cents ?? 45}
             currency="eur"
             dict={dict}
           />

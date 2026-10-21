@@ -5,16 +5,25 @@ import { calcShippingCents, DEFAULT_PRODUCT_WEIGHT_G } from "@/lib/shipping";
 import { getLocale } from "@/lib/getLocale";
 import { countBillableChars, calcPerCharacterPriceCents, isValidCustomText } from "@/lib/customTextPricing";
 import { resolveBoxArticles } from "@/lib/customBoxCatalog";
-import { cleanColorIds, loadSpecialColors, extraCentsFor, colorNames } from "@/lib/specialColors";
+import {
+  cleanColorIds,
+  loadSpecialColors,
+  extraCentsFor,
+  colorNames,
+  paletteExtraCents,
+  DEFAULT_FREE_COLORS,
+  DEFAULT_EXTRA_COLOR_CENTS,
+} from "@/lib/specialColors";
 import type { ShippingRate, ShippingSettings } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
   try {
     const { items, customBoxes, accessToken } = (await req.json()) as {
-      items: { id: string; quantity: number; customText?: string; variationId?: string; specialColorIds?: string[] }[];
+      items: { id: string; quantity: number; customText?: string; variationId?: string; specialColorIds?: string[]; paletteColorIds?: string[] }[];
       customBoxes?: {
         articles: { articleId: string; quantity: number }[];
         notes?: string;
+        colorIds?: string[];
         quantity?: number;
       }[];
       accessToken?: string | null;
@@ -23,8 +32,12 @@ export async function POST(req: NextRequest) {
     const boxes = customBoxes ?? [];
     // Special add-on colors: keep only clean, unique ids (verified against the database below).
     if (Array.isArray(items)) {
-      for (const item of items) item.specialColorIds = cleanColorIds(item.specialColorIds);
+      for (const item of items) {
+        item.specialColorIds = cleanColorIds(item.specialColorIds);
+        item.paletteColorIds = cleanColorIds(item.paletteColorIds);
+      }
     }
+    for (const box of boxes) box.colorIds = cleanColorIds(box.colorIds);
 
     if ((!Array.isArray(items) || items.length === 0) && boxes.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -91,14 +104,44 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Palette colors ("pick your colors"): the real, still-active colors fetched here.
+    const { data: paletteRows } = await db
+      .from("special_colors")
+      .select("*")
+      .eq("kind", "palette")
+      .eq("active", true);
+    const paletteById = new Map(
+      ((paletteRows as { id: string; name: string; name_en: string | null }[]) ?? []).map((c) => [c.id, c])
+    );
+    const paletteNames = (ids: string[]) =>
+      ids
+        .map((id) => paletteById.get(id))
+        .filter((c): c is NonNullable<typeof c> => !!c)
+        .map((c) => (locale === "en" ? c.name_en || c.name : c.name));
+    const locale = await getLocale();
+
     // Never trust the client alone — re-check required custom text, its
     // length limits, and (for per-character priced products) recompute
     // the actual price server-side from the product's real settings.
     // This same function is reused below wherever a price is needed, so
     // there's exactly one place that decides what something costs.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- products comes from a raw Supabase query with no generated types
-    function unitPriceCents(product: any, customText?: string, variationId?: string, specialColorIds?: string[]) {
-      const extraCents = extraCentsFor(specialColorIds ?? [], colorsById);
+    function unitPriceCents(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- products comes from a raw Supabase query with no generated types
+      product: any,
+      customText?: string,
+      variationId?: string,
+      specialColorIds?: string[],
+      paletteColorIds?: string[]
+    ) {
+      const extraCents =
+        extraCentsFor(specialColorIds ?? [], colorsById) +
+        (product.color_pick_enabled
+          ? paletteExtraCents(
+              (paletteColorIds ?? []).length,
+              product.color_pick_free_count ?? DEFAULT_FREE_COLORS,
+              product.color_pick_extra_cents ?? DEFAULT_EXTRA_COLOR_CENTS
+            )
+          : 0);
       const baseCents = product.variations_enabled
         ? (variationsById.get(variationId ?? "")?.price_cents ?? 0)
         : product.price_cents;
@@ -134,6 +177,20 @@ export async function POST(req: NextRequest) {
           );
         }
       }
+      // Palette colors: all must still be offered; a product that offers the choice needs at least one.
+      const pickedPalette = item.paletteColorIds ?? [];
+      if (pickedPalette.some((id) => !paletteById.has(id))) {
+        return NextResponse.json(
+          { error: "A color you chose is no longer available. Please re-add the item." },
+          { status: 400 }
+        );
+      }
+      if (!product.color_pick_enabled && pickedPalette.length > 0) {
+        return NextResponse.json({ error: "Invalid color choice for this item" }, { status: 400 });
+      }
+      if (product.color_pick_enabled && paletteById.size > 0 && pickedPalette.length === 0) {
+        return NextResponse.json({ error: "Please choose at least one color" }, { status: 400 });
+      }
       const text = item.customText?.trim() ?? "";
       if (product.custom_text_enabled) {
         if (!text) {
@@ -166,7 +223,6 @@ export async function POST(req: NextRequest) {
     }
 
     const origin = req.headers.get("origin") ?? process.env.SITE_URL!;
-    const locale = await getLocale();
 
     // Add up the total weight of everything in the cart to figure out
     // which shipping price tier applies.
@@ -179,7 +235,7 @@ export async function POST(req: NextRequest) {
     const subtotalCents = items.reduce((sum, item) => {
       const product = products.find((p) => p.id === item.id);
       if (!product) return sum;
-      return sum + unitPriceCents(product, item.customText, item.variationId, item.specialColorIds) * item.quantity;
+      return sum + unitPriceCents(product, item.customText, item.variationId, item.specialColorIds, item.paletteColorIds) * item.quantity;
     }, 0);
 
     const [{ data: rates }, { data: shippingSettingsRow }] = await Promise.all([
@@ -196,7 +252,15 @@ export async function POST(req: NextRequest) {
     const boxShippingCents = settings?.custom_box_shipping_cents ?? 0;
 
     type ResolvedBoxItem = { categoryLabel: string; articleLabel: string; priceCents: number; quantity: number };
-    type ResolvedBox = { items: ResolvedBoxItem[]; subtotalCents: number; notes: string | null; quantity: number };
+    type ResolvedBox = {
+      items: ResolvedBoxItem[];
+      subtotalCents: number; // articles + any extra colors
+      notes: string | null;
+      quantity: number;
+      colorNames: string[];
+    };
+    const boxFreeColors = settings?.custom_box_color_free_count ?? DEFAULT_FREE_COLORS;
+    const boxExtraColorCents = settings?.custom_box_color_extra_cents ?? DEFAULT_EXTRA_COLOR_CENTS;
 
     const resolvedBoxes: ResolvedBox[] = [];
     for (const box of boxes) {
@@ -214,9 +278,21 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+      const boxColorIds = box.colorIds ?? [];
+      if (boxColorIds.some((id) => !paletteById.has(id))) {
+        return NextResponse.json(
+          { error: "A color you chose is no longer available. Please re-add the box." },
+          { status: 400 }
+        );
+      }
+      if (paletteById.size > 0 && boxColorIds.length === 0) {
+        return NextResponse.json({ error: "Please choose at least one color for the box" }, { status: 400 });
+      }
       resolvedBoxes.push({
         items,
-        subtotalCents,
+        colorNames: paletteNames(boxColorIds),
+        subtotalCents:
+          subtotalCents + paletteExtraCents(boxColorIds.length, boxFreeColors, boxExtraColorCents),
         notes: box.notes?.trim() || null,
         quantity: Math.max(1, box.quantity ?? 1),
       });
@@ -270,12 +346,14 @@ export async function POST(req: NextRequest) {
             customText: item.customText?.trim() || null,
             variationId: item.variationId || null,
             specialColorIds: item.specialColorIds && item.specialColorIds.length > 0 ? item.specialColorIds : null,
+            paletteColorIds: item.paletteColorIds && item.paletteColorIds.length > 0 ? item.paletteColorIds : null,
           })),
           ...boxes.map((box) => ({
             type: "custom_box",
             quantity: Math.max(1, box.quantity ?? 1),
             articles: box.articles.filter((a) => a.quantity > 0),
             notes: box.notes?.trim() || null,
+            colorIds: box.colorIds && box.colorIds.length > 0 ? box.colorIds : null,
           })),
         ],
       })
@@ -305,7 +383,11 @@ export async function POST(req: NextRequest) {
           const variation = variationsById.get(item.variationId ?? "");
           const nameParts = [product.title, variation?.label].filter(Boolean);
           const pickedColorNames = colorNames(item.specialColorIds ?? [], colorsById, locale === "en" ? "en" : "de");
+          const pickedPaletteNames = paletteNames(item.paletteColorIds ?? []);
           const descriptionParts = [
+            pickedPaletteNames.length > 0
+              ? `${locale === "de" ? "Farbwahl" : "Color choice"}: ${pickedPaletteNames.join(", ")}`
+              : "",
             text ? `${locale === "de" ? "Personalisierung" : "Personalization"}: ${text}` : "",
             pickedColorNames.length > 0
               ? `${locale === "de" ? "Spezialfarben" : "Special colors"}: ${pickedColorNames.join(", ")}`
@@ -315,7 +397,7 @@ export async function POST(req: NextRequest) {
             quantity: item.quantity,
             price_data: {
               currency: product.currency,
-              unit_amount: unitPriceCents(product, item.customText, item.variationId, item.specialColorIds),
+              unit_amount: unitPriceCents(product, item.customText, item.variationId, item.specialColorIds, item.paletteColorIds),
               product_data: {
                 name: nameParts.join(" — "),
                 description: descriptionParts.length > 0 ? descriptionParts.join(" · ") : undefined,
@@ -325,7 +407,11 @@ export async function POST(req: NextRequest) {
           };
         }),
         ...resolvedBoxes.map((box) => {
-          const summary = box.items.map((i) => `${i.articleLabel} ×${i.quantity}`).join(", ").slice(0, 400);
+          const colorsPart =
+            box.colorNames.length > 0
+              ? `${locale === "de" ? "Farbwahl" : "Color choice"}: ${box.colorNames.join(", ")} | `
+              : "";
+          const summary = (colorsPart + box.items.map((i) => `${i.articleLabel} ×${i.quantity}`).join(", ")).slice(0, 400);
           return {
             quantity: box.quantity,
             price_data: {

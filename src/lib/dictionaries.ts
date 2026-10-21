@@ -75,6 +75,13 @@ export type Dictionary = {
     specialColorsTotal: string; // template with {n}, {total}
     specialColorsSummary: string; // template with {n}, {total}
     specialColorsIncluded: string; // label shown before the colors already in the set
+    colorPickHeading: string;
+    colorPickHint: string; // template with {free}, {price}
+    colorPickCount: string; // template with {n}
+    colorPickCost: string; // template with {total}
+    colorPickAllFree: string;
+    colorPickRequired: string;
+    colorPickSummary: string; // template with {n}, {total}
     descriptionHeading: string;
     boxHeading: string;
     colorsIncluded: string;
@@ -100,6 +107,7 @@ export type Dictionary = {
     paymentNote: string;
     priceNote: string;
     specialColorsLabel: string;
+    colorPickLabel: string;
     customTextLabel: string;
     customBoxNotesLabel: string;
   };
@@ -383,6 +391,13 @@ const de: Dictionary = {
     specialColorsTotal: "{n} Zusatzfarbe(n): +{total} pro Set",
     specialColorsSummary: "Inklusive {n} Glitzer-Spezialfarbe(n) als Zusatz: +{total} pro Set",
     specialColorsIncluded: "Bereits im Preis enthalten:",
+    colorPickHeading: "Wähle deine Farben",
+    colorPickHint: "Die ersten {free} Farben sind kostenlos, jede weitere Farbe kostet {price}.",
+    colorPickCount: "{n} Farbe(n) gewählt",
+    colorPickCost: "Aufpreis für Zusatzfarben: +{total}",
+    colorPickAllFree: "Deine Farbauswahl ist kostenlos.",
+    colorPickRequired: "Bitte wähle mindestens eine Farbe.",
+    colorPickSummary: "{n} Farbe(n) gewählt, Aufpreis: +{total} pro Stück",
     descriptionHeading: "Produktbeschreibung",
     boxHeading: "Was ist in der Box?",
     colorsIncluded: "Enthaltene Farben bei dieser Option",
@@ -407,6 +422,7 @@ const de: Dictionary = {
     loginTrack: "Anmelden / Registrieren, um diese Bestellung zu verfolgen",
     paymentNote: "Kartenzahlung über Stripe",
     specialColorsLabel: "Spezialfarben",
+    colorPickLabel: "Farbwahl",
     priceNote: "Versandkosten kommen hinzu und werden vor der Zahlung angezeigt. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.",
     customTextLabel: "Personalisierung",
     customBoxNotesLabel: "Bestellhinweise",
@@ -743,6 +759,13 @@ const en: Dictionary = {
     specialColorsTotal: "{n} extra color(s): +{total} per set",
     specialColorsSummary: "Includes {n} extra glitter color(s): +{total} per set",
     specialColorsIncluded: "Already included in the price:",
+    colorPickHeading: "Choose your colors",
+    colorPickHint: "The first {free} colors are free, every additional color costs {price}.",
+    colorPickCount: "{n} color(s) chosen",
+    colorPickCost: "Extra for additional colors: +{total}",
+    colorPickAllFree: "Your color choice is free.",
+    colorPickRequired: "Please choose at least one color.",
+    colorPickSummary: "{n} color(s) chosen, extra: +{total} each",
     descriptionHeading: "Product description",
     boxHeading: "What's in the box",
     colorsIncluded: "Colors included with this option",
@@ -767,6 +790,7 @@ const en: Dictionary = {
     loginTrack: "Log in / Sign up to track this order",
     paymentNote: "Card payment via Stripe",
     specialColorsLabel: "Special colors",
+    colorPickLabel: "Color choice",
     priceNote: "Shipping is added and shown before you pay. No VAT is charged in accordance with § 19 UStG.",
     customTextLabel: "Personalization",
     customBoxNotesLabel: "Order notes",

@@ -8,6 +8,8 @@ import { useCart } from "@/context/CartContext";
 import { Product, ProductVariation, MAX_CART_QTY, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
+import PaletteColorGrid from "@/components/PaletteColorGrid";
+import { paletteExtraCents } from "@/lib/specialColors";
 import {
   countBillableChars,
   sanitizeCustomText,
@@ -63,10 +65,22 @@ export default function AddToCartButton({
   );
   const specialExtraCents = pickedColors.reduce((sum, c) => sum + c.price_cents, 0);
 
+  // Colors picked from the palette: the first few are free, the rest cost extra.
+  const palette = variant?.palette ?? null;
+  const pickedPalette = palette
+    ? variant!.pickedPaletteIds
+        .map((id) => palette.colors.find((c) => c.id === id))
+        .filter((c): c is NonNullable<typeof c> => !!c)
+    : [];
+  const paletteExtra = palette
+    ? paletteExtraCents(pickedPalette.length, palette.freeCount, palette.extraCents)
+    : 0;
+  const paletteOk = !palette || pickedPalette.length > 0;
+
   const meetsLength =
     trimmedCustomText.length > 0 && billableChars >= minLength;
   const canAdd =
-    (!requiresCustomText || meetsLength) && (!hasVariations || !!selectedVariation);
+    (!requiresCustomText || meetsLength) && (!hasVariations || !!selectedVariation) && paletteOk;
 
   function handleAdd() {
     if (!canAdd) return;
@@ -74,7 +88,7 @@ export default function AddToCartButton({
       {
         id: product.id,
         title: product.title,
-        price_cents: computedPriceCents + specialExtraCents,
+        price_cents: computedPriceCents + specialExtraCents + paletteExtra,
         currency: product.currency,
         image_url: product.image_url,
         customText: requiresCustomText ? trimmedCustomText : undefined,
@@ -82,6 +96,8 @@ export default function AddToCartButton({
         variationLabel: hasVariations ? selectedVariation?.label : undefined,
         specialColorIds: pickedColors.length > 0 ? pickedColors.map((c) => c.id) : undefined,
         specialColorLabels: pickedColors.length > 0 ? pickedColors.map((c) => c.name) : undefined,
+        paletteColorIds: pickedPalette.length > 0 ? pickedPalette.map((c) => c.id) : undefined,
+        paletteColorLabels: pickedPalette.length > 0 ? pickedPalette.map((c) => c.name) : undefined,
       },
       qty
     );
@@ -179,6 +195,17 @@ export default function AddToCartButton({
             </p>
           )}
         </div>
+      )}
+      {palette && variant && (
+        <PaletteColorGrid
+          colors={palette.colors}
+          pickedIds={variant.pickedPaletteIds}
+          onToggle={variant.togglePalette}
+          freeCount={palette.freeCount}
+          extraCents={palette.extraCents}
+          currency={product.currency}
+          dict={dict}
+        />
       )}
       {pickedColors.length > 0 && (
         <p className="text-sm text-ink-soft">

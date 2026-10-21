@@ -27,6 +27,10 @@ export type Product = {
   custom_text_pricing_mode: "fixed" | "per_character";
   custom_text_price_per_char_cents: number | null;
   custom_text_min_length: number | null;
+  // Customer picks paint colors from the palette: some free, the rest at a price each.
+  color_pick_enabled?: boolean;
+  color_pick_free_count?: number;
+  color_pick_extra_cents?: number;
   weight_grams: number | null;
   variations_enabled: boolean;
   created_at: string;
@@ -63,6 +67,8 @@ export type ShippingSettings = {
   free_standard_threshold_cents: number | null;
   custom_box_shipping_cents: number;
   custom_box_min_order_cents: number;
+  custom_box_color_free_count?: number;
+  custom_box_color_extra_cents?: number;
 };
 
 export type CustomBoxCategory = {
@@ -217,4 +223,6 @@ export type SpecialColor = {
   price_cents: number;
   active: boolean;
   sort_order: number;
+  // "glitter" = paid add-on color, "palette" = color the customer can pick for a product / box.
+  kind?: "glitter" | "palette";
 };

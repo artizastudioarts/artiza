@@ -5,7 +5,15 @@ import { sendEmail, getEmailTemplate, renderTemplate } from "@/lib/email";
 import { generateInvoiceForOrder } from "@/lib/generateInvoice";
 import { calcPerCharacterPriceCents } from "@/lib/customTextPricing";
 import { resolveBoxArticles } from "@/lib/customBoxCatalog";
-import { cleanColorIds, loadSpecialColors, extraCentsFor, colorNames } from "@/lib/specialColors";
+import {
+  cleanColorIds,
+  loadSpecialColors,
+  extraCentsFor,
+  colorNames,
+  paletteExtraCents,
+  DEFAULT_FREE_COLORS,
+  DEFAULT_EXTRA_COLOR_CENTS,
+} from "@/lib/specialColors";
 import { formatPrice } from "@/lib/types";
 import { escapeHtml } from "@/lib/escapeHtml";
 import { getPageContent } from "@/lib/getPageContent";
@@ -25,6 +33,7 @@ type PendingProductItem = {
   customText: string | null;
   variationId: string | null;
   specialColorIds?: string[] | null;
+  paletteColorIds?: string[] | null;
 };
 
 type PendingCustomBoxItem = {
@@ -32,6 +41,7 @@ type PendingCustomBoxItem = {
   quantity: number;
   articles: { articleId: string; quantity: number }[];
   notes: string | null;
+  colorIds?: string[] | null;
 };
 
 type PendingCartItem = PendingProductItem | PendingCustomBoxItem;
@@ -107,7 +117,27 @@ export async function POST(req: NextRequest) {
           .map((a) => ({ ...resolvedArticles.get(a.articleId)!, quantity: a.quantity }));
         if (resolvedItems.length === 0) continue;
 
-        const boxSubtotal = resolvedItems.reduce((sum, i) => sum + i.priceCents * i.quantity, 0);
+        // Colors picked for the whole box: first few free, the rest charged (same rule as the checkout).
+        const boxColorIds = cleanColorIds(entry.colorIds);
+        const boxColors = await loadSpecialColors(db, boxColorIds, false, "palette");
+        const boxColorNames = colorNames(boxColorIds, boxColors, "de");
+        const { data: boxSettings } = await db
+          .from("shipping_settings")
+          .select("custom_box_color_free_count, custom_box_color_extra_cents")
+          .eq("id", 1)
+          .single();
+        const boxColorExtra = paletteExtraCents(
+          boxColorNames.length,
+          boxSettings?.custom_box_color_free_count ?? DEFAULT_FREE_COLORS,
+          boxSettings?.custom_box_color_extra_cents ?? DEFAULT_EXTRA_COLOR_CENTS
+        );
+        // The colors are written into the order's notes so the order, invoice and emails show them.
+        const boxNotes =
+          [boxColorNames.length > 0 ? `Farbwahl: ${boxColorNames.join(", ")}` : "", entry.notes ?? ""]
+            .filter(Boolean)
+            .join(" | ") || null;
+
+        const boxSubtotal = resolvedItems.reduce((sum, i) => sum + i.priceCents * i.quantity, 0) + boxColorExtra;
         const lineTotal = boxSubtotal * entry.quantity;
 
         const { data: inserted } = await db
@@ -124,7 +154,7 @@ export async function POST(req: NextRequest) {
             quantity: entry.quantity,
             order_type: "custom_box",
             custom_box_items: resolvedItems,
-            custom_box_notes: entry.notes,
+            custom_box_notes: boxNotes,
             amount_total_cents: lineTotal,
             shipping_cents: isFirstRow ? shippingCents : null,
             currency: session.currency,
@@ -138,12 +168,12 @@ export async function POST(req: NextRequest) {
           anyInserted = true;
           isFirstRow = false;
           totalCents += lineTotal;
-          const notesPart = entry.notes ? ` — Hinweis: ${entry.notes}` : "";
+          const notesPart = boxNotes ? ` — Hinweis: ${boxNotes}` : "";
           itemLines.push(
             `<li>Eigene Box × ${entry.quantity}${notesPart} — ${formatPrice(lineTotal, session.currency ?? "eur")}</li>`
           );
           ownerLines.push(
-            `<li><strong>Eigene Box × ${entry.quantity}</strong>${entry.notes ? ` — Hinweis: ${escapeHtml(entry.notes)}` : ""} — ${formatPrice(lineTotal, session.currency ?? "eur")}<br>${resolvedItems
+            `<li><strong>Eigene Box × ${entry.quantity}</strong>${boxNotes ? ` — Hinweis: ${escapeHtml(boxNotes)}` : ""} — ${formatPrice(lineTotal, session.currency ?? "eur")}<br>${resolvedItems
               .map((i) => `${escapeHtml(i.categoryLabel)}: ${escapeHtml(i.articleLabel)} × ${i.quantity}`)
               .join("<br>")}</li>`
           );
@@ -186,11 +216,26 @@ export async function POST(req: NextRequest) {
           .join(" + ");
       }
 
+      // Colors picked from the palette: first few free, the rest charged.
+      const paletteIds = product.color_pick_enabled ? cleanColorIds(entry.paletteColorIds) : [];
+      const paletteColors = await loadSpecialColors(db, paletteIds, false, "palette");
+      const paletteNamesPicked = colorNames(paletteIds, paletteColors, "de");
+      const paletteExtra = paletteExtraCents(
+        paletteNamesPicked.length,
+        product.color_pick_free_count ?? DEFAULT_FREE_COLORS,
+        product.color_pick_extra_cents ?? DEFAULT_EXTRA_COLOR_CENTS
+      );
+      if (paletteNamesPicked.length > 0) {
+        variationLabel = [variationLabel, `Farbwahl: ${paletteNamesPicked.join(", ")}`]
+          .filter(Boolean)
+          .join(" + ");
+      }
+
       const unitPrice =
         (product.custom_text_pricing_mode === "per_character" &&
         product.custom_text_price_per_char_cents != null
           ? calcPerCharacterPriceCents(customText ?? "", product.custom_text_price_per_char_cents)
-          : baseCents) + extraCents;
+          : baseCents) + extraCents + paletteExtra;
       const lineTotal = unitPrice * quantity;
 
       const { data: inserted } = await db

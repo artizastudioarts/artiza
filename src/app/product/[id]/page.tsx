@@ -97,11 +97,34 @@ export default async function ProductPage({
     .from("special_colors")
     .select("*")
     .eq("active", true)
+    .eq("kind", "glitter")
     .order("sort_order", { ascending: true });
   const specialColors = ((specialColorRows as SpecialColor[]) ?? []).map((c) => ({
     ...c,
     name: locale === "en" ? c.name_en || c.name : c.name,
   }));
+
+  // Palette the customer can choose from (only when the product offers it).
+  let palette: { colors: SpecialColor[]; freeCount: number; extraCents: number } | null = null;
+  if (product.color_pick_enabled) {
+    const { data: paletteRows } = await supabasePublic
+      .from("special_colors")
+      .select("*")
+      .eq("active", true)
+      .eq("kind", "palette")
+      .order("sort_order", { ascending: true });
+    const colors = ((paletteRows as SpecialColor[]) ?? []).map((c) => ({
+      ...c,
+      name: locale === "en" ? c.name_en || c.name : c.name,
+    }));
+    if (colors.length > 0) {
+      palette = {
+        colors,
+        freeCount: product.color_pick_free_count ?? 3,
+        extraCents: product.color_pick_extra_cents ?? 45,
+      };
+    }
+  }
 
   const safetyContent = await getPageContent("product_safety", locale);
   const materialsText = (await getPageContent("product_materials", locale)).text ?? "";
@@ -147,7 +170,7 @@ export default async function ProductPage({
   return (
     <>
       <Header />
-      <ProductVariantProvider variations={variations} specialColors={specialColors}>
+      <ProductVariantProvider variations={variations} specialColors={specialColors} palette={palette}>
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
         <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge}
           initialIndex={Math.max(0, images.indexOf(product.image_url ?? ""))}

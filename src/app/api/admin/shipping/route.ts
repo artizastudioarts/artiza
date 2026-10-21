@@ -59,7 +59,12 @@ export async function PATCH(req: NextRequest) {
   }
 
   // Updating the flat custom-box shipping fee or its minimum order value
-  if (body.setting === "custom_box_shipping_cents" || body.setting === "custom_box_min_order_cents") {
+  if (
+    body.setting === "custom_box_shipping_cents" ||
+    body.setting === "custom_box_min_order_cents" ||
+    body.setting === "custom_box_color_free_count" ||
+    body.setting === "custom_box_color_extra_cents"
+  ) {
     const db = supabaseAdmin();
     const { error } = await db
       .from("shipping_settings")

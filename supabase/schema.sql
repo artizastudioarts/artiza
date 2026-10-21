@@ -859,3 +859,14 @@ alter table special_colors enable row level security;
 drop policy if exists "Public can view active special colors" on special_colors;
 create policy "Public can view active special colors" on special_colors
   for select using (active = true);
+
+
+-- Pick your own colors (migration #45)
+alter table special_colors add column if not exists kind text not null default 'glitter';
+alter table products
+  add column if not exists color_pick_enabled boolean not null default false,
+  add column if not exists color_pick_free_count integer not null default 3,
+  add column if not exists color_pick_extra_cents integer not null default 45;
+alter table shipping_settings
+  add column if not exists custom_box_color_free_count integer not null default 3,
+  add column if not exists custom_box_color_extra_cents integer not null default 45;

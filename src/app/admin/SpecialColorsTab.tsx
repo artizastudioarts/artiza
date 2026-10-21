@@ -15,16 +15,17 @@ type Draft = { name: string; name_en: string; hex: string; price: string; active
 
 const inputClass = "border border-line px-3 py-2 bg-paper text-sm w-full";
 
-export default function SpecialColorsTab() {
+export default function SpecialColorsTab({ kind = "glitter" }: { kind?: "glitter" | "palette" }) {
+  const isPalette = kind === "palette";
   const [rows, setRows] = useState<Row[] | null>(null);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [newColor, setNewColor] = useState<Draft>({ name: "", name_en: "", hex: "#d4af37", price: "0.50", active: true });
+  const [newColor, setNewColor] = useState<Draft>({ name: "", name_en: "", hex: isPalette ? "#e6b800" : "#d4af37", price: "0.50", active: true });
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
 
   function load() {
-    fetch("/api/admin/special-colors")
+    fetch(`/api/admin/special-colors?kind=${kind}`)
       .then(async (res) => {
         const d = await res.json();
         if (!res.ok) {
@@ -68,7 +69,7 @@ export default function SpecialColorsTab() {
     const res = await fetch("/api/admin/special-colors", {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...(body as object), kind }),
     });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
@@ -83,23 +84,34 @@ export default function SpecialColorsTab() {
 
   async function add() {
     const ok = await call("POST", newColor, "Color added.");
-    if (ok) setNewColor({ name: "", name_en: "", hex: "#d4af37", price: "0.50", active: true });
+    if (ok) setNewColor({ name: "", name_en: "", hex: isPalette ? "#e6b800" : "#d4af37", price: "0.50", active: true });
   }
 
   return (
     <div className="max-w-3xl space-y-8">
       <p className="text-ink-soft text-sm">
-        Special add-on colors (for example glitter colors) that customers can add to <strong>every</strong>{" "}
-        product. On each product page they see the colors below with their price; every color they
-        choose is added to the price <strong>per set</strong> and shown on the order, the invoice and the
-        emails. Nothing appears on the product pages until you add at least one active color.
+        {isPalette ? (
+          <>
+            The colors customers can <strong>choose from</strong> on products where you switched on
+            &ldquo;Customer picks colors&rdquo; (Admin &rarr; Products) and in the make-your-own box. How many
+            colors are free and what each extra color costs is set on the product / in the Custom box
+            tab. The chosen colors are shown on the order, the invoice and the emails.
+          </>
+        ) : (
+          <>
+            Special add-on colors (for example glitter colors) that customers can add to <strong>every</strong>{" "}
+            product. On each product page they see the colors below with their price; every color they
+            choose is added to the price <strong>per set</strong> and shown on the order, the invoice and the
+            emails. Nothing appears on the product pages until you add at least one active color.
+          </>
+        )}
       </p>
 
       {error && <p className="text-sm text-oxblood">{error}</p>}
       {notice && <p className="text-sm text-ink-soft">{notice}</p>}
 
       <div className="border border-line p-4 space-y-3">
-        <p className="placard-label text-ink-soft">Add a special color</p>
+        <p className="placard-label text-ink-soft">{isPalette ? "Add a palette color" : "Add a special color"}</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm">
             Name (German)
@@ -128,17 +140,19 @@ export default function SpecialColorsTab() {
               onChange={(e) => setNewColor({ ...newColor, hex: e.target.value })}
             />
           </label>
-          <label className="text-sm">
-            Price per color (€)
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              className={inputClass}
-              value={newColor.price}
-              onChange={(e) => setNewColor({ ...newColor, price: e.target.value })}
-            />
-          </label>
+          {!isPalette && (
+            <label className="text-sm">
+              Price per color (€)
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                className={inputClass}
+                value={newColor.price}
+                onChange={(e) => setNewColor({ ...newColor, price: e.target.value })}
+              />
+            </label>
+          )}
         </div>
         <button
           onClick={add}
@@ -150,7 +164,7 @@ export default function SpecialColorsTab() {
       </div>
 
       <div className="space-y-4">
-        <p className="placard-label text-ink-soft">Your special colors</p>
+        <p className="placard-label text-ink-soft">{isPalette ? "Your palette colors" : "Your special colors"}</p>
         {rows === null ? (
           <p className="text-sm text-ink-soft">Loading…</p>
         ) : rows.length === 0 ? (
@@ -179,17 +193,19 @@ export default function SpecialColorsTab() {
                       onChange={(e) => setDraft(c.id, { hex: e.target.value })}
                     />
                   </label>
-                  <label className="text-sm">
-                    Price per color (€)
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className={inputClass}
-                      value={d.price}
-                      onChange={(e) => setDraft(c.id, { price: e.target.value })}
-                    />
-                  </label>
+                  {!isPalette && (
+                    <label className="text-sm">
+                      Price per color (€)
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className={inputClass}
+                        value={d.price}
+                        onChange={(e) => setDraft(c.id, { price: e.target.value })}
+                      />
+                    </label>
+                  )}
                 </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input

@@ -15,7 +15,16 @@ type Ctx = {
   specialColors: SpecialColor[];
   pickedColorIds: string[];
   toggleColor: (id: string) => void;
+  // Palette colors the customer picks for this product (null when the product does not offer it).
+  palette: PaletteConfig | null;
+  pickedPaletteIds: string[];
+  togglePalette: (id: string) => void;
 };
+
+export type PaletteConfig = { colors: SpecialColor[]; freeCount: number; extraCents: number };
+
+/** Most palette colors one set can carry. */
+export const MAX_PALETTE_PICKS = 12;
 
 const VariantContext = createContext<Ctx | null>(null);
 
@@ -26,10 +35,12 @@ export function useProductVariant() {
 export default function ProductVariantProvider({
   variations,
   specialColors = [],
+  palette = null,
   children,
 }: {
   variations: ProductVariation[];
   specialColors?: SpecialColor[];
+  palette?: PaletteConfig | null;
   children: ReactNode;
 }) {
   // The option marked "default" in the admin is preselected; if none is
@@ -41,9 +52,30 @@ export default function ProductVariantProvider({
   function toggleColor(id: string) {
     setPickedColorIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
+  const [pickedPaletteIds, setPickedPaletteIds] = useState<string[]>([]);
+  function togglePalette(id: string) {
+    setPickedPaletteIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= MAX_PALETTE_PICKS
+          ? prev
+          : [...prev, id]
+    );
+  }
   return (
     <VariantContext.Provider
-      value={{ variations, selectedId, select: setSelectedId, selected, specialColors, pickedColorIds, toggleColor }}
+      value={{
+        variations,
+        selectedId,
+        select: setSelectedId,
+        selected,
+        specialColors,
+        pickedColorIds,
+        toggleColor,
+        palette,
+        pickedPaletteIds,
+        togglePalette,
+      }}
     >
       {children}
     </VariantContext.Provider>

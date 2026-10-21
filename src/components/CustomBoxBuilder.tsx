@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { CustomBoxCategory, CustomBoxArticle, formatPrice } from "@/lib/types";
+import { CustomBoxCategory, CustomBoxArticle, SpecialColor, formatPrice } from "@/lib/types";
+import PaletteColorGrid from "@/components/PaletteColorGrid";
+import { paletteExtraCents } from "@/lib/specialColors";
 import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
 
@@ -12,12 +14,19 @@ export default function CustomBoxBuilder({
   categories,
   articles,
   minOrderCents,
+  paletteColors = [],
+  colorFreeCount = 3,
+  colorExtraCents = 45,
   currency,
   dict,
 }: {
   categories: CustomBoxCategory[];
   articles: CustomBoxArticle[];
   minOrderCents: number;
+  // Colors the customer can choose for the whole box (empty = not offered).
+  paletteColors?: SpecialColor[];
+  colorFreeCount?: number;
+  colorExtraCents?: number;
   currency: string;
   dict: Dictionary;
 }) {
@@ -26,6 +35,13 @@ export default function CustomBoxBuilder({
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState("");
   const [added, setAdded] = useState(false);
+  const [pickedColorIds, setPickedColorIds] = useState<string[]>([]);
+
+  function toggleColor(id: string) {
+    setPickedColorIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= 12 ? prev : [...prev, id]
+    );
+  }
 
   function setQty(articleId: string, qty: number) {
     setQuantities((prev) => ({ ...prev, [articleId]: Math.max(0, qty) }));
@@ -48,7 +64,14 @@ export default function CustomBoxBuilder({
     0
   );
   const meetsMinimum = totalCents >= minOrderCents;
-  const canAdd = selectedArticles.length > 0 && meetsMinimum;
+  // Colors for the whole box: the first few free, the rest cost extra (added on top of the minimum check).
+  const colorsOffered = paletteColors.length > 0;
+  const colorExtra = colorsOffered
+    ? paletteExtraCents(pickedColorIds.length, colorFreeCount, colorExtraCents)
+    : 0;
+  const grandTotalCents = totalCents + colorExtra;
+  const colorsOk = !colorsOffered || pickedColorIds.length > 0;
+  const canAdd = selectedArticles.length > 0 && meetsMinimum && colorsOk;
 
   function handleAdd() {
     if (!canAdd) return;
@@ -65,7 +88,7 @@ export default function CustomBoxBuilder({
       {
         id: crypto.randomUUID(),
         title: dict.customBox.cartTitle,
-        price_cents: totalCents,
+        price_cents: grandTotalCents,
         currency,
         image_url: null,
         isCustomBox: true,
@@ -74,6 +97,12 @@ export default function CustomBoxBuilder({
           quantity: quantities[a.id] ?? 0,
         })),
         customBoxNotes: notes.trim() || undefined,
+        paletteColorIds: colorsOffered ? pickedColorIds : undefined,
+        paletteColorLabels: colorsOffered
+          ? pickedColorIds
+              .map((id) => paletteColors.find((c) => c.id === id)?.name)
+              .filter((n): n is string => !!n)
+          : undefined,
         customBoxSummary: summary,
       },
       1
@@ -149,6 +178,18 @@ export default function CustomBoxBuilder({
         </div>
       ))}
 
+      {colorsOffered && (
+        <PaletteColorGrid
+          colors={paletteColors}
+          pickedIds={pickedColorIds}
+          onToggle={toggleColor}
+          freeCount={colorFreeCount}
+          extraCents={colorExtraCents}
+          currency={currency}
+          dict={dict}
+        />
+      )}
+
       <div>
         <label className="placard-label text-ink-soft block mb-1">
           {dict.customBox.notesLabel}
@@ -165,7 +206,7 @@ export default function CustomBoxBuilder({
       <div className="border-t border-line pt-6 space-y-3">
         <div className="flex items-center justify-between">
           <span className="placard-label text-ink-soft">{dict.customBox.totalLabel}</span>
-          <span className="font-display text-xl">{formatPrice(totalCents, currency)}</span>
+          <span className="font-display text-xl">{formatPrice(grandTotalCents, currency)}</span>
         </div>
         {!meetsMinimum && (
           <p className="text-sm text-oxblood">

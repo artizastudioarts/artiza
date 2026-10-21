@@ -62,6 +62,9 @@ type Product = {
   badge: ProductBadge | null;
   weight_grams: number | null;
   custom_text_enabled: boolean;
+  color_pick_enabled?: boolean;
+  color_pick_free_count?: number;
+  color_pick_extra_cents?: number;
   custom_text_max_length: number | null;
   custom_text_label: string | null;
   custom_text_label_en: string | null;
@@ -102,6 +105,7 @@ export default function AdminDashboard() {
     | "withdrawals"
     | "users"
     | "specialColors"
+    | "colorPalette"
   >("orders");
 
   return (
@@ -164,6 +168,14 @@ export default function AdminDashboard() {
             }`}
           >
             Shipping
+          </button>
+          <button
+            onClick={() => setTab("colorPalette")}
+            className={`placard-label px-4 py-2 border border-line ${
+              tab === "colorPalette" ? "bg-ink text-paper" : ""
+            }`}
+          >
+            Color palette
           </button>
           <button
             onClick={() => setTab("specialColors")}
@@ -255,7 +267,9 @@ export default function AdminDashboard() {
       ) : tab === "shipping" ? (
         <ShippingTab />
       ) : tab === "specialColors" ? (
-        <SpecialColorsTab />
+        <SpecialColorsTab key="glitter" kind="glitter" />
+      ) : tab === "colorPalette" ? (
+        <SpecialColorsTab key="palette" kind="palette" />
       ) : tab === "customBox" ? (
         <CustomBoxTab />
       ) : tab === "invoices" ? (
@@ -792,6 +806,9 @@ function ProductForm({
         ? product.custom_text_min_length.toString()
         : "1",
     variations_enabled: product?.variations_enabled ?? false,
+    color_pick_enabled: product?.color_pick_enabled ?? false,
+    color_pick_free_count: (product?.color_pick_free_count ?? 3).toString(),
+    color_pick_extra_cents: ((product?.color_pick_extra_cents ?? 45) / 100).toFixed(2),
   });
   const [variations, setVariations] = useState<ProductVariation[]>([]);
   const [variationsLoaded, setVariationsLoaded] = useState(!product);
@@ -933,6 +950,8 @@ function ProductForm({
       const custom_text_min_length = form.custom_text_min_length
         ? Math.max(1, Math.round(Number(form.custom_text_min_length)))
         : 1;
+      const color_pick_free_count = Math.max(0, Math.round(Number(form.color_pick_free_count) || 0));
+      const color_pick_extra_cents = Math.max(0, Math.round((Number(form.color_pick_extra_cents) || 0) * 100));
       const custom_text_price_per_char_cents =
         form.custom_text_pricing_mode === "per_character" && form.custom_text_price_per_char_cents
           ? Math.round(Number(form.custom_text_price_per_char_cents) * 100)
@@ -950,6 +969,8 @@ function ProductForm({
                 weight_grams,
                 custom_text_max_length,
                 custom_text_min_length,
+                color_pick_free_count,
+                color_pick_extra_cents,
                 custom_text_price_per_char_cents,
                 image_url,
                 image_urls,
@@ -960,6 +981,8 @@ function ProductForm({
                 weight_grams,
                 custom_text_max_length,
                 custom_text_min_length,
+                color_pick_free_count,
+                color_pick_extra_cents,
                 custom_text_price_per_char_cents,
                 image_url,
                 image_urls,
@@ -1119,6 +1142,43 @@ function ProductForm({
           onChange={(e) => setForm({ ...form, weight_grams: e.target.value })}
           className="w-full border border-line px-3 py-2 bg-paper"
         />
+      </div>
+      <div className="border border-line p-3 space-y-3">
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={form.color_pick_enabled}
+            onChange={(e) => setForm({ ...form, color_pick_enabled: e.target.checked })}
+          />
+          <span className="placard-label text-ink-soft">
+            Customer picks colors from the palette (Admin → Color palette)
+          </span>
+        </label>
+        {form.color_pick_enabled && (
+          <div className="flex gap-4 flex-wrap">
+            <div>
+              <label className="placard-label text-ink-soft block mb-1">Free colors</label>
+              <input
+                type="number"
+                min={0}
+                value={form.color_pick_free_count}
+                onChange={(e) => setForm({ ...form, color_pick_free_count: e.target.value })}
+                className="w-24 border border-line px-3 py-2 bg-paper"
+              />
+            </div>
+            <div>
+              <label className="placard-label text-ink-soft block mb-1">Price per extra color (€)</label>
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                value={form.color_pick_extra_cents}
+                onChange={(e) => setForm({ ...form, color_pick_extra_cents: e.target.value })}
+                className="w-24 border border-line px-3 py-2 bg-paper"
+              />
+            </div>
+          </div>
+        )}
       </div>
       <div className="border border-line p-3 space-y-3">
         <label className="flex items-center gap-2">
@@ -2599,6 +2659,8 @@ function CustomBoxTab() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [shippingCents, setShippingCents] = useState("");
   const [minOrderCents, setMinOrderCents] = useState("");
+  const [colorFree, setColorFree] = useState("3");
+  const [colorExtra, setColorExtra] = useState("0.45");
   const [savingSettings, setSavingSettings] = useState(false);
   const [newArticle, setNewArticle] = useState<
     Record<string, { label: string; label_en: string; price: string }>
@@ -2616,6 +2678,8 @@ function CustomBoxTab() {
       .then((d) => {
         setShippingCents(((d.settings?.custom_box_shipping_cents ?? 0) / 100).toString());
         setMinOrderCents(((d.settings?.custom_box_min_order_cents ?? 0) / 100).toString());
+        setColorFree(String(d.settings?.custom_box_color_free_count ?? 3));
+        setColorExtra(((d.settings?.custom_box_color_extra_cents ?? 45) / 100).toFixed(2));
       });
   }
 
@@ -2638,6 +2702,22 @@ function CustomBoxTab() {
         body: JSON.stringify({
           setting: "custom_box_min_order_cents",
           value: Math.round(Number(minOrderCents) * 100),
+        }),
+      }),
+      fetch("/api/admin/shipping", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setting: "custom_box_color_free_count",
+          value: Math.max(0, Math.round(Number(colorFree) || 0)),
+        }),
+      }),
+      fetch("/api/admin/shipping", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          setting: "custom_box_color_extra_cents",
+          value: Math.max(0, Math.round((Number(colorExtra) || 0) * 100)),
         }),
       }),
     ]);
@@ -2767,6 +2847,27 @@ function CustomBoxTab() {
             step="0.01"
             value={minOrderCents}
             onChange={(e) => setMinOrderCents(e.target.value)}
+            className="w-28 border border-line px-2 py-1 bg-paper"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="w-56 text-sm">Free colors per box (palette)</label>
+          <input
+            type="number"
+            min={0}
+            value={colorFree}
+            onChange={(e) => setColorFree(e.target.value)}
+            className="w-28 border border-line px-2 py-1 bg-paper"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="w-56 text-sm">Price per extra color (€)</label>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={colorExtra}
+            onChange={(e) => setColorExtra(e.target.value)}
             className="w-28 border border-line px-2 py-1 bg-paper"
           />
         </div>

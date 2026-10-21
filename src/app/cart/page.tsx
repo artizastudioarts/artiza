@@ -47,12 +47,14 @@ export default function CartPage() {
               customText: i.customText,
               variationId: i.variationId,
               specialColorIds: i.specialColorIds,
+              paletteColorIds: i.paletteColorIds,
             })),
           customBoxes: items
             .filter((i) => i.isCustomBox)
             .map((i) => ({
               articles: i.customBoxArticles ?? [],
               notes: i.customBoxNotes,
+              colorIds: i.paletteColorIds,
               quantity: i.quantity,
             })),
           // Only sent when logged in — lets the order be linked to the
@@ -101,6 +103,11 @@ export default function CartPage() {
                     {item.specialColorLabels && item.specialColorLabels.length > 0 && (
                       <p className="text-sm text-ink-soft italic">
                         {dict.cart.specialColorsLabel}: {item.specialColorLabels.join(", ")}
+                      </p>
+                    )}
+                    {item.paletteColorLabels && item.paletteColorLabels.length > 0 && (
+                      <p className="text-sm text-ink-soft italic">
+                        {dict.cart.colorPickLabel}: {item.paletteColorLabels.join(", ")}
                       </p>
                     )}
                     {item.customText && (

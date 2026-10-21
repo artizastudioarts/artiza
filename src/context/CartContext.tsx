@@ -24,6 +24,9 @@ export type CartItem = {
   // the checkout re-resolves the real prices server-side from the ids).
   specialColorIds?: string[];
   specialColorLabels?: string[];
+  // Colors picked from the palette (product or whole custom box), in the order chosen.
+  paletteColorIds?: string[];
+  paletteColorLabels?: string[];
   isCustomBox?: boolean;
   customBoxArticles?: { articleId: string; quantity: number }[];
   customBoxNotes?: string;
@@ -32,9 +35,16 @@ export type CartItem = {
   customBoxSummary?: CustomBoxOrderItem[];
 };
 
-function buildCartItemId(productId: string, customText?: string, variationId?: string, specialColorIds?: string[]) {
+function buildCartItemId(
+  productId: string,
+  customText?: string,
+  variationId?: string,
+  specialColorIds?: string[],
+  paletteColorIds?: string[]
+) {
   const colors = [...(specialColorIds ?? [])].sort().join(",");
-  return `${productId}::${customText ?? ""}::${variationId ?? ""}::${colors}`;
+  const palette = [...(paletteColorIds ?? [])].sort().join(",");
+  return `${productId}::${customText ?? ""}::${variationId ?? ""}::${colors}::${palette}`;
 }
 
 type CartContextType = {
@@ -77,7 +87,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     item: Omit<CartItem, "quantity" | "cartItemId">,
     quantity = 1
   ) {
-    const cartItemId = buildCartItemId(item.id, item.customText, item.variationId, item.specialColorIds);
+    const cartItemId = buildCartItemId(item.id, item.customText, item.variationId, item.specialColorIds, item.paletteColorIds);
     setItems((prev) => {
       const existing = prev.find((i) => i.cartItemId === cartItemId);
       if (existing) {

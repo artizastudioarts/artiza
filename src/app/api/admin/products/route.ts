@@ -39,6 +39,9 @@ export async function POST(req: NextRequest) {
       custom_text_price_per_char_cents: body.custom_text_price_per_char_cents ?? null,
       custom_text_min_length: body.custom_text_min_length ?? 1,
       variations_enabled: !!body.variations_enabled,
+      color_pick_enabled: !!body.color_pick_enabled,
+      color_pick_free_count: body.color_pick_free_count ?? 3,
+      color_pick_extra_cents: body.color_pick_extra_cents ?? 45,
     })
     .select()
     .single();
