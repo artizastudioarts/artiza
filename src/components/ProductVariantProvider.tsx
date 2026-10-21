@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { ProductVariation, formatPrice } from "@/lib/types";
+import { ProductVariation, SpecialColor, formatPrice } from "@/lib/types";
 
 // Shares the customer's chosen option (variation) between the photo
 // gallery, the price, the option buttons and the "What's in the box"
@@ -11,6 +11,10 @@ type Ctx = {
   selectedId: string;
   select: (id: string) => void;
   selected: ProductVariation | undefined;
+  // Optional paid add-on colors (glitter etc.) and which ones the customer ticked.
+  specialColors: SpecialColor[];
+  pickedColorIds: string[];
+  toggleColor: (id: string) => void;
 };
 
 const VariantContext = createContext<Ctx | null>(null);
@@ -21,9 +25,11 @@ export function useProductVariant() {
 
 export default function ProductVariantProvider({
   variations,
+  specialColors = [],
   children,
 }: {
   variations: ProductVariation[];
+  specialColors?: SpecialColor[];
   children: ReactNode;
 }) {
   // The option marked "default" in the admin is preselected; if none is
@@ -31,9 +37,13 @@ export default function ProductVariantProvider({
   const initial = (variations.find((v) => v.is_default) ?? variations[0])?.id ?? "";
   const [selectedId, setSelectedId] = useState(initial);
   const selected = variations.find((v) => v.id === selectedId);
+  const [pickedColorIds, setPickedColorIds] = useState<string[]>([]);
+  function toggleColor(id: string) {
+    setPickedColorIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
   return (
     <VariantContext.Provider
-      value={{ variations, selectedId, select: setSelectedId, selected }}
+      value={{ variations, selectedId, select: setSelectedId, selected, specialColors, pickedColorIds, toggleColor }}
     >
       {children}
     </VariantContext.Provider>

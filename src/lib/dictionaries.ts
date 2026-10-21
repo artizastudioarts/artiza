@@ -73,6 +73,8 @@ export type Dictionary = {
     specialColorsHeading: string;
     specialColorsAsk: string;
     specialColorsTotal: string; // template with {n}, {total}
+    specialColorsSummary: string; // template with {n}, {total}
+    specialColorsIncluded: string; // label shown before the colors already in the set
     descriptionHeading: string;
     boxHeading: string;
     colorsIncluded: string;
@@ -376,9 +378,11 @@ const de: Dictionary = {
     customTextPriceRate: "{rate} pro Zeichen",
     customTextComputedTotal: "Gesamt: {total}",
     chooseVariation: "Wähle eine Option",
-    specialColorsHeading: "Glitzer-Spezialfarben",
-    specialColorsAsk: "Möchtest du Glitzer-Spezialfarben zu deinem Set dazubestellen? Jede gewählte Farbe wird dem Set zusätzlich beigelegt.",
-    specialColorsTotal: "{n} Spezialfarbe(n): +{total} pro Set",
+    specialColorsHeading: "Zusätzliche Glitzer-Spezialfarben (optional)",
+    specialColorsAsk: "Die Farben deines Sets sind bereits im Preis enthalten. Diese Glitzerfarben sind ein Extra: Wähle sie nur, wenn du sie zusätzlich zu den enthaltenen Farben haben möchtest. Jede Farbe wird dem Set zusätzlich beigelegt.",
+    specialColorsTotal: "{n} Zusatzfarbe(n): +{total} pro Set",
+    specialColorsSummary: "Inklusive {n} Glitzer-Spezialfarbe(n) als Zusatz: +{total} pro Set",
+    specialColorsIncluded: "Bereits im Preis enthalten:",
     descriptionHeading: "Produktbeschreibung",
     boxHeading: "Was ist in der Box?",
     colorsIncluded: "Enthaltene Farben bei dieser Option",
@@ -734,9 +738,11 @@ const en: Dictionary = {
     customTextPriceRate: "{rate} per character",
     customTextComputedTotal: "Total: {total}",
     chooseVariation: "Choose an option",
-    specialColorsHeading: "Special glitter colors",
-    specialColorsAsk: "Would you like special glitter colors added to your set? Each color you choose is added to the set as an extra.",
-    specialColorsTotal: "{n} special color(s): +{total} per set",
+    specialColorsHeading: "Extra glitter colors (optional)",
+    specialColorsAsk: "The colors in your set are already included in the price. These glitter colors are an extra: choose them only if you want them on top of the included colors. Each color is added to your set as an extra.",
+    specialColorsTotal: "{n} extra color(s): +{total} per set",
+    specialColorsSummary: "Includes {n} extra glitter color(s): +{total} per set",
+    specialColorsIncluded: "Already included in the price:",
     descriptionHeading: "Product description",
     boxHeading: "What's in the box",
     colorsIncluded: "Colors included with this option",

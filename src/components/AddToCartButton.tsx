@@ -5,7 +5,7 @@ import { useProductVariant } from "@/components/ProductVariantProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { Product, ProductVariation, SpecialColor, MAX_CART_QTY, formatPrice } from "@/lib/types";
+import { Product, ProductVariation, MAX_CART_QTY, formatPrice } from "@/lib/types";
 import type { Dictionary } from "@/lib/dictionaries";
 import { interpolate } from "@/lib/i18n";
 import {
@@ -17,18 +17,15 @@ import {
 export default function AddToCartButton({
   product,
   variations = [],
-  specialColors = [],
   dict,
 }: {
   product: Product;
   variations?: ProductVariation[];
-  specialColors?: SpecialColor[];
   dict: Dictionary;
 }) {
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
   const [customText, setCustomText] = useState("");
-  const [pickedColorIds, setPickedColorIds] = useState<string[]>([]);
   const variant = useProductVariant();
   const [added, setAdded] = useState(false);
 
@@ -59,11 +56,12 @@ export default function AddToCartButton({
     ? calcPerCharacterPriceCents(trimmedCustomText, pricePerCharCents)
     : baseCents;
 
-  const pickedColors = specialColors.filter((c) => pickedColorIds.includes(c.id));
+  // The glitter / special colors are picked in their own box further down
+  // the page (shared through the same context).
+  const pickedColors = (variant?.specialColors ?? []).filter((c) =>
+    (variant?.pickedColorIds ?? []).includes(c.id)
+  );
   const specialExtraCents = pickedColors.reduce((sum, c) => sum + c.price_cents, 0);
-  function toggleColor(id: string) {
-    setPickedColorIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  }
 
   const meetsLength =
     trimmedCustomText.length > 0 && billableChars >= minLength;
@@ -182,53 +180,13 @@ export default function AddToCartButton({
           )}
         </div>
       )}
-      {specialColors.length > 0 && (
-        <div className="border border-line p-4">
-          <p className="placard-label mb-1">{dict.product.specialColorsHeading}</p>
-          <p className="text-sm text-ink-soft mb-3">{dict.product.specialColorsAsk}</p>
-          <div className="flex flex-wrap gap-2">
-            {specialColors.map((c) => {
-              const on = pickedColorIds.includes(c.id);
-              return (
-                <label
-                  key={c.id}
-                  className={`flex items-center gap-2 px-3 py-2 border-2 cursor-pointer transition-colors focus-within:outline-2 focus-within:outline-brand ${
-                    on ? "border-brand bg-paper-dim" : "border-line hover:border-brand"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    className="sr-only"
-                    checked={on}
-                    onChange={() => toggleColor(c.id)}
-                  />
-                  <span
-                    aria-hidden="true"
-                    className="w-5 h-5 rounded-full border border-ink/30 shrink-0"
-                    style={{ background: c.hex || "#dddddd" }}
-                  />
-                  <span className="text-sm font-semibold leading-tight">{c.name}</span>
-                  <span className="text-xs text-ink-soft">
-                    +{formatPrice(c.price_cents, product.currency)}
-                  </span>
-                  {on && (
-                    <span aria-hidden="true" className="text-brand font-bold">
-                      ✓
-                    </span>
-                  )}
-                </label>
-              );
-            })}
-          </div>
-          {pickedColors.length > 0 && (
-            <p className="placard-label mt-3">
-              {interpolate(dict.product.specialColorsTotal, {
-                n: pickedColors.length,
-                total: formatPrice(specialExtraCents, product.currency),
-              })}
-            </p>
-          )}
-        </div>
+      {pickedColors.length > 0 && (
+        <p className="text-sm text-ink-soft">
+          {interpolate(dict.product.specialColorsSummary, {
+            n: pickedColors.length,
+            total: formatPrice(specialExtraCents, product.currency),
+          })}
+        </p>
       )}
       <div className="flex items-center gap-3">
         <select

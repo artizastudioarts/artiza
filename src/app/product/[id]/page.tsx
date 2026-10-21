@@ -10,6 +10,7 @@ import MadeInGermanyBadge from "@/components/MadeInGermanyBadge";
 import ProductSafetyNotice from "@/components/ProductSafetyNotice";
 import ProductVariantProvider, { SelectedVariationPrice } from "@/components/ProductVariantProvider";
 import ProductDetailsAccordions from "@/components/ProductDetailsAccordions";
+import SpecialColorsPicker from "@/components/SpecialColorsPicker";
 import ShippingNote from "@/components/ShippingNote";
 import { getVariationFromPrices } from "@/lib/getVariationFromPrices";
 import { getPageContent } from "@/lib/getPageContent";
@@ -146,7 +147,7 @@ export default async function ProductPage({
   return (
     <>
       <Header />
-      <ProductVariantProvider variations={variations}>
+      <ProductVariantProvider variations={variations} specialColors={specialColors}>
       <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
         <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge}
           initialIndex={Math.max(0, images.indexOf(product.image_url ?? ""))}
@@ -184,7 +185,7 @@ export default async function ProductPage({
               </p>
             )}
           </div>
-          <AddToCartButton product={displayProduct} variations={variations} specialColors={specialColors} dict={dict} />
+          <AddToCartButton product={displayProduct} variations={variations} dict={dict} />
 
           <ShippingNote text={shippingNote} className="mt-4" />
 
@@ -193,6 +194,8 @@ export default async function ProductPage({
             materials={materialsText}
             dict={dict}
           />
+
+          <SpecialColorsPicker currency={product.currency} dict={dict} />
 
           <div className="mt-8">
             <MadeInGermanyBadge locale={locale} className="w-20 h-20" />
