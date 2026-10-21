@@ -171,12 +171,12 @@ export default async function ProductPage({
     <>
       <Header />
       <ProductVariantProvider variations={variations} specialColors={specialColors} palette={palette}>
-      <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid md:grid-cols-2 gap-12">
+      <main className="max-w-6xl mx-auto px-6 py-14 flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-12">
         <ProductGallery images={images} title={display.title ?? ""} dict={dict} badge={product.badge}
           initialIndex={Math.max(0, images.indexOf(product.image_url ?? ""))}
         />
 
-        <div className="max-w-md">
+        <div className="max-w-md min-w-0">
           <p className="placard-label text-ink-soft mb-3">
             {display.medium ?? dict.product.originalArtworkFallback}
           </p>

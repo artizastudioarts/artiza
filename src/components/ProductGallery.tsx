@@ -43,7 +43,7 @@ export default function ProductGallery({
   }
 
   return (
-    <div>
+    <div className="min-w-0">
       <div className="relative aspect-square bg-paper-dim">
         <Image
           src={images[active]}
@@ -55,7 +55,7 @@ export default function ProductGallery({
         <ProductBadgeRibbon badge={badge ?? null} dict={dict} />
       </div>
       {images.length > 1 && (
-        <div className="flex gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-3">
           {images.map((url, i) => (
             <button
               key={url}
