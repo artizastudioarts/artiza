@@ -46,6 +46,7 @@ export const metadata: Metadata = {
     title: "Artiza Studio — Paint-Your-Own Figures",
     description: "Paintable figure kits, shipped with care.",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    url: "/",
     type: "website",
   },
   twitter: {

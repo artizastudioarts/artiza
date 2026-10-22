@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: dict.shop.heading,
     description: dict.shop.body,
-    openGraph: { title: dict.shop.heading, description: dict.shop.body, images: OG_IMAGES },
+    openGraph: { title: dict.shop.heading, description: dict.shop.body, type: "website", url: "/shop", images: OG_IMAGES },
     twitter: { title: dict.shop.heading, description: dict.shop.body, images: TWITTER_IMAGES },
   };
 }

@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: headline,
     description: body,
-    openGraph: { title: headline, description: body, images: OG_IMAGES },
+    openGraph: { title: headline, description: body, type: "website", url: "/", images: OG_IMAGES },
     twitter: { title: headline, description: body, images: TWITTER_IMAGES },
   };
 }

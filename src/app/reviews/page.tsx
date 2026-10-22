@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: dict.reviews.pageTitle,
     description,
-    openGraph: { title: dict.reviews.pageTitle, description, images: OG_IMAGES },
+    openGraph: { title: dict.reviews.pageTitle, description, type: "website", url: "/reviews", images: OG_IMAGES },
     twitter: { title: dict.reviews.pageTitle, description, images: TWITTER_IMAGES },
   };
 }
