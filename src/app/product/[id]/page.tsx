@@ -1,4 +1,5 @@
 import { supabasePublic } from "@/lib/supabase";
+import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/ogDefaults";
 import { Product, ProductVariation, SpecialColor, formatPrice } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -48,12 +49,12 @@ export async function generateMetadata({
     openGraph: {
       title: display.title ?? undefined,
       description,
-      images: product.image_url ? [{ url: product.image_url }] : undefined,
+      images: product.image_url ? [{ url: product.image_url }] : OG_IMAGES,
     },
     twitter: {
       title: display.title ?? undefined,
       description,
-      images: product.image_url ? [product.image_url] : undefined,
+      images: product.image_url ? [product.image_url] : TWITTER_IMAGES,
     },
   };
 }

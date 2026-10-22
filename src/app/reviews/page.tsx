@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/ogDefaults";
 import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -20,8 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: dict.reviews.pageTitle,
     description,
-    openGraph: { title: dict.reviews.pageTitle, description },
-    twitter: { title: dict.reviews.pageTitle, description },
+    openGraph: { title: dict.reviews.pageTitle, description, images: OG_IMAGES },
+    twitter: { title: dict.reviews.pageTitle, description, images: TWITTER_IMAGES },
   };
 }
 

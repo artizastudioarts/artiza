@@ -1,4 +1,5 @@
 import { supabasePublic } from "@/lib/supabase";
+import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/ogDefaults";
 import { HomeContent } from "@/lib/types";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -36,8 +37,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: headline,
     description: body,
-    openGraph: { title: headline, description: body },
-    twitter: { title: headline, description: body },
+    openGraph: { title: headline, description: body, images: OG_IMAGES },
+    twitter: { title: headline, description: body, images: TWITTER_IMAGES },
   };
 }
 

@@ -1,4 +1,5 @@
 import { supabasePublic } from "@/lib/supabase";
+import { OG_IMAGES, TWITTER_IMAGES } from "@/lib/ogDefaults";
 import { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import Header from "@/components/Header";
@@ -18,8 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: dict.shop.heading,
     description: dict.shop.body,
-    openGraph: { title: dict.shop.heading, description: dict.shop.body },
-    twitter: { title: dict.shop.heading, description: dict.shop.body },
+    openGraph: { title: dict.shop.heading, description: dict.shop.body, images: OG_IMAGES },
+    twitter: { title: dict.shop.heading, description: dict.shop.body, images: TWITTER_IMAGES },
   };
 }
 

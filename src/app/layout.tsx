@@ -42,9 +42,6 @@ export const metadata: Metadata = {
   },
   description:
     "Paintable figure kits, shipped with care.",
-  icons: {
-    icon: "/logo.svg",
-  },
   openGraph: {
     title: "Artiza Studio — Paint-Your-Own Figures",
     description: "Paintable figure kits, shipped with care.",
